@@ -1,0 +1,2848 @@
+On branch slurm-bsc-sim-v17
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git checkout -- <file>..." to discard changes in working directory)
+
+	modified:   AUTHORS
+	modified:   BUILD.NOTES
+	deleted:    ChangeLog
+	modified:   DISCLAIMER
+	modified:   INSTALL
+	modified:   LICENSE.OpenSSL
+	modified:   META
+	modified:   Makefile.am
+	modified:   Makefile.in
+	modified:   NEWS
+	modified:   README.rst
+	modified:   RELEASE_NOTES
+	modified:   aclocal.m4
+	modified:   autogen.sh
+	modified:   auxdir/Makefile.am
+	modified:   auxdir/Makefile.in
+	modified:   auxdir/ax_lib_hdf5.m4
+	modified:   auxdir/compile
+	modified:   auxdir/config.guess
+	modified:   auxdir/config.sub
+	modified:   auxdir/depcomp
+	modified:   auxdir/install-sh
+	modified:   auxdir/libtool.m4
+	modified:   auxdir/ltmain.sh
+	modified:   auxdir/ltoptions.m4
+	modified:   auxdir/ltsugar.m4
+	modified:   auxdir/ltversion.m4
+	modified:   auxdir/lt~obsolete.m4
+	modified:   auxdir/missing
+	modified:   auxdir/slurm.m4
+	modified:   auxdir/test-driver
+	deleted:    auxdir/type_socklen_t.m4
+	modified:   auxdir/x_ac__system_configuration.m4
+	modified:   auxdir/x_ac_affinity.m4
+	deleted:    auxdir/x_ac_aix.m4
+	modified:   auxdir/x_ac_blcr.m4
+	modified:   auxdir/x_ac_bluegene.m4
+	deleted:    auxdir/x_ac_cflags.m4
+	modified:   auxdir/x_ac_cray.m4
+	modified:   auxdir/x_ac_databases.m4
+	modified:   auxdir/x_ac_debug.m4
+	deleted:    auxdir/x_ac_elan.m4
+	deleted:    auxdir/x_ac_federation.m4
+	modified:   auxdir/x_ac_freeipmi.m4
+	deleted:    auxdir/x_ac_gpl_licensed.m4
+	modified:   auxdir/x_ac_hwloc.m4
+	modified:   auxdir/x_ac_lua.m4
+	modified:   auxdir/x_ac_man2html.m4
+	modified:   auxdir/x_ac_munge.m4
+	modified:   auxdir/x_ac_ncurses.m4
+	modified:   auxdir/x_ac_nrt.m4
+	modified:   auxdir/x_ac_ofed.m4
+	modified:   auxdir/x_ac_pam.m4
+	modified:   auxdir/x_ac_printf_null.m4
+	modified:   auxdir/x_ac_ptrace.m4
+	modified:   auxdir/x_ac_readline.m4
+	modified:   auxdir/x_ac_rrdtool.m4
+	deleted:    auxdir/x_ac_setpgrp.m4
+	modified:   auxdir/x_ac_setproctitle.m4
+	modified:   auxdir/x_ac_sgi_job.m4
+	modified:   auxdir/x_ac_slurm_ssl.m4
+	deleted:    auxdir/x_ac_sun_const.m4
+	deleted:    auxdir/x_ac_xcpu.m4
+	modified:   config.h.in
+	deleted:    config.xml.in
+	modified:   configure
+	modified:   configure.ac
+	modified:   contribs/Makefile.am
+	modified:   contribs/Makefile.in
+	modified:   contribs/README
+	modified:   contribs/cray/Makefile.am
+	modified:   contribs/cray/Makefile.in
+	modified:   contribs/cray/opt_modulefiles_slurm.in
+	modified:   contribs/cray/pam_job.c
+	modified:   contribs/cray/slurm.conf.template
+	modified:   contribs/cray/slurmconfgen.py.in
+	deleted:    contribs/env_cache_builder.c
+	modified:   contribs/lua/Makefile.in
+	modified:   contribs/lua/job_submit.license.lua
+	modified:   contribs/lua/job_submit.lua
+	modified:   contribs/mic/Makefile.in
+	deleted:    contribs/mpich1.slurm.patch
+	modified:   contribs/pam/Makefile.am
+	modified:   contribs/pam/Makefile.in
+	modified:   contribs/pam/README
+	modified:   contribs/pam/pam_slurm.c
+	modified:   contribs/perlapi/Makefile.am
+	modified:   contribs/perlapi/Makefile.in
+	modified:   contribs/perlapi/common/msg.h
+	modified:   contribs/perlapi/libslurm/Makefile.am
+	modified:   contribs/perlapi/libslurm/Makefile.in
+	modified:   contribs/perlapi/libslurm/perl/Slurm.xs
+	modified:   contribs/perlapi/libslurm/perl/alloc.c
+	modified:   contribs/perlapi/libslurm/perl/bitstr.h
+	modified:   contribs/perlapi/libslurm/perl/conf.c
+	modified:   contribs/perlapi/libslurm/perl/job.c
+	modified:   contribs/perlapi/libslurm/perl/lib/Slurm.pm
+	modified:   contribs/perlapi/libslurm/perl/lib/Slurm/Bitstr.pm
+	modified:   contribs/perlapi/libslurm/perl/lib/Slurm/Constant.pm
+	modified:   contribs/perlapi/libslurm/perl/lib/Slurm/Stepctx.pm
+	modified:   contribs/perlapi/libslurm/perl/node.c
+	modified:   contribs/perlapi/libslurm/perl/partition.c
+	modified:   contribs/perlapi/libslurm/perl/reservation.c
+	modified:   contribs/perlapi/libslurm/perl/slurm-perl.h
+	modified:   contribs/perlapi/libslurm/perl/step.c
+	modified:   contribs/perlapi/libslurm/perl/step_ctx.c
+	modified:   contribs/perlapi/libslurm/perl/t/04-alloc.c
+	modified:   contribs/perlapi/libslurm/perl/t/05-signal.t
+	modified:   contribs/perlapi/libslurm/perl/t/06-complete.t
+	modified:   contribs/perlapi/libslurm/perl/t/07-spawn.t
+	modified:   contribs/perlapi/libslurm/perl/t/23-bitstr.t
+	modified:   contribs/perlapi/libslurm/perl/topo.c
+	modified:   contribs/perlapi/libslurm/perl/trigger.c
+	modified:   contribs/perlapi/libslurm/perl/typemap
+	modified:   contribs/perlapi/libslurmdb/Makefile.am
+	modified:   contribs/perlapi/libslurmdb/Makefile.in
+	modified:   contribs/perlapi/libslurmdb/perl/Makefile.PL.in
+	modified:   contribs/perlapi/libslurmdb/perl/Slurmdb.pm
+	modified:   contribs/perlapi/libslurmdb/perl/Slurmdb.xs
+	modified:   contribs/perlapi/libslurmdb/perl/cluster.c
+	modified:   contribs/perlapi/libslurmdb/perl/slurmdb-perl.h
+	modified:   contribs/perlapi/libslurmdb/perl/t/01-clusters_get.t
+	modified:   contribs/perlapi/libslurmdb/perl/t/02-report_cluster_account_by_user.t
+	modified:   contribs/perlapi/libslurmdb/perl/t/03-report_cluster_user_by_account.t
+	modified:   contribs/perlapi/libslurmdb/perl/t/04-report_job_sizes_grouped_by_top_account.t
+	modified:   contribs/perlapi/libslurmdb/perl/t/05-report_user_top_usage.t
+	deleted:    contribs/phpext/Makefile.am
+	deleted:    contribs/phpext/Makefile.in
+	deleted:    contribs/phpext/README
+	deleted:    contribs/phpext/slurm_php/AUTHORS
+	deleted:    contribs/phpext/slurm_php/DISCLAIMER
+	deleted:    contribs/phpext/slurm_php/LICENSE
+	deleted:    contribs/phpext/slurm_php/README
+	deleted:    contribs/phpext/slurm_php/RELEASE_NOTES
+	deleted:    contribs/phpext/slurm_php/config.m4.in
+	deleted:    contribs/phpext/slurm_php/slurm_php.c
+	deleted:    contribs/phpext/slurm_php/slurm_php.h
+	deleted:    contribs/phpext/slurm_php/tests/slurm_array_to_hostlist_basic.phpt
+	deleted:    contribs/phpext/slurm_php/tests/slurm_array_to_hostlist_error.phpt
+	deleted:    contribs/phpext/slurm_php/tests/slurm_get_control_configuration_keys_basic.phpt
+	deleted:    contribs/phpext/slurm_php/tests/slurm_get_control_configuration_values_basic.phpt
+	deleted:    contribs/phpext/slurm_php/tests/slurm_get_node_element_by_name_basic.phpt
+	deleted:    contribs/phpext/slurm_php/tests/slurm_get_node_element_by_name_error.phpt
+	deleted:    contribs/phpext/slurm_php/tests/slurm_get_node_elements_basic.phpt
+	deleted:    contribs/phpext/slurm_php/tests/slurm_get_node_names_basic.phpt
+	deleted:    contribs/phpext/slurm_php/tests/slurm_get_node_state_by_name_basic.phpt
+	deleted:    contribs/phpext/slurm_php/tests/slurm_get_node_state_by_name_error.phpt
+	deleted:    contribs/phpext/slurm_php/tests/slurm_get_node_states_basic.phpt
+	deleted:    contribs/phpext/slurm_php/tests/slurm_get_partition_node_names_basic.phpt
+	deleted:    contribs/phpext/slurm_php/tests/slurm_get_partition_node_names_error.phpt
+	deleted:    contribs/phpext/slurm_php/tests/slurm_get_specific_partition_info_basic.phpt
+	deleted:    contribs/phpext/slurm_php/tests/slurm_get_specific_partition_info_error.phpt
+	deleted:    contribs/phpext/slurm_php/tests/slurm_hostlist_to_array_basic.phpt
+	deleted:    contribs/phpext/slurm_php/tests/slurm_hostlist_to_array_error.phpt
+	deleted:    contribs/phpext/slurm_php/tests/slurm_load_job_information_basic.phpt
+	deleted:    contribs/phpext/slurm_php/tests/slurm_load_partition_jobs_basic.phpt
+	deleted:    contribs/phpext/slurm_php/tests/slurm_load_partition_jobs_error.phpt
+	deleted:    contribs/phpext/slurm_php/tests/slurm_ping_basic.phpt
+	deleted:    contribs/phpext/slurm_php/tests/slurm_ping_error.phpt
+	deleted:    contribs/phpext/slurm_php/tests/slurm_print_partition_names_basic.phpt
+	deleted:    contribs/phpext/slurm_php/tests/slurm_slurmd_status_basic.phpt
+	deleted:    contribs/phpext/slurm_php/tests/slurm_version_basic.phpt
+	modified:   contribs/pmi2/Makefile.am
+	modified:   contribs/pmi2/Makefile.in
+	modified:   contribs/pmi2/pmi2.h
+	modified:   contribs/pmi2/pmi2_api.c
+	modified:   contribs/pmi2/pmi2_util.h
+	modified:   contribs/pmi2/slurm/pmi2.h
+	modified:   contribs/pmi2/testpmi2.c
+	modified:   contribs/pmi2/testpmi2_put.c
+	deleted:    contribs/ptrace.patch
+	modified:   contribs/sgather/Makefile.in
+	modified:   contribs/sgather/sgather
+	modified:   contribs/simulator/sim_mgr.c
+	modified:   contribs/simulator/simqsnap.c
+	modified:   contribs/sjobexit/Makefile.in
+	modified:   contribs/sjstat
+	modified:   contribs/skilling.c
+	modified:   contribs/slurm_completion_help/slurm.vim
+	modified:   contribs/slurm_completion_help/slurm_completion.sh
+	deleted:    contribs/slurmdb-direct/Makefile.am
+	deleted:    contribs/slurmdb-direct/Makefile.in
+	deleted:    contribs/slurmdb-direct/config.slurmdb.pl
+	deleted:    contribs/slurmdb-direct/moab_2_slurmdb.pl
+	modified:   contribs/time_login.c
+	modified:   contribs/torque/Makefile.in
+	modified:   contribs/torque/mpiexec.pl
+	modified:   contribs/torque/pbsnodes.pl
+	modified:   contribs/torque/qalter.pl
+	modified:   contribs/torque/qdel.pl
+	modified:   contribs/torque/qhold.pl
+	modified:   contribs/torque/qrerun.pl
+	modified:   contribs/torque/qrls.pl
+	modified:   contribs/torque/qstat.pl
+	modified:   contribs/torque/qsub.pl
+	modified:   contribs/web_apps/chart_stats.cgi
+	modified:   doc/Makefile.am
+	modified:   doc/Makefile.in
+	deleted:    doc/bgl.report/Makefile
+	deleted:    doc/bgl.report/report.tex
+	deleted:    doc/bgl.report/smap.output
+	deleted:    doc/bgl.report/splncs.bst
+	deleted:    doc/clusterworld/Makefile
+	deleted:    doc/clusterworld/bio.txt
+	deleted:    doc/clusterworld/report.tex
+	deleted:    doc/clusterworld/sample.config
+	deleted:    doc/clusterworld/splncs.bst
+	deleted:    doc/common/Logo_for_papers.ps
+	deleted:    doc/common/Rule_and_address.ps
+	deleted:    doc/common/acm.cls
+	deleted:    doc/common/chngpage.sty
+	deleted:    doc/common/llncs.cls
+	deleted:    doc/common/llncs.dem
+	deleted:    doc/common/llncs.doc
+	deleted:    doc/common/llnlCoverPage.tex
+	deleted:    doc/common/project.bib
+	deleted:    doc/common/slurm.eps
+	deleted:    doc/figures/README
+	deleted:    doc/figures/allocate-init.dia
+	deleted:    doc/figures/allocate-init.eps
+	deleted:    doc/figures/arch.dia
+	deleted:    doc/figures/arch.eps
+	deleted:    doc/figures/arch2.eps
+	deleted:    doc/figures/comm.eps
+	deleted:    doc/figures/connections.dia
+	deleted:    doc/figures/connections.eps
+	deleted:    doc/figures/entities.dia
+	deleted:    doc/figures/entities.eps
+	deleted:    doc/figures/entities2.eps
+	deleted:    doc/figures/interactive-job-init.dia
+	deleted:    doc/figures/interactive-job-init.eps
+	deleted:    doc/figures/launch.eps
+	deleted:    doc/figures/ll.dat
+	deleted:    doc/figures/queued-job-init.dia
+	deleted:    doc/figures/queued-job-init.eps
+	deleted:    doc/figures/rms.dat
+	deleted:    doc/figures/slurm-arch.dia
+	deleted:    doc/figures/slurm-arch.eps
+	deleted:    doc/figures/slurm.dat
+	deleted:    doc/figures/times.eps
+	deleted:    doc/figures/times.gpl
+	deleted:    doc/figures/times.gpl.png
+	modified:   doc/html/Makefile.am
+	modified:   doc/html/Makefile.in
+	modified:   doc/html/accounting.shtml
+	modified:   doc/html/accounting_storageplugins.shtml
+	modified:   doc/html/acct_gather_energy_plugins.shtml
+	modified:   doc/html/acct_gather_profile_plugins.shtml
+	modified:   doc/html/api.shtml
+	modified:   doc/html/authplugins.shtml
+	modified:   doc/html/big_sys.shtml
+	modified:   doc/html/bluegene.shtml
+	deleted:    doc/html/bull.jpg
+	modified:   doc/html/cgroups.shtml
+	modified:   doc/html/checkpoint_blcr.shtml
+	modified:   doc/html/checkpoint_plugins.shtml
+	modified:   doc/html/configurator.easy.html.in
+	modified:   doc/html/configurator.html.in
+	modified:   doc/html/cons_res.shtml
+	modified:   doc/html/cons_res_share.shtml
+	modified:   doc/html/contributor.shtml
+	modified:   doc/html/core_spec.shtml
+	modified:   doc/html/core_spec_plugins.shtml
+	modified:   doc/html/cpu_management.shtml
+	modified:   doc/html/cray.shtml
+	modified:   doc/html/cray_alps.shtml
+	modified:   doc/html/crypto_plugins.shtml
+	modified:   doc/html/disclaimer.shtml
+	modified:   doc/html/dist_plane.shtml
+	modified:   doc/html/documentation.shtml
+	modified:   doc/html/download.shtml
+	deleted:    doc/html/dynalloc.shtml
+	modified:   doc/html/elastic_computing.shtml
+	modified:   doc/html/ext_sensorsplugins.shtml
+	modified:   doc/html/faq.shtml
+	modified:   doc/html/footer.txt
+	modified:   doc/html/gang_scheduling.shtml
+	modified:   doc/html/gres.shtml
+	modified:   doc/html/gres_design.shtml
+	modified:   doc/html/gres_plugins.shtml
+	modified:   doc/html/hdf5_profile_user_guide.shtml
+	modified:   doc/html/header.txt
+	modified:   doc/html/high_throughput.shtml
+	modified:   doc/html/ibm-pe.shtml
+	deleted:    doc/html/ibm.shtml
+	modified:   doc/html/job_array.shtml
+	modified:   doc/html/job_container_plugins.shtml
+	modified:   doc/html/job_exit_code.shtml
+	modified:   doc/html/job_launch.shtml
+	modified:   doc/html/job_submit_plugins.shtml
+	modified:   doc/html/jobacct_gatherplugins.shtml
+	modified:   doc/html/jobcompplugins.shtml
+	modified:   doc/html/launch_plugins.shtml
+	deleted:    doc/html/linuxstyles.css
+	deleted:    doc/html/lll.gif
+	modified:   doc/html/mail.shtml
+	modified:   doc/html/man_index.shtml
+	deleted:    doc/html/maui.shtml
+	modified:   doc/html/mc_support.shtml
+	modified:   doc/html/meetings.shtml
+	deleted:    doc/html/moab.shtml
+	modified:   doc/html/mpi_guide.shtml
+	modified:   doc/html/mpiplugins.shtml
+	modified:   doc/html/multi_cluster.shtml
+	modified:   doc/html/news.shtml
+	modified:   doc/html/overview.shtml
+	modified:   doc/html/platforms.shtml
+	modified:   doc/html/plugins.shtml
+	modified:   doc/html/power_save.shtml
+	modified:   doc/html/preempt.shtml
+	modified:   doc/html/preemption_plugins.shtml
+	modified:   doc/html/priority_multifactor.shtml
+	deleted:    doc/html/priority_multifactor2.shtml
+	modified:   doc/html/priority_plugins.shtml
+	modified:   doc/html/proctrack_plugins.shtml
+	modified:   doc/html/programmer_guide.shtml
+	modified:   doc/html/prolog_epilog.shtml
+	modified:   doc/html/publications.shtml
+	modified:   doc/html/qos.shtml
+	modified:   doc/html/quickstart.shtml
+	modified:   doc/html/quickstart_admin.shtml
+	modified:   doc/html/registration.shtml
+	modified:   doc/html/reservations.shtml
+	modified:   doc/html/resource_limits.shtml
+	deleted:    doc/html/review_release.html
+	modified:   doc/html/rpc.shtml
+	modified:   doc/html/sched_config.shtml
+	modified:   doc/html/schedplugins.shtml
+	modified:   doc/html/select_design.shtml
+	modified:   doc/html/selectplugins.shtml
+	modified:   doc/html/shtml2html.py
+	deleted:    doc/html/slurm_design.pdf
+	modified:   doc/html/slurm_ug_agenda.shtml
+	modified:   doc/html/slurm_ug_cfp.shtml
+	deleted:    doc/html/slurm_ug_registration.shtml
+	modified:   doc/html/slurmctld_plugstack.shtml
+	deleted:    doc/html/slurmstyles.css
+	deleted:    doc/html/sponsors.gif
+	deleted:    doc/html/sun_const.shtml
+	modified:   doc/html/switchplugins.shtml
+	modified:   doc/html/taskplugins.shtml
+	modified:   doc/html/team.shtml
+	modified:   doc/html/testimonials.shtml
+	modified:   doc/html/topology.shtml
+	modified:   doc/html/topology_plugin.shtml
+	modified:   doc/html/troubleshoot.shtml
+	modified:   doc/html/tutorials.shtml
+	deleted:    doc/jsspp/Makefile
+	deleted:    doc/jsspp/abstract.tex
+	deleted:    doc/jsspp/architecture.tex
+	deleted:    doc/jsspp/conclusions.tex
+	deleted:    doc/jsspp/interaction.tex
+	deleted:    doc/jsspp/intro.tex
+	deleted:    doc/jsspp/jsspp.tex
+	deleted:    doc/jsspp/perf.tex
+	deleted:    doc/jsspp/references.bib
+	deleted:    doc/jsspp/services.tex
+	deleted:    doc/jsspp/survey.tex
+	modified:   doc/man/Makefile.in
+	modified:   doc/man/man1/Makefile.am
+	modified:   doc/man/man1/Makefile.in
+	modified:   doc/man/man1/sacct.1
+	modified:   doc/man/man1/sacctmgr.1
+	modified:   doc/man/man1/salloc.1
+	modified:   doc/man/man1/sattach.1
+	modified:   doc/man/man1/sbatch.1
+	modified:   doc/man/man1/sbcast.1
+	modified:   doc/man/man1/scancel.1
+	modified:   doc/man/man1/scontrol.1
+	modified:   doc/man/man1/sdiag.1
+	modified:   doc/man/man1/sh5util.1
+	modified:   doc/man/man1/sinfo.1
+	modified:   doc/man/man1/slurm.1
+	modified:   doc/man/man1/smap.1
+	modified:   doc/man/man1/sprio.1
+	modified:   doc/man/man1/squeue.1
+	modified:   doc/man/man1/sreport.1
+	modified:   doc/man/man1/srun.1
+	modified:   doc/man/man1/srun_cr.1
+	modified:   doc/man/man1/sshare.1
+	modified:   doc/man/man1/sstat.1
+	modified:   doc/man/man1/strigger.1
+	modified:   doc/man/man1/sview.1
+	modified:   doc/man/man2html.py
+	modified:   doc/man/man3/Makefile.am
+	modified:   doc/man/man3/Makefile.in
+	modified:   doc/man/man3/slurm_allocate_resources.3
+	modified:   doc/man/man3/slurm_checkpoint_error.3
+	modified:   doc/man/man3/slurm_clear_trigger.3
+	modified:   doc/man/man3/slurm_complete_job.3
+	modified:   doc/man/man3/slurm_free_ctl_conf.3
+	modified:   doc/man/man3/slurm_free_front_end_info_msg.3
+	modified:   doc/man/man3/slurm_free_job_info_msg.3
+	modified:   doc/man/man3/slurm_free_job_step_info_response_msg.3
+	modified:   doc/man/man3/slurm_free_node_info.3
+	modified:   doc/man/man3/slurm_free_partition_info.3
+	modified:   doc/man/man3/slurm_get_errno.3
+	modified:   doc/man/man3/slurm_hostlist_create.3
+	modified:   doc/man/man3/slurm_job_step_create.3
+	modified:   doc/man/man3/slurm_kill_job.3
+	modified:   doc/man/man3/slurm_load_reservations.3
+	modified:   doc/man/man3/slurm_reconfigure.3
+	modified:   doc/man/man3/slurm_resume.3
+	modified:   doc/man/man3/slurm_slurmd_status.3
+	modified:   doc/man/man3/slurm_step_ctx_create.3
+	modified:   doc/man/man3/slurm_step_launch.3
+	modified:   doc/man/man3/slurm_update_job.3
+	modified:   doc/man/man5/Makefile.am
+	modified:   doc/man/man5/Makefile.in
+	modified:   doc/man/man5/acct_gather.conf.5
+	modified:   doc/man/man5/bluegene.conf.5
+	modified:   doc/man/man5/cgroup.conf.5
+	modified:   doc/man/man5/cray.conf.5
+	modified:   doc/man/man5/ext_sensors.conf.5
+	modified:   doc/man/man5/gres.conf.5
+	modified:   doc/man/man5/nonstop.conf.5
+	modified:   doc/man/man5/slurm.conf.5
+	modified:   doc/man/man5/slurmdbd.conf.5
+	modified:   doc/man/man5/topology.conf.5
+	deleted:    doc/man/man5/wiki.conf.5
+	modified:   doc/man/man8/Makefile.in
+	modified:   doc/man/man8/slurmctld.8
+	modified:   doc/man/man8/slurmd.8
+	modified:   doc/man/man8/slurmdbd.8
+	modified:   doc/man/man8/slurmstepd.8
+	modified:   doc/man/man8/spank.8
+	deleted:    doc/pubdesign/ChangeLog
+	deleted:    doc/pubdesign/Makefile
+	deleted:    doc/pubdesign/report.tex
+	deleted:    doc/pubdesign/sample.config
+	deleted:    doc/sigops/Makefile
+	deleted:    doc/sigops/report.tex
+	deleted:    doc/sigops/splncs.bst
+	deleted:    doc/slides/bigpicture/Makefile
+	deleted:    doc/slides/bigpicture/arch.eps
+	deleted:    doc/slides/bigpicture/arch.obj
+	deleted:    doc/slides/bigpicture/llnl.gif
+	deleted:    doc/slides/bigpicture/llnl.ps
+	deleted:    doc/slides/bigpicture/penguin.eps
+	deleted:    doc/slides/bigpicture/slides.tex
+	deleted:    doc/slides/bigpicture/slurm.eps
+	deleted:    doc/slides/job-initiation/Makefile
+	deleted:    doc/slides/job-initiation/llnl.gif
+	deleted:    doc/slides/job-initiation/llnl.ps
+	deleted:    doc/slides/job-initiation/penguin.eps
+	deleted:    doc/slides/job-initiation/slides.tex
+	deleted:    doc/slides/qsnet/Makefile
+	deleted:    doc/slides/qsnet/llnl.gif
+	deleted:    doc/slides/qsnet/llnl.ps
+	deleted:    doc/slides/qsnet/penguin.eps
+	deleted:    doc/slides/qsnet/slides.tex
+	deleted:    doc/slides/qsnet/slurm.eps
+	deleted:    doc/slides/users/Makefile
+	deleted:    doc/slides/users/figures/arch.dia
+	deleted:    doc/slides/users/figures/arch.eps
+	deleted:    doc/slides/users/figures/arrow-glow.ps
+	deleted:    doc/slides/users/figures/bullet-glow.ps
+	deleted:    doc/slides/users/figures/entities-layered.dia
+	deleted:    doc/slides/users/figures/entities0.eps
+	deleted:    doc/slides/users/figures/entities1.eps
+	deleted:    doc/slides/users/figures/entities2.eps
+	deleted:    doc/slides/users/figures/entities3.eps
+	deleted:    doc/slides/users/figures/fry.eps
+	deleted:    doc/slides/users/figures/fry.jpg
+	deleted:    doc/slides/users/figures/hpcs.eps
+	deleted:    doc/slides/users/figures/icchome.eps
+	deleted:    doc/slides/users/figures/linux_llnl.eps
+	deleted:    doc/slides/users/figures/linux_llnl.png
+	deleted:    doc/slides/users/figures/linux_llnl2.png
+	deleted:    doc/slides/users/figures/llnl.ps
+	deleted:    doc/slides/users/figures/penguin.eps
+	deleted:    doc/slides/users/figures/rule-glow.ps
+	deleted:    doc/slides/users/figures/slides.ps
+	deleted:    doc/slides/users/figures/slurm.eps
+	deleted:    doc/slides/users/slides.tex
+	deleted:    doc/slides/users/tex/PPRalienglow.sty
+	deleted:    doc/slides/users/tex/prosper.cls
+	deleted:    doc/survey/ChangeLog
+	deleted:    doc/survey/Makefile
+	deleted:    doc/survey/project.bib
+	deleted:    doc/survey/report.tex
+	deleted:    doc/txt/README
+	deleted:    doc/txt/elan.runtime.requirements.txt
+	deleted:    doc/txt/heritage.txt
+	deleted:    doc/txt/slurmctld.locks
+	deleted:    doc/txt/testing.txt
+	modified:   etc/cgroup.conf.example
+	deleted:    etc/cgroup.release_common.example
+	modified:   etc/init.d.slurm.in
+	modified:   etc/slurm.conf.example
+	modified:   slurm.spec
+	modified:   slurm/slurm.h.in
+	modified:   slurm/slurm_errno.h
+	modified:   slurm/slurmdb.h
+	modified:   slurm/smd_ns.h
+	modified:   slurm/spank.h
+	modified:   src/Makefile.am
+	modified:   src/Makefile.in
+	modified:   src/api/Makefile.am
+	modified:   src/api/Makefile.in
+	modified:   src/api/allocate.c
+	modified:   src/api/allocate_msg.c
+	modified:   src/api/block_info.c
+	modified:   src/api/cancel.c
+	modified:   src/api/checkpoint.c
+	modified:   src/api/complete.c
+	modified:   src/api/config_info.c
+	modified:   src/api/front_end_info.c
+	modified:   src/api/init_msg.c
+	modified:   src/api/job_info.c
+	modified:   src/api/job_step_info.c
+	modified:   src/api/license_info.c
+	modified:   src/api/node_info.c
+	modified:   src/api/partition_info.c
+	modified:   src/api/pmi.c
+	modified:   src/api/pmi_server.c
+	modified:   src/api/pmi_server.h
+	modified:   src/api/reconfigure.c
+	modified:   src/api/reservation_info.c
+	modified:   src/api/signal.c
+	modified:   src/api/slurm_get_statistics.c
+	modified:   src/api/slurm_hostlist.c
+	modified:   src/api/slurm_pmi.c
+	modified:   src/api/slurm_pmi.h
+	modified:   src/api/step_ctx.c
+	modified:   src/api/step_ctx.h
+	modified:   src/api/step_io.c
+	modified:   src/api/step_io.h
+	modified:   src/api/step_launch.c
+	modified:   src/api/step_launch.h
+	modified:   src/api/submit.c
+	modified:   src/api/suspend.c
+	modified:   src/api/topo_info.c
+	modified:   src/api/triggers.c
+	modified:   src/api/update_config.c
+	modified:   src/common/Makefile.am
+	modified:   src/common/Makefile.in
+	deleted:    src/common/arg_desc.c
+	deleted:    src/common/arg_desc.h
+	modified:   src/common/assoc_mgr.c
+	modified:   src/common/assoc_mgr.h
+	modified:   src/common/bitstring.c
+	modified:   src/common/bitstring.h
+	modified:   src/common/cbuf.c
+	modified:   src/common/cbuf.h
+	modified:   src/common/checkpoint.c
+	modified:   src/common/checkpoint.h
+	modified:   src/common/cpu_frequency.c
+	modified:   src/common/cpu_frequency.h
+	modified:   src/common/daemonize.c
+	modified:   src/common/daemonize.h
+	modified:   src/common/eio.c
+	modified:   src/common/eio.h
+	modified:   src/common/env.c
+	modified:   src/common/env.h
+	modified:   src/common/fd.c
+	modified:   src/common/fd.h
+	modified:   src/common/forward.c
+	modified:   src/common/forward.h
+	deleted:    src/common/getopt.c
+	deleted:    src/common/getopt.h
+	deleted:    src/common/getopt1.c
+	modified:   src/common/global_defaults.c
+	modified:   src/common/gres.c
+	modified:   src/common/gres.h
+	modified:   src/common/hostlist.c
+	modified:   src/common/hostlist.h
+	modified:   src/common/io_hdr.c
+	modified:   src/common/io_hdr.h
+	modified:   src/common/job_options.c
+	modified:   src/common/job_options.h
+	modified:   src/common/job_resources.c
+	modified:   src/common/job_resources.h
+	modified:   src/common/list.c
+	modified:   src/common/list.h
+	modified:   src/common/log.c
+	modified:   src/common/log.h
+	modified:   src/common/macros.h
+	deleted:    src/common/malloc.c
+	deleted:    src/common/malloc.h
+	modified:   src/common/mpi.c
+	deleted:    src/common/mpi.h
+	modified:   src/common/net.c
+	modified:   src/common/net.h
+	modified:   src/common/node_conf.c
+	modified:   src/common/node_conf.h
+	modified:   src/common/node_select.c
+	modified:   src/common/node_select.h
+	modified:   src/common/optz.c
+	modified:   src/common/optz.h
+	modified:   src/common/pack.c
+	modified:   src/common/pack.h
+	modified:   src/common/parse_config.c
+	modified:   src/common/parse_config.h
+	deleted:    src/common/parse_spec.c
+	deleted:    src/common/parse_spec.h
+	modified:   src/common/parse_time.c
+	modified:   src/common/parse_time.h
+	modified:   src/common/plugin.c
+	modified:   src/common/plugin.h
+	modified:   src/common/plugrack.c
+	modified:   src/common/plugrack.h
+	modified:   src/common/plugstack.c
+	modified:   src/common/plugstack.h
+	modified:   src/common/print_fields.c
+	modified:   src/common/print_fields.h
+	modified:   src/common/proc_args.c
+	modified:   src/common/proc_args.h
+	modified:   src/common/read_config.c
+	modified:   src/common/read_config.h
+	modified:   src/common/safeopen.c
+	modified:   src/common/safeopen.h
+	modified:   src/common/slurm_accounting_storage.c
+	modified:   src/common/slurm_accounting_storage.h
+	modified:   src/common/slurm_acct_gather.c
+	modified:   src/common/slurm_acct_gather.h
+	modified:   src/common/slurm_acct_gather_energy.c
+	modified:   src/common/slurm_acct_gather_energy.h
+	modified:   src/common/slurm_acct_gather_filesystem.c
+	modified:   src/common/slurm_acct_gather_filesystem.h
+	deleted:    src/common/slurm_acct_gather_infiniband.c
+	deleted:    src/common/slurm_acct_gather_infiniband.h
+	modified:   src/common/slurm_acct_gather_profile.c
+	modified:   src/common/slurm_acct_gather_profile.h
+	modified:   src/common/slurm_auth.c
+	modified:   src/common/slurm_auth.h
+	modified:   src/common/slurm_cred.c
+	modified:   src/common/slurm_cred.h
+	modified:   src/common/slurm_errno.c
+	modified:   src/common/slurm_ext_sensors.c
+	modified:   src/common/slurm_ext_sensors.h
+	modified:   src/common/slurm_jobacct_gather.c
+	modified:   src/common/slurm_jobacct_gather.h
+	modified:   src/common/slurm_jobcomp.c
+	modified:   src/common/slurm_jobcomp.h
+	modified:   src/common/slurm_priority.c
+	modified:   src/common/slurm_priority.h
+	modified:   src/common/slurm_protocol_api.c
+	modified:   src/common/slurm_protocol_api.h
+	modified:   src/common/slurm_protocol_common.h
+	modified:   src/common/slurm_protocol_defs.c
+	modified:   src/common/slurm_protocol_defs.h
+	modified:   src/common/slurm_protocol_interface.h
+	modified:   src/common/slurm_protocol_pack.c
+	modified:   src/common/slurm_protocol_pack.h
+	modified:   src/common/slurm_protocol_socket_common.h
+	modified:   src/common/slurm_protocol_socket_implementation.c
+	modified:   src/common/slurm_protocol_util.c
+	modified:   src/common/slurm_protocol_util.h
+	modified:   src/common/slurm_resource_info.c
+	modified:   src/common/slurm_resource_info.h
+	modified:   src/common/slurm_rlimits_info.c
+	modified:   src/common/slurm_rlimits_info.h
+	modified:   src/common/slurm_selecttype_info.c
+	modified:   src/common/slurm_selecttype_info.h
+	modified:   src/common/slurm_step_layout.c
+	modified:   src/common/slurm_step_layout.h
+	deleted:    src/common/slurm_strcasestr.c
+	deleted:    src/common/slurm_strcasestr.h
+	modified:   src/common/slurm_topology.c
+	modified:   src/common/slurm_topology.h
+	modified:   src/common/slurm_xlator.h
+	modified:   src/common/slurmdb_defs.c
+	modified:   src/common/slurmdb_defs.h
+	modified:   src/common/slurmdb_pack.c
+	modified:   src/common/slurmdb_pack.h
+	modified:   src/common/slurmdbd_defs.c
+	modified:   src/common/slurmdbd_defs.h
+	modified:   src/common/stepd_api.c
+	modified:   src/common/stepd_api.h
+	modified:   src/common/strlcpy.c
+	modified:   src/common/strlcpy.h
+	modified:   src/common/strnatcmp.c
+	modified:   src/common/switch.c
+	modified:   src/common/switch.h
+	modified:   src/common/timers.c
+	modified:   src/common/timers.h
+	modified:   src/common/uid.c
+	modified:   src/common/uid.h
+	deleted:    src/common/unsetenv.c
+	deleted:    src/common/unsetenv.h
+	modified:   src/common/util-net.c
+	modified:   src/common/util-net.h
+	modified:   src/common/working_cluster.c
+	modified:   src/common/working_cluster.h
+	modified:   src/common/write_labelled_message.c
+	modified:   src/common/write_labelled_message.h
+	modified:   src/common/xassert.c
+	modified:   src/common/xassert.h
+	deleted:    src/common/xcgroup.c
+	deleted:    src/common/xcgroup.h
+	modified:   src/common/xcgroup_read_config.c
+	modified:   src/common/xcgroup_read_config.h
+	deleted:    src/common/xcpuinfo.c
+	deleted:    src/common/xcpuinfo.h
+	modified:   src/common/xhash.c
+	modified:   src/common/xhash.h
+	modified:   src/common/xmalloc.c
+	modified:   src/common/xmalloc.h
+	modified:   src/common/xsignal.c
+	modified:   src/common/xsignal.h
+	modified:   src/common/xstring.c
+	modified:   src/common/xstring.h
+	modified:   src/common/xtree.c
+	modified:   src/common/xtree.h
+	modified:   src/database/Makefile.in
+	modified:   src/database/mysql_common.c
+	modified:   src/database/mysql_common.h
+	modified:   src/db_api/Makefile.am
+	modified:   src/db_api/Makefile.in
+	modified:   src/db_api/account_functions.c
+	modified:   src/db_api/archive_functions.c
+	modified:   src/db_api/assoc_functions.c
+	modified:   src/db_api/cluster_functions.c
+	modified:   src/db_api/cluster_report_functions.c
+	modified:   src/db_api/connection_functions.c
+	modified:   src/db_api/coord_functions.c
+	modified:   src/db_api/extra_get_functions.c
+	modified:   src/db_api/job_report_functions.c
+	modified:   src/db_api/qos_functions.c
+	modified:   src/db_api/resource_functions.c
+	deleted:    src/db_api/resv_report_functions.c
+	modified:   src/db_api/usage_functions.c
+	modified:   src/db_api/user_functions.c
+	modified:   src/db_api/user_report_functions.c
+	modified:   src/db_api/wckey_functions.c
+	modified:   src/plugins/Makefile.am
+	modified:   src/plugins/Makefile.in
+	modified:   src/plugins/accounting_storage/Makefile.in
+	modified:   src/plugins/accounting_storage/common/Makefile.in
+	modified:   src/plugins/accounting_storage/common/common_as.c
+	modified:   src/plugins/accounting_storage/common/common_as.h
+	modified:   src/plugins/accounting_storage/filetxt/Makefile.am
+	modified:   src/plugins/accounting_storage/filetxt/Makefile.in
+	modified:   src/plugins/accounting_storage/filetxt/accounting_storage_filetxt.c
+	modified:   src/plugins/accounting_storage/filetxt/filetxt_jobacct_process.c
+	modified:   src/plugins/accounting_storage/filetxt/filetxt_jobacct_process.h
+	modified:   src/plugins/accounting_storage/mysql/Makefile.am
+	modified:   src/plugins/accounting_storage/mysql/Makefile.in
+	modified:   src/plugins/accounting_storage/mysql/accounting_storage_mysql.c
+	modified:   src/plugins/accounting_storage/mysql/accounting_storage_mysql.h
+	modified:   src/plugins/accounting_storage/mysql/as_mysql_acct.c
+	modified:   src/plugins/accounting_storage/mysql/as_mysql_acct.h
+	modified:   src/plugins/accounting_storage/mysql/as_mysql_archive.c
+	modified:   src/plugins/accounting_storage/mysql/as_mysql_archive.h
+	modified:   src/plugins/accounting_storage/mysql/as_mysql_assoc.c
+	modified:   src/plugins/accounting_storage/mysql/as_mysql_assoc.h
+	modified:   src/plugins/accounting_storage/mysql/as_mysql_cluster.c
+	modified:   src/plugins/accounting_storage/mysql/as_mysql_cluster.h
+	modified:   src/plugins/accounting_storage/mysql/as_mysql_job.c
+	modified:   src/plugins/accounting_storage/mysql/as_mysql_job.h
+	modified:   src/plugins/accounting_storage/mysql/as_mysql_jobacct_process.c
+	modified:   src/plugins/accounting_storage/mysql/as_mysql_jobacct_process.h
+	modified:   src/plugins/accounting_storage/mysql/as_mysql_problems.c
+	modified:   src/plugins/accounting_storage/mysql/as_mysql_problems.h
+	modified:   src/plugins/accounting_storage/mysql/as_mysql_qos.c
+	modified:   src/plugins/accounting_storage/mysql/as_mysql_qos.h
+	modified:   src/plugins/accounting_storage/mysql/as_mysql_resource.c
+	modified:   src/plugins/accounting_storage/mysql/as_mysql_resource.h
+	modified:   src/plugins/accounting_storage/mysql/as_mysql_resv.c
+	modified:   src/plugins/accounting_storage/mysql/as_mysql_resv.h
+	modified:   src/plugins/accounting_storage/mysql/as_mysql_rollup.c
+	modified:   src/plugins/accounting_storage/mysql/as_mysql_rollup.h
+	modified:   src/plugins/accounting_storage/mysql/as_mysql_txn.c
+	modified:   src/plugins/accounting_storage/mysql/as_mysql_txn.h
+	modified:   src/plugins/accounting_storage/mysql/as_mysql_usage.c
+	modified:   src/plugins/accounting_storage/mysql/as_mysql_usage.h
+	modified:   src/plugins/accounting_storage/mysql/as_mysql_user.c
+	modified:   src/plugins/accounting_storage/mysql/as_mysql_user.h
+	modified:   src/plugins/accounting_storage/mysql/as_mysql_wckey.c
+	modified:   src/plugins/accounting_storage/mysql/as_mysql_wckey.h
+	modified:   src/plugins/accounting_storage/none/Makefile.am
+	modified:   src/plugins/accounting_storage/none/Makefile.in
+	modified:   src/plugins/accounting_storage/none/accounting_storage_none.c
+	modified:   src/plugins/accounting_storage/slurmdbd/Makefile.am
+	modified:   src/plugins/accounting_storage/slurmdbd/Makefile.in
+	modified:   src/plugins/accounting_storage/slurmdbd/accounting_storage_slurmdbd.c
+	modified:   src/plugins/acct_gather_energy/Makefile.am
+	modified:   src/plugins/acct_gather_energy/Makefile.in
+	modified:   src/plugins/acct_gather_energy/ipmi/Makefile.am
+	modified:   src/plugins/acct_gather_energy/ipmi/Makefile.in
+	modified:   src/plugins/acct_gather_energy/ipmi/acct_gather_energy_ipmi.c
+	modified:   src/plugins/acct_gather_energy/ipmi/acct_gather_energy_ipmi_config.c
+	modified:   src/plugins/acct_gather_energy/ipmi/acct_gather_energy_ipmi_config.h
+	modified:   src/plugins/acct_gather_energy/none/Makefile.am
+	modified:   src/plugins/acct_gather_energy/none/Makefile.in
+	modified:   src/plugins/acct_gather_energy/none/acct_gather_energy_none.c
+	modified:   src/plugins/acct_gather_energy/rapl/Makefile.am
+	modified:   src/plugins/acct_gather_energy/rapl/Makefile.in
+	modified:   src/plugins/acct_gather_energy/rapl/acct_gather_energy_rapl.c
+	modified:   src/plugins/acct_gather_filesystem/Makefile.in
+	modified:   src/plugins/acct_gather_filesystem/lustre/Makefile.am
+	modified:   src/plugins/acct_gather_filesystem/lustre/Makefile.in
+	modified:   src/plugins/acct_gather_filesystem/lustre/acct_gather_filesystem_lustre.c
+	modified:   src/plugins/acct_gather_filesystem/none/Makefile.am
+	modified:   src/plugins/acct_gather_filesystem/none/Makefile.in
+	modified:   src/plugins/acct_gather_filesystem/none/acct_gather_filesystem_none.c
+	deleted:    src/plugins/acct_gather_infiniband/Makefile.am
+	deleted:    src/plugins/acct_gather_infiniband/Makefile.in
+	deleted:    src/plugins/acct_gather_infiniband/none/Makefile.am
+	deleted:    src/plugins/acct_gather_infiniband/none/Makefile.in
+	deleted:    src/plugins/acct_gather_infiniband/none/acct_gather_infiniband_none.c
+	deleted:    src/plugins/acct_gather_infiniband/ofed/Makefile.am
+	deleted:    src/plugins/acct_gather_infiniband/ofed/Makefile.in
+	deleted:    src/plugins/acct_gather_infiniband/ofed/acct_gather_infiniband_ofed.c
+	deleted:    src/plugins/acct_gather_infiniband/ofed/acct_gather_infiniband_ofed.h
+	modified:   src/plugins/acct_gather_profile/Makefile.in
+	modified:   src/plugins/acct_gather_profile/hdf5/Makefile.am
+	modified:   src/plugins/acct_gather_profile/hdf5/Makefile.in
+	modified:   src/plugins/acct_gather_profile/hdf5/acct_gather_profile_hdf5.c
+	modified:   src/plugins/acct_gather_profile/hdf5/hdf5_api.c
+	modified:   src/plugins/acct_gather_profile/hdf5/hdf5_api.h
+	modified:   src/plugins/acct_gather_profile/hdf5/sh5util/Makefile.am
+	modified:   src/plugins/acct_gather_profile/hdf5/sh5util/Makefile.in
+	modified:   src/plugins/acct_gather_profile/hdf5/sh5util/sh5util.c
+	modified:   src/plugins/acct_gather_profile/none/Makefile.am
+	modified:   src/plugins/acct_gather_profile/none/Makefile.in
+	modified:   src/plugins/acct_gather_profile/none/acct_gather_profile_none.c
+	modified:   src/plugins/auth/Makefile.am
+	modified:   src/plugins/auth/Makefile.in
+	deleted:    src/plugins/auth/authd/Makefile.am
+	deleted:    src/plugins/auth/authd/Makefile.in
+	deleted:    src/plugins/auth/authd/auth_authd.c
+	modified:   src/plugins/auth/munge/Makefile.am
+	modified:   src/plugins/auth/munge/Makefile.in
+	modified:   src/plugins/auth/munge/auth_munge.c
+	modified:   src/plugins/auth/none/Makefile.am
+	modified:   src/plugins/auth/none/Makefile.in
+	modified:   src/plugins/auth/none/auth_none.c
+	modified:   src/plugins/checkpoint/Makefile.am
+	modified:   src/plugins/checkpoint/Makefile.in
+	deleted:    src/plugins/checkpoint/aix/Makefile.am
+	deleted:    src/plugins/checkpoint/aix/Makefile.in
+	deleted:    src/plugins/checkpoint/aix/checkpoint_aix.c
+	modified:   src/plugins/checkpoint/blcr/Makefile.am
+	modified:   src/plugins/checkpoint/blcr/Makefile.in
+	modified:   src/plugins/checkpoint/blcr/checkpoint_blcr.c
+	modified:   src/plugins/checkpoint/none/Makefile.am
+	modified:   src/plugins/checkpoint/none/Makefile.in
+	modified:   src/plugins/checkpoint/none/checkpoint_none.c
+	modified:   src/plugins/checkpoint/ompi/Makefile.am
+	modified:   src/plugins/checkpoint/ompi/Makefile.in
+	modified:   src/plugins/checkpoint/ompi/checkpoint_ompi.c
+	deleted:    src/plugins/checkpoint/poe/Makefile.am
+	deleted:    src/plugins/checkpoint/poe/Makefile.in
+	deleted:    src/plugins/checkpoint/poe/checkpoint_poe.c
+	modified:   src/plugins/core_spec/Makefile.in
+	modified:   src/plugins/core_spec/cray/Makefile.am
+	modified:   src/plugins/core_spec/cray/Makefile.in
+	modified:   src/plugins/core_spec/cray/core_spec_cray.c
+	modified:   src/plugins/core_spec/none/Makefile.am
+	modified:   src/plugins/core_spec/none/Makefile.in
+	modified:   src/plugins/core_spec/none/core_spec_none.c
+	modified:   src/plugins/crypto/Makefile.in
+	modified:   src/plugins/crypto/munge/Makefile.am
+	modified:   src/plugins/crypto/munge/Makefile.in
+	modified:   src/plugins/crypto/munge/crypto_munge.c
+	modified:   src/plugins/crypto/openssl/Makefile.am
+	modified:   src/plugins/crypto/openssl/Makefile.in
+	modified:   src/plugins/crypto/openssl/crypto_openssl.c
+	modified:   src/plugins/ext_sensors/Makefile.in
+	modified:   src/plugins/ext_sensors/none/Makefile.am
+	modified:   src/plugins/ext_sensors/none/Makefile.in
+	modified:   src/plugins/ext_sensors/none/ext_sensors_none.c
+	modified:   src/plugins/ext_sensors/rrd/Makefile.am
+	modified:   src/plugins/ext_sensors/rrd/Makefile.in
+	modified:   src/plugins/ext_sensors/rrd/ext_sensors_rrd.c
+	modified:   src/plugins/ext_sensors/rrd/ext_sensors_rrd.h
+	modified:   src/plugins/gres/Makefile.am
+	modified:   src/plugins/gres/Makefile.in
+	modified:   src/plugins/gres/gpu/Makefile.am
+	modified:   src/plugins/gres/gpu/Makefile.in
+	modified:   src/plugins/gres/gpu/gres_gpu.c
+	modified:   src/plugins/gres/mic/Makefile.am
+	modified:   src/plugins/gres/mic/Makefile.in
+	modified:   src/plugins/gres/mic/gres_mic.c
+	modified:   src/plugins/gres/nic/Makefile.am
+	modified:   src/plugins/gres/nic/Makefile.in
+	modified:   src/plugins/gres/nic/gres_nic.c
+	modified:   src/plugins/job_container/Makefile.in
+	modified:   src/plugins/job_container/cncu/Makefile.am
+	modified:   src/plugins/job_container/cncu/Makefile.in
+	modified:   src/plugins/job_container/cncu/job_container_cncu.c
+	modified:   src/plugins/job_container/none/Makefile.am
+	modified:   src/plugins/job_container/none/Makefile.in
+	modified:   src/plugins/job_container/none/job_container_none.c
+	modified:   src/plugins/job_submit/Makefile.am
+	modified:   src/plugins/job_submit/Makefile.in
+	modified:   src/plugins/job_submit/all_partitions/Makefile.am
+	modified:   src/plugins/job_submit/all_partitions/Makefile.in
+	modified:   src/plugins/job_submit/all_partitions/job_submit_all_partitions.c
+	deleted:    src/plugins/job_submit/cnode/Makefile.am
+	deleted:    src/plugins/job_submit/cnode/Makefile.in
+	deleted:    src/plugins/job_submit/cnode/job_submit_cnode.c
+	modified:   src/plugins/job_submit/cray/Makefile.am
+	modified:   src/plugins/job_submit/cray/Makefile.in
+	modified:   src/plugins/job_submit/cray/job_submit_cray.c
+	modified:   src/plugins/job_submit/defaults/Makefile.am
+	modified:   src/plugins/job_submit/defaults/Makefile.in
+	modified:   src/plugins/job_submit/defaults/job_submit_defaults.c
+	modified:   src/plugins/job_submit/logging/Makefile.am
+	modified:   src/plugins/job_submit/logging/Makefile.in
+	modified:   src/plugins/job_submit/logging/job_submit_logging.c
+	modified:   src/plugins/job_submit/lua/Makefile.am
+	modified:   src/plugins/job_submit/lua/Makefile.in
+	modified:   src/plugins/job_submit/lua/job_submit_lua.c
+	modified:   src/plugins/job_submit/partition/Makefile.am
+	modified:   src/plugins/job_submit/partition/Makefile.in
+	modified:   src/plugins/job_submit/partition/job_submit_partition.c
+	modified:   src/plugins/job_submit/pbs/Makefile.am
+	modified:   src/plugins/job_submit/pbs/Makefile.in
+	modified:   src/plugins/job_submit/pbs/job_submit_pbs.c
+	modified:   src/plugins/job_submit/pbs/spank_pbs.c
+	modified:   src/plugins/job_submit/require_timelimit/Makefile.am
+	modified:   src/plugins/job_submit/require_timelimit/Makefile.in
+	modified:   src/plugins/job_submit/require_timelimit/job_submit_require_timelimit.c
+	modified:   src/plugins/job_submit/throttle/Makefile.am
+	modified:   src/plugins/job_submit/throttle/Makefile.in
+	modified:   src/plugins/job_submit/throttle/job_submit_throttle.c
+	modified:   src/plugins/jobacct_gather/Makefile.am
+	modified:   src/plugins/jobacct_gather/Makefile.in
+	deleted:    src/plugins/jobacct_gather/aix/Makefile.am
+	deleted:    src/plugins/jobacct_gather/aix/Makefile.in
+	deleted:    src/plugins/jobacct_gather/aix/jobacct_gather_aix.c
+	modified:   src/plugins/jobacct_gather/cgroup/Makefile.am
+	modified:   src/plugins/jobacct_gather/cgroup/Makefile.in
+	modified:   src/plugins/jobacct_gather/cgroup/jobacct_gather_cgroup.c
+	modified:   src/plugins/jobacct_gather/cgroup/jobacct_gather_cgroup.h
+	modified:   src/plugins/jobacct_gather/cgroup/jobacct_gather_cgroup_blkio.c
+	modified:   src/plugins/jobacct_gather/cgroup/jobacct_gather_cgroup_cpuacct.c
+	modified:   src/plugins/jobacct_gather/cgroup/jobacct_gather_cgroup_memory.c
+	modified:   src/plugins/jobacct_gather/common/Makefile.in
+	modified:   src/plugins/jobacct_gather/common/common_jag.c
+	modified:   src/plugins/jobacct_gather/common/common_jag.h
+	modified:   src/plugins/jobacct_gather/linux/Makefile.am
+	modified:   src/plugins/jobacct_gather/linux/Makefile.in
+	modified:   src/plugins/jobacct_gather/linux/jobacct_gather_linux.c
+	modified:   src/plugins/jobacct_gather/none/Makefile.am
+	modified:   src/plugins/jobacct_gather/none/Makefile.in
+	modified:   src/plugins/jobacct_gather/none/jobacct_gather_none.c
+	modified:   src/plugins/jobcomp/Makefile.am
+	modified:   src/plugins/jobcomp/Makefile.in
+	modified:   src/plugins/jobcomp/filetxt/Makefile.am
+	modified:   src/plugins/jobcomp/filetxt/Makefile.in
+	modified:   src/plugins/jobcomp/filetxt/filetxt_jobcomp_process.c
+	modified:   src/plugins/jobcomp/filetxt/filetxt_jobcomp_process.h
+	modified:   src/plugins/jobcomp/filetxt/jobcomp_filetxt.c
+	modified:   src/plugins/jobcomp/mysql/Makefile.am
+	modified:   src/plugins/jobcomp/mysql/Makefile.in
+	modified:   src/plugins/jobcomp/mysql/jobcomp_mysql.c
+	modified:   src/plugins/jobcomp/mysql/mysql_jobcomp_process.c
+	modified:   src/plugins/jobcomp/mysql/mysql_jobcomp_process.h
+	modified:   src/plugins/jobcomp/none/Makefile.am
+	modified:   src/plugins/jobcomp/none/Makefile.in
+	modified:   src/plugins/jobcomp/none/jobcomp_none.c
+	modified:   src/plugins/jobcomp/script/Makefile.am
+	modified:   src/plugins/jobcomp/script/Makefile.in
+	modified:   src/plugins/jobcomp/script/README
+	modified:   src/plugins/jobcomp/script/jobcomp_script.c
+	modified:   src/plugins/launch/Makefile.in
+	modified:   src/plugins/launch/aprun/Makefile.am
+	modified:   src/plugins/launch/aprun/Makefile.in
+	modified:   src/plugins/launch/aprun/launch_aprun.c
+	modified:   src/plugins/launch/poe/Makefile.am
+	modified:   src/plugins/launch/poe/Makefile.in
+	modified:   src/plugins/launch/poe/launch_poe.c
+	modified:   src/plugins/launch/runjob/Makefile.am
+	modified:   src/plugins/launch/runjob/Makefile.in
+	modified:   src/plugins/launch/runjob/launch_runjob.c
+	modified:   src/plugins/launch/runjob/runjob_interface.cc
+	modified:   src/plugins/launch/runjob/runjob_interface.h
+	modified:   src/plugins/launch/slurm/Makefile.am
+	modified:   src/plugins/launch/slurm/Makefile.in
+	modified:   src/plugins/launch/slurm/launch_slurm.c
+	modified:   src/plugins/launch/slurm/task_state.c
+	modified:   src/plugins/launch/slurm/task_state.h
+	modified:   src/plugins/mpi/Makefile.am
+	modified:   src/plugins/mpi/Makefile.in
+	deleted:    src/plugins/mpi/lam/Makefile.am
+	deleted:    src/plugins/mpi/lam/Makefile.in
+	deleted:    src/plugins/mpi/lam/lam.h
+	deleted:    src/plugins/mpi/lam/mpi_lam.c
+	deleted:    src/plugins/mpi/mpich1_p4/Makefile.am
+	deleted:    src/plugins/mpi/mpich1_p4/Makefile.in
+	deleted:    src/plugins/mpi/mpich1_p4/mpich1_p4.c
+	deleted:    src/plugins/mpi/mpich1_shmem/Makefile.am
+	deleted:    src/plugins/mpi/mpich1_shmem/Makefile.in
+	deleted:    src/plugins/mpi/mpich1_shmem/mpich1_shmem.c
+	deleted:    src/plugins/mpi/mpichgm/Makefile.am
+	deleted:    src/plugins/mpi/mpichgm/Makefile.in
+	deleted:    src/plugins/mpi/mpichgm/mpi_mpichgm.c
+	deleted:    src/plugins/mpi/mpichgm/mpichgm.c
+	deleted:    src/plugins/mpi/mpichgm/mpichgm.h
+	deleted:    src/plugins/mpi/mpichmx/Makefile.am
+	deleted:    src/plugins/mpi/mpichmx/Makefile.in
+	deleted:    src/plugins/mpi/mpichmx/mpi_mpichmx.c
+	deleted:    src/plugins/mpi/mpichmx/mpichmx.c
+	deleted:    src/plugins/mpi/mpichmx/mpichmx.h
+	deleted:    src/plugins/mpi/mvapich/Makefile.am
+	deleted:    src/plugins/mpi/mvapich/Makefile.in
+	deleted:    src/plugins/mpi/mvapich/mpi_mvapich.c
+	deleted:    src/plugins/mpi/mvapich/mvapich.c
+	deleted:    src/plugins/mpi/mvapich/mvapich.h
+	modified:   src/plugins/mpi/none/Makefile.am
+	modified:   src/plugins/mpi/none/Makefile.in
+	modified:   src/plugins/mpi/none/mpi_none.c
+	modified:   src/plugins/mpi/openmpi/Makefile.am
+	modified:   src/plugins/mpi/openmpi/Makefile.in
+	modified:   src/plugins/mpi/openmpi/mpi_openmpi.c
+	modified:   src/plugins/mpi/pmi2/Makefile.am
+	modified:   src/plugins/mpi/pmi2/Makefile.in
+	modified:   src/plugins/mpi/pmi2/agent.c
+	modified:   src/plugins/mpi/pmi2/client.c
+	modified:   src/plugins/mpi/pmi2/client.h
+	modified:   src/plugins/mpi/pmi2/info.c
+	modified:   src/plugins/mpi/pmi2/info.h
+	modified:   src/plugins/mpi/pmi2/kvs.c
+	modified:   src/plugins/mpi/pmi2/kvs.h
+	modified:   src/plugins/mpi/pmi2/mpi_pmi2.c
+	modified:   src/plugins/mpi/pmi2/nameserv.c
+	modified:   src/plugins/mpi/pmi2/nameserv.h
+	modified:   src/plugins/mpi/pmi2/pmi.h
+	modified:   src/plugins/mpi/pmi2/pmi1.c
+	modified:   src/plugins/mpi/pmi2/pmi2.c
+	modified:   src/plugins/mpi/pmi2/setup.c
+	modified:   src/plugins/mpi/pmi2/setup.h
+	modified:   src/plugins/mpi/pmi2/spawn.c
+	modified:   src/plugins/mpi/pmi2/spawn.h
+	modified:   src/plugins/mpi/pmi2/tree.c
+	modified:   src/plugins/mpi/pmi2/tree.h
+	modified:   src/plugins/preempt/Makefile.am
+	modified:   src/plugins/preempt/Makefile.in
+	modified:   src/plugins/preempt/none/Makefile.am
+	modified:   src/plugins/preempt/none/Makefile.in
+	modified:   src/plugins/preempt/none/preempt_none.c
+	modified:   src/plugins/preempt/partition_prio/Makefile.am
+	modified:   src/plugins/preempt/partition_prio/Makefile.in
+	modified:   src/plugins/preempt/partition_prio/preempt_partition_prio.c
+	modified:   src/plugins/preempt/qos/Makefile.am
+	modified:   src/plugins/preempt/qos/Makefile.in
+	modified:   src/plugins/preempt/qos/preempt_qos.c
+	modified:   src/plugins/priority/Makefile.in
+	modified:   src/plugins/priority/basic/Makefile.am
+	modified:   src/plugins/priority/basic/Makefile.in
+	modified:   src/plugins/priority/basic/priority_basic.c
+	modified:   src/plugins/priority/multifactor/Makefile.am
+	modified:   src/plugins/priority/multifactor/Makefile.in
+	modified:   src/plugins/priority/multifactor/priority_multifactor.c
+	modified:   src/plugins/proctrack/Makefile.am
+	modified:   src/plugins/proctrack/Makefile.in
+	deleted:    src/plugins/proctrack/aix/Makefile.am
+	deleted:    src/plugins/proctrack/aix/Makefile.in
+	deleted:    src/plugins/proctrack/aix/proctrack_aix.c
+	modified:   src/plugins/proctrack/cgroup/Makefile.am
+	modified:   src/plugins/proctrack/cgroup/Makefile.in
+	modified:   src/plugins/proctrack/cgroup/proctrack_cgroup.c
+	modified:   src/plugins/proctrack/cray/Makefile.am
+	modified:   src/plugins/proctrack/cray/Makefile.in
+	modified:   src/plugins/proctrack/cray/proctrack_cray.c
+	modified:   src/plugins/proctrack/linuxproc/Makefile.am
+	modified:   src/plugins/proctrack/linuxproc/Makefile.in
+	modified:   src/plugins/proctrack/linuxproc/kill_tree.c
+	modified:   src/plugins/proctrack/linuxproc/kill_tree.h
+	modified:   src/plugins/proctrack/linuxproc/proctrack_linuxproc.c
+	modified:   src/plugins/proctrack/lua/Makefile.am
+	modified:   src/plugins/proctrack/lua/Makefile.in
+	modified:   src/plugins/proctrack/lua/proctrack_lua.c
+	modified:   src/plugins/proctrack/pgid/Makefile.am
+	modified:   src/plugins/proctrack/pgid/Makefile.in
+	modified:   src/plugins/proctrack/pgid/proctrack_pgid.c
+	modified:   src/plugins/proctrack/sgi_job/Makefile.am
+	modified:   src/plugins/proctrack/sgi_job/Makefile.in
+	modified:   src/plugins/proctrack/sgi_job/proctrack_sgi_job.c
+	modified:   src/plugins/sched/Makefile.am
+	modified:   src/plugins/sched/Makefile.in
+	modified:   src/plugins/sched/backfill/Makefile.am
+	modified:   src/plugins/sched/backfill/Makefile.in
+	modified:   src/plugins/sched/backfill/backfill.c
+	modified:   src/plugins/sched/backfill/backfill.h
+	modified:   src/plugins/sched/backfill/backfill_wrapper.c
+	modified:   src/plugins/sched/builtin/Makefile.am
+	modified:   src/plugins/sched/builtin/Makefile.in
+	modified:   src/plugins/sched/builtin/builtin.c
+	modified:   src/plugins/sched/builtin/builtin.h
+	modified:   src/plugins/sched/builtin/builtin_wrapper.c
+	modified:   src/plugins/sched/hold/Makefile.am
+	modified:   src/plugins/sched/hold/Makefile.in
+	modified:   src/plugins/sched/hold/hold_wrapper.c
+	deleted:    src/plugins/sched/wiki/Makefile.am
+	deleted:    src/plugins/sched/wiki/Makefile.in
+	deleted:    src/plugins/sched/wiki/cancel_job.c
+	deleted:    src/plugins/sched/wiki/crypto.c
+	deleted:    src/plugins/sched/wiki/crypto.h
+	deleted:    src/plugins/sched/wiki/get_jobs.c
+	deleted:    src/plugins/sched/wiki/get_nodes.c
+	deleted:    src/plugins/sched/wiki/hostlist.c
+	deleted:    src/plugins/sched/wiki/job_modify.c
+	deleted:    src/plugins/sched/wiki/msg.c
+	deleted:    src/plugins/sched/wiki/msg.h
+	deleted:    src/plugins/sched/wiki/resume_job.c
+	deleted:    src/plugins/sched/wiki/sched_wiki.c
+	deleted:    src/plugins/sched/wiki/start_job.c
+	deleted:    src/plugins/sched/wiki/suspend_job.c
+	deleted:    src/plugins/sched/wiki2/Makefile.am
+	deleted:    src/plugins/sched/wiki2/Makefile.in
+	deleted:    src/plugins/sched/wiki2/cancel_job.c
+	deleted:    src/plugins/sched/wiki2/crypto.c
+	deleted:    src/plugins/sched/wiki2/crypto.h
+	deleted:    src/plugins/sched/wiki2/event.c
+	deleted:    src/plugins/sched/wiki2/get_jobs.c
+	deleted:    src/plugins/sched/wiki2/get_nodes.c
+	deleted:    src/plugins/sched/wiki2/hostlist.c
+	deleted:    src/plugins/sched/wiki2/initialize.c
+	deleted:    src/plugins/sched/wiki2/job_add_task.c
+	deleted:    src/plugins/sched/wiki2/job_modify.c
+	deleted:    src/plugins/sched/wiki2/job_notify.c
+	deleted:    src/plugins/sched/wiki2/job_release_task.c
+	deleted:    src/plugins/sched/wiki2/job_requeue.c
+	deleted:    src/plugins/sched/wiki2/job_signal.c
+	deleted:    src/plugins/sched/wiki2/job_will_run.c
+	deleted:    src/plugins/sched/wiki2/msg.c
+	deleted:    src/plugins/sched/wiki2/msg.h
+	deleted:    src/plugins/sched/wiki2/resume_job.c
+	deleted:    src/plugins/sched/wiki2/sched_wiki2.c
+	deleted:    src/plugins/sched/wiki2/start_job.c
+	deleted:    src/plugins/sched/wiki2/suspend_job.c
+	modified:   src/plugins/select/Makefile.in
+	modified:   src/plugins/select/alps/Makefile.am
+	modified:   src/plugins/select/alps/Makefile.in
+	modified:   src/plugins/select/alps/basil_alps.h
+	modified:   src/plugins/select/alps/basil_interface.c
+	modified:   src/plugins/select/alps/basil_interface.h
+	modified:   src/plugins/select/alps/cray_config.c
+	modified:   src/plugins/select/alps/cray_config.h
+	modified:   src/plugins/select/alps/libalps/Makefile.in
+	modified:   src/plugins/select/alps/libalps/basil_mysql_routines.c
+	modified:   src/plugins/select/alps/libalps/basil_request.c
+	modified:   src/plugins/select/alps/libalps/do_query.c
+	modified:   src/plugins/select/alps/libalps/do_release.c
+	modified:   src/plugins/select/alps/libalps/do_reserve.c
+	modified:   src/plugins/select/alps/libalps/do_switch.c
+	modified:   src/plugins/select/alps/libalps/memory_handling.h
+	modified:   src/plugins/select/alps/libalps/parser_basil_4.0.c
+	modified:   src/plugins/select/alps/libalps/parser_basil_5.2.c
+	modified:   src/plugins/select/alps/libalps/parser_common.c
+	modified:   src/plugins/select/alps/libalps/parser_internal.h
+	modified:   src/plugins/select/alps/libemulate/Makefile.in
+	modified:   src/plugins/select/alps/libemulate/alps_emulate.c
+	modified:   src/plugins/select/alps/libemulate/hilbert.c
+	modified:   src/plugins/select/alps/libemulate/hilbert.h
+	modified:   src/plugins/select/alps/parser_common.h
+	modified:   src/plugins/select/alps/select_alps.c
+	modified:   src/plugins/select/bluegene/Makefile.am
+	modified:   src/plugins/select/bluegene/Makefile.in
+	deleted:    src/plugins/select/bluegene/ba/Makefile.am
+	deleted:    src/plugins/select/bluegene/ba/Makefile.in
+	deleted:    src/plugins/select/bluegene/ba/block_allocator.c
+	deleted:    src/plugins/select/bluegene/ba/block_allocator.h
+	deleted:    src/plugins/select/bluegene/ba/wire_test.c
+	modified:   src/plugins/select/bluegene/ba_bgq/Makefile.am
+	modified:   src/plugins/select/bluegene/ba_bgq/Makefile.in
+	modified:   src/plugins/select/bluegene/ba_bgq/block_allocator.c
+	modified:   src/plugins/select/bluegene/ba_bgq/block_allocator.h
+	modified:   src/plugins/select/bluegene/ba_bgq/wire_test.c
+	modified:   src/plugins/select/bluegene/ba_common.c
+	modified:   src/plugins/select/bluegene/ba_common.h
+	modified:   src/plugins/select/bluegene/bg_core.c
+	modified:   src/plugins/select/bluegene/bg_core.h
+	modified:   src/plugins/select/bluegene/bg_defined_block.c
+	modified:   src/plugins/select/bluegene/bg_defined_block.h
+	modified:   src/plugins/select/bluegene/bg_dynamic_block.c
+	modified:   src/plugins/select/bluegene/bg_dynamic_block.h
+	modified:   src/plugins/select/bluegene/bg_enums.h
+	modified:   src/plugins/select/bluegene/bg_job_info.c
+	modified:   src/plugins/select/bluegene/bg_job_info.h
+	modified:   src/plugins/select/bluegene/bg_job_place.c
+	modified:   src/plugins/select/bluegene/bg_job_place.h
+	modified:   src/plugins/select/bluegene/bg_job_run.c
+	modified:   src/plugins/select/bluegene/bg_job_run.h
+	modified:   src/plugins/select/bluegene/bg_list_functions.c
+	modified:   src/plugins/select/bluegene/bg_list_functions.h
+	modified:   src/plugins/select/bluegene/bg_node_info.c
+	modified:   src/plugins/select/bluegene/bg_node_info.h
+	modified:   src/plugins/select/bluegene/bg_read_config.c
+	modified:   src/plugins/select/bluegene/bg_read_config.h
+	modified:   src/plugins/select/bluegene/bg_record_functions.c
+	modified:   src/plugins/select/bluegene/bg_record_functions.h
+	modified:   src/plugins/select/bluegene/bg_status.c
+	modified:   src/plugins/select/bluegene/bg_status.h
+	modified:   src/plugins/select/bluegene/bg_structs.h
+	deleted:    src/plugins/select/bluegene/bl/Makefile.am
+	deleted:    src/plugins/select/bluegene/bl/Makefile.in
+	deleted:    src/plugins/select/bluegene/bl/bridge_linker.c
+	deleted:    src/plugins/select/bluegene/bl/bridge_status.c
+	deleted:    src/plugins/select/bluegene/bl/bridge_status.h
+	deleted:    src/plugins/select/bluegene/bl/bridge_switch_connections.c
+	deleted:    src/plugins/select/bluegene/bl/bridge_switch_connections.h
+	modified:   src/plugins/select/bluegene/bl_bgq/Makefile.in
+	modified:   src/plugins/select/bluegene/bl_bgq/bridge_helper.cc
+	modified:   src/plugins/select/bluegene/bl_bgq/bridge_helper.h
+	modified:   src/plugins/select/bluegene/bl_bgq/bridge_linker.cc
+	modified:   src/plugins/select/bluegene/bl_bgq/bridge_status.cc
+	modified:   src/plugins/select/bluegene/bl_bgq/bridge_status.h
+	modified:   src/plugins/select/bluegene/bridge_linker.h
+	modified:   src/plugins/select/bluegene/configure_api.c
+	modified:   src/plugins/select/bluegene/configure_api.h
+	modified:   src/plugins/select/bluegene/libsched_if64.c
+	modified:   src/plugins/select/bluegene/runjob_plugin.cc
+	modified:   src/plugins/select/bluegene/select_bluegene.c
+	modified:   src/plugins/select/bluegene/sfree/Makefile.am
+	modified:   src/plugins/select/bluegene/sfree/Makefile.in
+	modified:   src/plugins/select/bluegene/sfree/opts.c
+	modified:   src/plugins/select/bluegene/sfree/sfree.c
+	modified:   src/plugins/select/bluegene/sfree/sfree.h
+	modified:   src/plugins/select/bluegene/slurm_epilog.c
+	modified:   src/plugins/select/bluegene/slurm_prolog.c
+	modified:   src/plugins/select/cons_res/Makefile.am
+	modified:   src/plugins/select/cons_res/Makefile.in
+	modified:   src/plugins/select/cons_res/dist_tasks.c
+	modified:   src/plugins/select/cons_res/dist_tasks.h
+	modified:   src/plugins/select/cons_res/job_test.c
+	modified:   src/plugins/select/cons_res/job_test.h
+	modified:   src/plugins/select/cons_res/select_cons_res.c
+	modified:   src/plugins/select/cons_res/select_cons_res.h
+	modified:   src/plugins/select/cray/Makefile.am
+	modified:   src/plugins/select/cray/Makefile.in
+	modified:   src/plugins/select/cray/select_cray.c
+	modified:   src/plugins/select/linear/Makefile.am
+	modified:   src/plugins/select/linear/Makefile.in
+	modified:   src/plugins/select/linear/select_linear.c
+	modified:   src/plugins/select/linear/select_linear.h
+	modified:   src/plugins/select/other/Makefile.in
+	modified:   src/plugins/select/other/other_select.c
+	modified:   src/plugins/select/other/other_select.h
+	modified:   src/plugins/select/serial/Makefile.am
+	modified:   src/plugins/select/serial/Makefile.in
+	modified:   src/plugins/select/serial/dist_tasks.c
+	modified:   src/plugins/select/serial/dist_tasks.h
+	modified:   src/plugins/select/serial/job_test.c
+	modified:   src/plugins/select/serial/job_test.h
+	modified:   src/plugins/select/serial/select_serial.c
+	modified:   src/plugins/select/serial/select_serial.h
+	modified:   src/plugins/slurmctld/Makefile.am
+	modified:   src/plugins/slurmctld/Makefile.in
+	deleted:    src/plugins/slurmctld/dynalloc/Makefile.am
+	deleted:    src/plugins/slurmctld/dynalloc/Makefile.in
+	deleted:    src/plugins/slurmctld/dynalloc/allocate.c
+	deleted:    src/plugins/slurmctld/dynalloc/allocate.h
+	deleted:    src/plugins/slurmctld/dynalloc/allocator.c
+	deleted:    src/plugins/slurmctld/dynalloc/allocator.h
+	deleted:    src/plugins/slurmctld/dynalloc/argv.c
+	deleted:    src/plugins/slurmctld/dynalloc/argv.h
+	deleted:    src/plugins/slurmctld/dynalloc/constants.h
+	deleted:    src/plugins/slurmctld/dynalloc/deallocate.c
+	deleted:    src/plugins/slurmctld/dynalloc/deallocate.h
+	deleted:    src/plugins/slurmctld/dynalloc/info.c
+	deleted:    src/plugins/slurmctld/dynalloc/info.h
+	deleted:    src/plugins/slurmctld/dynalloc/job_ports_list.c
+	deleted:    src/plugins/slurmctld/dynalloc/job_ports_list.h
+	deleted:    src/plugins/slurmctld/dynalloc/msg.c
+	deleted:    src/plugins/slurmctld/dynalloc/msg.h
+	deleted:    src/plugins/slurmctld/dynalloc/slurmctld_dynalloc.c
+	modified:   src/plugins/slurmctld/nonstop/Makefile.am
+	modified:   src/plugins/slurmctld/nonstop/Makefile.in
+	modified:   src/plugins/slurmctld/nonstop/do_work.c
+	modified:   src/plugins/slurmctld/nonstop/do_work.h
+	modified:   src/plugins/slurmctld/nonstop/msg.c
+	modified:   src/plugins/slurmctld/nonstop/msg.h
+	modified:   src/plugins/slurmctld/nonstop/nonstop.c
+	modified:   src/plugins/slurmctld/nonstop/read_config.c
+	modified:   src/plugins/slurmctld/nonstop/read_config.h
+	deleted:    src/plugins/slurmd/Makefile.am
+	deleted:    src/plugins/slurmd/Makefile.in
+	modified:   src/plugins/switch/Makefile.in
+	modified:   src/plugins/switch/cray/Makefile.am
+	modified:   src/plugins/switch/cray/Makefile.in
+	modified:   src/plugins/switch/cray/switch_cray.c
+	modified:   src/plugins/switch/generic/Makefile.am
+	modified:   src/plugins/switch/generic/Makefile.in
+	modified:   src/plugins/switch/generic/switch_generic.c
+	modified:   src/plugins/switch/none/Makefile.am
+	modified:   src/plugins/switch/none/Makefile.in
+	modified:   src/plugins/switch/none/switch_none.c
+	modified:   src/plugins/switch/nrt/Makefile.am
+	modified:   src/plugins/switch/nrt/Makefile.in
+	modified:   src/plugins/switch/nrt/libpermapi/Makefile.am
+	modified:   src/plugins/switch/nrt/libpermapi/Makefile.in
+	modified:   src/plugins/switch/nrt/libpermapi/shr_64.c
+	modified:   src/plugins/switch/nrt/nrt.c
+	modified:   src/plugins/switch/nrt/nrt_keys.h
+	modified:   src/plugins/switch/nrt/slurm_nrt.h
+	modified:   src/plugins/switch/nrt/switch_nrt.c
+	modified:   src/plugins/task/Makefile.in
+	modified:   src/plugins/task/affinity/Makefile.am
+	modified:   src/plugins/task/affinity/Makefile.in
+	modified:   src/plugins/task/affinity/affinity.c
+	modified:   src/plugins/task/affinity/affinity.h
+	modified:   src/plugins/task/affinity/cpuset.c
+	modified:   src/plugins/task/affinity/dist_tasks.c
+	modified:   src/plugins/task/affinity/dist_tasks.h
+	modified:   src/plugins/task/affinity/numa.c
+	modified:   src/plugins/task/affinity/schedutils.c
+	modified:   src/plugins/task/affinity/task_affinity.c
+	modified:   src/plugins/task/cgroup/Makefile.am
+	modified:   src/plugins/task/cgroup/Makefile.in
+	modified:   src/plugins/task/cgroup/task_cgroup.c
+	modified:   src/plugins/task/cgroup/task_cgroup.h
+	modified:   src/plugins/task/cgroup/task_cgroup_cpuset.c
+	modified:   src/plugins/task/cgroup/task_cgroup_cpuset.h
+	modified:   src/plugins/task/cgroup/task_cgroup_devices.c
+	modified:   src/plugins/task/cgroup/task_cgroup_devices.h
+	modified:   src/plugins/task/cgroup/task_cgroup_memory.c
+	modified:   src/plugins/task/cgroup/task_cgroup_memory.h
+	modified:   src/plugins/task/cray/Makefile.am
+	modified:   src/plugins/task/cray/Makefile.in
+	modified:   src/plugins/task/cray/task_cray.c
+	modified:   src/plugins/task/none/Makefile.am
+	modified:   src/plugins/task/none/Makefile.in
+	modified:   src/plugins/task/none/task_none.c
+	modified:   src/plugins/topology/3d_torus/Makefile.am
+	modified:   src/plugins/topology/3d_torus/Makefile.in
+	modified:   src/plugins/topology/3d_torus/hilbert.c
+	modified:   src/plugins/topology/3d_torus/hilbert.h
+	modified:   src/plugins/topology/3d_torus/hilbert_slurm.c
+	modified:   src/plugins/topology/3d_torus/topology_3d_torus.c
+	modified:   src/plugins/topology/Makefile.am
+	modified:   src/plugins/topology/Makefile.in
+	modified:   src/plugins/topology/node_rank/Makefile.am
+	modified:   src/plugins/topology/node_rank/Makefile.in
+	modified:   src/plugins/topology/node_rank/topology_node_rank.c
+	modified:   src/plugins/topology/none/Makefile.am
+	modified:   src/plugins/topology/none/Makefile.in
+	modified:   src/plugins/topology/none/topology_none.c
+	modified:   src/plugins/topology/tree/Makefile.am
+	modified:   src/plugins/topology/tree/Makefile.in
+	modified:   src/plugins/topology/tree/topology_tree.c
+	modified:   src/sacct/Makefile.am
+	modified:   src/sacct/Makefile.in
+	modified:   src/sacct/options.c
+	modified:   src/sacct/print.c
+	modified:   src/sacct/process.c
+	modified:   src/sacct/sacct.c
+	modified:   src/sacct/sacct.h
+	modified:   src/sacctmgr/Makefile.am
+	modified:   src/sacctmgr/Makefile.in
+	modified:   src/sacctmgr/account_functions.c
+	modified:   src/sacctmgr/archive_functions.c
+	modified:   src/sacctmgr/association_functions.c
+	modified:   src/sacctmgr/cluster_functions.c
+	modified:   src/sacctmgr/common.c
+	modified:   src/sacctmgr/config_functions.c
+	modified:   src/sacctmgr/event_functions.c
+	modified:   src/sacctmgr/file_functions.c
+	modified:   src/sacctmgr/job_functions.c
+	modified:   src/sacctmgr/problem_functions.c
+	modified:   src/sacctmgr/qos_functions.c
+	modified:   src/sacctmgr/resource_functions.c
+	modified:   src/sacctmgr/sacctmgr.c
+	modified:   src/sacctmgr/sacctmgr.h
+	modified:   src/sacctmgr/txn_functions.c
+	modified:   src/sacctmgr/user_functions.c
+	modified:   src/sacctmgr/wckey_functions.c
+	modified:   src/salloc/Makefile.am
+	modified:   src/salloc/Makefile.in
+	modified:   src/salloc/opt.c
+	modified:   src/salloc/opt.h
+	modified:   src/salloc/salloc.c
+	modified:   src/salloc/salloc.h
+	modified:   src/sattach/Makefile.am
+	modified:   src/sattach/Makefile.in
+	modified:   src/sattach/attach.c
+	modified:   src/sattach/attach.h
+	modified:   src/sattach/opt.c
+	modified:   src/sattach/opt.h
+	modified:   src/sattach/sattach.c
+	modified:   src/sbatch/Makefile.am
+	modified:   src/sbatch/Makefile.in
+	deleted:    src/sbatch/mult_cluster.c
+	deleted:    src/sbatch/mult_cluster.h
+	modified:   src/sbatch/opt.c
+	modified:   src/sbatch/opt.h
+	modified:   src/sbatch/sbatch.c
+	modified:   src/sbcast/Makefile.am
+	modified:   src/sbcast/Makefile.in
+	deleted:    src/sbcast/agent.c
+	modified:   src/sbcast/opts.c
+	modified:   src/sbcast/sbcast.c
+	modified:   src/sbcast/sbcast.h
+	modified:   src/scancel/Makefile.am
+	modified:   src/scancel/Makefile.in
+	modified:   src/scancel/opt.c
+	modified:   src/scancel/scancel.c
+	modified:   src/scancel/scancel.h
+	modified:   src/scontrol/Makefile.am
+	modified:   src/scontrol/Makefile.in
+	modified:   src/scontrol/create_res.c
+	modified:   src/scontrol/info_block.c
+	modified:   src/scontrol/info_job.c
+	modified:   src/scontrol/info_lics.c
+	modified:   src/scontrol/info_node.c
+	modified:   src/scontrol/info_part.c
+	modified:   src/scontrol/info_res.c
+	modified:   src/scontrol/scontrol.c
+	modified:   src/scontrol/scontrol.h
+	modified:   src/scontrol/update_job.c
+	modified:   src/scontrol/update_node.c
+	modified:   src/scontrol/update_part.c
+	modified:   src/scontrol/update_step.c
+	modified:   src/sdiag/Makefile.am
+	modified:   src/sdiag/Makefile.in
+	modified:   src/sdiag/opts.c
+	modified:   src/sdiag/sdiag.c
+	modified:   src/sinfo/Makefile.am
+	modified:   src/sinfo/Makefile.in
+	modified:   src/sinfo/opts.c
+	modified:   src/sinfo/print.c
+	modified:   src/sinfo/print.h
+	modified:   src/sinfo/sinfo.c
+	modified:   src/sinfo/sinfo.h
+	modified:   src/sinfo/sort.c
+	modified:   src/slurmctld/Makefile.am
+	modified:   src/slurmctld/Makefile.in
+	modified:   src/slurmctld/acct_policy.c
+	modified:   src/slurmctld/acct_policy.h
+	modified:   src/slurmctld/agent.c
+	modified:   src/slurmctld/agent.h
+	modified:   src/slurmctld/backup.c
+	modified:   src/slurmctld/controller.c
+	modified:   src/slurmctld/front_end.c
+	modified:   src/slurmctld/front_end.h
+	modified:   src/slurmctld/gang.c
+	modified:   src/slurmctld/gang.h
+	modified:   src/slurmctld/groups.c
+	modified:   src/slurmctld/groups.h
+	modified:   src/slurmctld/job_mgr.c
+	modified:   src/slurmctld/job_scheduler.c
+	modified:   src/slurmctld/job_scheduler.h
+	modified:   src/slurmctld/job_submit.c
+	modified:   src/slurmctld/job_submit.h
+	modified:   src/slurmctld/licenses.c
+	modified:   src/slurmctld/licenses.h
+	modified:   src/slurmctld/locks.c
+	modified:   src/slurmctld/locks.h
+	modified:   src/slurmctld/node_mgr.c
+	modified:   src/slurmctld/node_scheduler.c
+	modified:   src/slurmctld/node_scheduler.h
+	modified:   src/slurmctld/partition_mgr.c
+	modified:   src/slurmctld/ping_nodes.c
+	modified:   src/slurmctld/ping_nodes.h
+	modified:   src/slurmctld/port_mgr.c
+	modified:   src/slurmctld/port_mgr.h
+	modified:   src/slurmctld/power_save.c
+	modified:   src/slurmctld/preempt.c
+	modified:   src/slurmctld/preempt.h
+	modified:   src/slurmctld/proc_req.c
+	modified:   src/slurmctld/proc_req.h
+	modified:   src/slurmctld/read_config.c
+	modified:   src/slurmctld/read_config.h
+	modified:   src/slurmctld/reservation.c
+	modified:   src/slurmctld/reservation.h
+	modified:   src/slurmctld/sched_plugin.c
+	modified:   src/slurmctld/sched_plugin.h
+	modified:   src/slurmctld/slurmctld.h
+	modified:   src/slurmctld/slurmctld_plugstack.c
+	modified:   src/slurmctld/slurmctld_plugstack.h
+	modified:   src/slurmctld/srun_comm.c
+	modified:   src/slurmctld/srun_comm.h
+	modified:   src/slurmctld/state_save.c
+	modified:   src/slurmctld/state_save.h
+	modified:   src/slurmctld/statistics.c
+	modified:   src/slurmctld/step_mgr.c
+	modified:   src/slurmctld/trigger_mgr.c
+	modified:   src/slurmctld/trigger_mgr.h
+	modified:   src/slurmd/Makefile.in
+	modified:   src/slurmd/common/Makefile.am
+	modified:   src/slurmd/common/Makefile.in
+	modified:   src/slurmd/common/core_spec_plugin.c
+	modified:   src/slurmd/common/core_spec_plugin.h
+	modified:   src/slurmd/common/job_container_plugin.c
+	modified:   src/slurmd/common/job_container_plugin.h
+	modified:   src/slurmd/common/proctrack.c
+	modified:   src/slurmd/common/proctrack.h
+	modified:   src/slurmd/common/reverse_tree.h
+	modified:   src/slurmd/common/reverse_tree_math.c
+	modified:   src/slurmd/common/reverse_tree_math.h
+	modified:   src/slurmd/common/run_script.c
+	modified:   src/slurmd/common/run_script.h
+	modified:   src/slurmd/common/set_oomadj.c
+	modified:   src/slurmd/common/set_oomadj.h
+	modified:   src/slurmd/common/setproctitle.c
+	modified:   src/slurmd/common/setproctitle.h
+	modified:   src/slurmd/common/slurmstepd_init.c
+	modified:   src/slurmd/common/slurmstepd_init.h
+	modified:   src/slurmd/common/task_plugin.c
+	modified:   src/slurmd/common/task_plugin.h
+	modified:   src/slurmd/slurmd/Makefile.am
+	modified:   src/slurmd/slurmd/Makefile.in
+	modified:   src/slurmd/slurmd/get_mach_stat.c
+	modified:   src/slurmd/slurmd/get_mach_stat.h
+	deleted:    src/slurmd/slurmd/read_proc.c
+	modified:   src/slurmd/slurmd/req.c
+	modified:   src/slurmd/slurmd/req.h
+	modified:   src/slurmd/slurmd/slurmd.c
+	modified:   src/slurmd/slurmd/slurmd.h
+	deleted:    src/slurmd/slurmd/slurmd_plugstack.c
+	deleted:    src/slurmd/slurmd/slurmd_plugstack.h
+	deleted:    src/slurmd/slurmd/xcpu.c
+	deleted:    src/slurmd/slurmd/xcpu.h
+	modified:   src/slurmd/slurmstepd/Makefile.am
+	modified:   src/slurmd/slurmstepd/Makefile.in
+	deleted:    src/slurmd/slurmstepd/fname.c
+	deleted:    src/slurmd/slurmstepd/fname.h
+	modified:   src/slurmd/slurmstepd/io.c
+	modified:   src/slurmd/slurmstepd/io.h
+	modified:   src/slurmd/slurmstepd/mgr.c
+	modified:   src/slurmd/slurmstepd/mgr.h
+	modified:   src/slurmd/slurmstepd/multi_prog.c
+	modified:   src/slurmd/slurmstepd/multi_prog.h
+	modified:   src/slurmd/slurmstepd/pam_ses.c
+	modified:   src/slurmd/slurmstepd/pam_ses.h
+	modified:   src/slurmd/slurmstepd/pdebug.c
+	modified:   src/slurmd/slurmstepd/pdebug.h
+	modified:   src/slurmd/slurmstepd/req.c
+	modified:   src/slurmd/slurmstepd/req.h
+	modified:   src/slurmd/slurmstepd/slurmstepd.c
+	modified:   src/slurmd/slurmstepd/slurmstepd.h
+	modified:   src/slurmd/slurmstepd/slurmstepd_job.c
+	modified:   src/slurmd/slurmstepd/slurmstepd_job.h
+	modified:   src/slurmd/slurmstepd/step_terminate_monitor.c
+	modified:   src/slurmd/slurmstepd/step_terminate_monitor.h
+	modified:   src/slurmd/slurmstepd/task.c
+	modified:   src/slurmd/slurmstepd/task.h
+	modified:   src/slurmd/slurmstepd/ulimits.c
+	modified:   src/slurmd/slurmstepd/ulimits.h
+	modified:   src/slurmdbd/Makefile.am
+	modified:   src/slurmdbd/Makefile.in
+	deleted:    src/slurmdbd/agent.c
+	deleted:    src/slurmdbd/agent.h
+	modified:   src/slurmdbd/backup.c
+	modified:   src/slurmdbd/backup.h
+	modified:   src/slurmdbd/proc_req.c
+	modified:   src/slurmdbd/proc_req.h
+	modified:   src/slurmdbd/read_config.c
+	modified:   src/slurmdbd/read_config.h
+	modified:   src/slurmdbd/rpc_mgr.c
+	modified:   src/slurmdbd/rpc_mgr.h
+	modified:   src/slurmdbd/slurmdbd.c
+	modified:   src/slurmdbd/slurmdbd.h
+	modified:   src/smap/Makefile.am
+	modified:   src/smap/Makefile.in
+	modified:   src/smap/configure_functions.c
+	modified:   src/smap/grid_functions.c
+	modified:   src/smap/job_functions.c
+	modified:   src/smap/opts.c
+	modified:   src/smap/partition_functions.c
+	modified:   src/smap/reservation_functions.c
+	modified:   src/smap/smap.c
+	modified:   src/smap/smap.h
+	modified:   src/smd/Makefile.in
+	modified:   src/sprio/Makefile.am
+	modified:   src/sprio/Makefile.in
+	modified:   src/sprio/opts.c
+	modified:   src/sprio/print.c
+	modified:   src/sprio/print.h
+	modified:   src/sprio/sprio.c
+	modified:   src/sprio/sprio.h
+	modified:   src/squeue/Makefile.am
+	modified:   src/squeue/Makefile.in
+	modified:   src/squeue/opts.c
+	modified:   src/squeue/print.c
+	modified:   src/squeue/print.h
+	modified:   src/squeue/sort.c
+	modified:   src/squeue/squeue.c
+	modified:   src/squeue/squeue.h
+	modified:   src/sreport/Makefile.am
+	modified:   src/sreport/Makefile.in
+	deleted:    src/sreport/assoc_reports.c
+	deleted:    src/sreport/assoc_reports.h
+	modified:   src/sreport/cluster_reports.c
+	modified:   src/sreport/cluster_reports.h
+	modified:   src/sreport/common.c
+	modified:   src/sreport/job_reports.c
+	modified:   src/sreport/job_reports.h
+	modified:   src/sreport/resv_reports.c
+	modified:   src/sreport/resv_reports.h
+	modified:   src/sreport/sreport.c
+	modified:   src/sreport/sreport.h
+	modified:   src/sreport/user_reports.c
+	modified:   src/sreport/user_reports.h
+	modified:   src/srun/Makefile.am
+	modified:   src/srun/Makefile.in
+	modified:   src/srun/libsrun/Makefile.am
+	modified:   src/srun/libsrun/Makefile.in
+	modified:   src/srun/libsrun/allocate.c
+	modified:   src/srun/libsrun/allocate.h
+	modified:   src/srun/libsrun/debugger.c
+	modified:   src/srun/libsrun/debugger.h
+	modified:   src/srun/libsrun/fname.c
+	modified:   src/srun/libsrun/fname.h
+	modified:   src/srun/libsrun/launch.c
+	modified:   src/srun/libsrun/launch.h
+	modified:   src/srun/libsrun/multi_prog.c
+	modified:   src/srun/libsrun/multi_prog.h
+	modified:   src/srun/libsrun/opt.c
+	modified:   src/srun/libsrun/opt.h
+	modified:   src/srun/libsrun/srun_job.c
+	modified:   src/srun/libsrun/srun_job.h
+	modified:   src/srun/srun.c
+	modified:   src/srun/srun_pty.c
+	modified:   src/srun/srun_pty.h
+	modified:   src/srun_cr/Makefile.am
+	modified:   src/srun_cr/Makefile.in
+	modified:   src/srun_cr/srun_cr.c
+	modified:   src/sshare/Makefile.am
+	modified:   src/sshare/Makefile.in
+	modified:   src/sshare/process.c
+	modified:   src/sshare/sshare.c
+	modified:   src/sshare/sshare.h
+	modified:   src/sstat/Makefile.am
+	modified:   src/sstat/Makefile.in
+	modified:   src/sstat/options.c
+	modified:   src/sstat/print.c
+	modified:   src/sstat/process.c
+	modified:   src/sstat/sstat.c
+	modified:   src/sstat/sstat.h
+	modified:   src/strigger/Makefile.am
+	modified:   src/strigger/Makefile.in
+	modified:   src/strigger/opts.c
+	modified:   src/strigger/strigger.c
+	modified:   src/strigger/strigger.h
+	modified:   src/sview/Makefile.am
+	modified:   src/sview/Makefile.in
+	modified:   src/sview/admin_info.c
+	modified:   src/sview/block_info.c
+	modified:   src/sview/common.c
+	modified:   src/sview/config_info.c
+	modified:   src/sview/defaults.c
+	modified:   src/sview/front_end_info.c
+	modified:   src/sview/grid.c
+	modified:   src/sview/gthread_helper.c
+	modified:   src/sview/gthread_helper.h
+	modified:   src/sview/job_info.c
+	modified:   src/sview/node_info.c
+	modified:   src/sview/part_info.c
+	modified:   src/sview/popups.c
+	modified:   src/sview/resv_info.c
+	modified:   src/sview/submit_info.c
+	modified:   src/sview/sview.c
+	modified:   src/sview/sview.h
+	modified:   testsuite/Makefile.in
+	modified:   testsuite/dejagnu.h
+	modified:   testsuite/expect/Makefile.am
+	modified:   testsuite/expect/Makefile.in
+	modified:   testsuite/expect/README
+	modified:   testsuite/expect/driveregress.py
+	modified:   testsuite/expect/globals
+	modified:   testsuite/expect/globals_accounting
+	modified:   testsuite/expect/inc12.3.1
+	modified:   testsuite/expect/inc12.3.2
+	deleted:    testsuite/expect/inc21.21.1
+	deleted:    testsuite/expect/inc21.21.2
+	deleted:    testsuite/expect/inc21.21.3
+	deleted:    testsuite/expect/inc21.21.4
+	modified:   testsuite/expect/inc21.30.1
+	modified:   testsuite/expect/inc21.30.10
+	modified:   testsuite/expect/inc21.30.11
+	modified:   testsuite/expect/inc21.30.12
+	modified:   testsuite/expect/inc21.30.13
+	modified:   testsuite/expect/inc21.30.14
+	modified:   testsuite/expect/inc21.30.15
+	modified:   testsuite/expect/inc21.30.16
+	modified:   testsuite/expect/inc21.30.2
+	modified:   testsuite/expect/inc21.30.3
+	modified:   testsuite/expect/inc21.30.4
+	modified:   testsuite/expect/inc21.30.5
+	modified:   testsuite/expect/inc21.30.6
+	modified:   testsuite/expect/inc21.30.7
+	modified:   testsuite/expect/inc21.30.8
+	modified:   testsuite/expect/inc21.30.9
+	modified:   testsuite/expect/inc22.1.1
+	modified:   testsuite/expect/inc22.1.2
+	modified:   testsuite/expect/inc22.1.3
+	modified:   testsuite/expect/inc22.1.4
+	modified:   testsuite/expect/inc3.11.1
+	modified:   testsuite/expect/inc3.11.2
+	modified:   testsuite/expect/inc3.11.3
+	modified:   testsuite/expect/inc3.11.4
+	modified:   testsuite/expect/inc3.11.5
+	modified:   testsuite/expect/inc3.11.6
+	modified:   testsuite/expect/inc3.11.7
+	modified:   testsuite/expect/inc3.11.8
+	modified:   testsuite/expect/inc3.11.9
+	modified:   testsuite/expect/mpi-testscripts/script.slurm.sh
+	deleted:    testsuite/expect/pkill
+	modified:   testsuite/expect/regression
+	modified:   testsuite/expect/regression.py
+	modified:   testsuite/expect/test1.1
+	modified:   testsuite/expect/test1.10
+	modified:   testsuite/expect/test1.11
+	modified:   testsuite/expect/test1.12
+	modified:   testsuite/expect/test1.13
+	modified:   testsuite/expect/test1.14
+	modified:   testsuite/expect/test1.15
+	modified:   testsuite/expect/test1.15.bash
+	modified:   testsuite/expect/test1.16
+	modified:   testsuite/expect/test1.17
+	modified:   testsuite/expect/test1.18
+	modified:   testsuite/expect/test1.19
+	modified:   testsuite/expect/test1.2
+	modified:   testsuite/expect/test1.20
+	modified:   testsuite/expect/test1.21
+	modified:   testsuite/expect/test1.22
+	modified:   testsuite/expect/test1.23
+	modified:   testsuite/expect/test1.24
+	modified:   testsuite/expect/test1.25
+	modified:   testsuite/expect/test1.26
+	modified:   testsuite/expect/test1.27
+	modified:   testsuite/expect/test1.28
+	modified:   testsuite/expect/test1.29
+	modified:   testsuite/expect/test1.29.prog.c
+	modified:   testsuite/expect/test1.3
+	modified:   testsuite/expect/test1.30
+	modified:   testsuite/expect/test1.31
+	modified:   testsuite/expect/test1.32
+	modified:   testsuite/expect/test1.32.prog.c
+	modified:   testsuite/expect/test1.33
+	modified:   testsuite/expect/test1.34
+	modified:   testsuite/expect/test1.34.prog.c
+	modified:   testsuite/expect/test1.35
+	modified:   testsuite/expect/test1.36
+	modified:   testsuite/expect/test1.37
+	modified:   testsuite/expect/test1.38
+	modified:   testsuite/expect/test1.4
+	modified:   testsuite/expect/test1.40
+	modified:   testsuite/expect/test1.41
+	modified:   testsuite/expect/test1.42
+	modified:   testsuite/expect/test1.43
+	modified:   testsuite/expect/test1.44
+	modified:   testsuite/expect/test1.45
+	modified:   testsuite/expect/test1.46
+	modified:   testsuite/expect/test1.47
+	modified:   testsuite/expect/test1.48
+	modified:   testsuite/expect/test1.49
+	modified:   testsuite/expect/test1.5
+	modified:   testsuite/expect/test1.50
+	modified:   testsuite/expect/test1.51
+	modified:   testsuite/expect/test1.52
+	modified:   testsuite/expect/test1.53
+	modified:   testsuite/expect/test1.53.prog.c
+	modified:   testsuite/expect/test1.54
+	modified:   testsuite/expect/test1.55
+	modified:   testsuite/expect/test1.56
+	modified:   testsuite/expect/test1.57
+	modified:   testsuite/expect/test1.58
+	modified:   testsuite/expect/test1.59
+	modified:   testsuite/expect/test1.6
+	modified:   testsuite/expect/test1.60
+	modified:   testsuite/expect/test1.61
+	modified:   testsuite/expect/test1.62
+	modified:   testsuite/expect/test1.62.bash
+	modified:   testsuite/expect/test1.63
+	modified:   testsuite/expect/test1.64
+	modified:   testsuite/expect/test1.65
+	modified:   testsuite/expect/test1.66
+	modified:   testsuite/expect/test1.67
+	modified:   testsuite/expect/test1.68
+	modified:   testsuite/expect/test1.69
+	modified:   testsuite/expect/test1.7
+	modified:   testsuite/expect/test1.70
+	modified:   testsuite/expect/test1.71
+	modified:   testsuite/expect/test1.72
+	modified:   testsuite/expect/test1.73
+	modified:   testsuite/expect/test1.8
+	modified:   testsuite/expect/test1.80
+	modified:   testsuite/expect/test1.81
+	modified:   testsuite/expect/test1.82
+	modified:   testsuite/expect/test1.83
+	modified:   testsuite/expect/test1.84
+	modified:   testsuite/expect/test1.85
+	modified:   testsuite/expect/test1.86
+	modified:   testsuite/expect/test1.87
+	modified:   testsuite/expect/test1.88
+	modified:   testsuite/expect/test1.88.prog.c
+	modified:   testsuite/expect/test1.89
+	modified:   testsuite/expect/test1.89.prog.c
+	modified:   testsuite/expect/test1.9
+	modified:   testsuite/expect/test1.90
+	modified:   testsuite/expect/test1.90.prog.c
+	modified:   testsuite/expect/test1.91
+	modified:   testsuite/expect/test1.91.prog.c
+	modified:   testsuite/expect/test1.92
+	deleted:    testsuite/expect/test1.93
+	modified:   testsuite/expect/test1.94
+	modified:   testsuite/expect/test1.94.master.c
+	modified:   testsuite/expect/test1.94.slave.c
+	modified:   testsuite/expect/test1.95
+	modified:   testsuite/expect/test1.95.prog.upc
+	modified:   testsuite/expect/test1.96
+	modified:   testsuite/expect/test1.97
+	modified:   testsuite/expect/test10.1
+	modified:   testsuite/expect/test10.10
+	modified:   testsuite/expect/test10.11
+	modified:   testsuite/expect/test10.12
+	modified:   testsuite/expect/test10.13
+	modified:   testsuite/expect/test10.2
+	modified:   testsuite/expect/test10.3
+	modified:   testsuite/expect/test10.4
+	modified:   testsuite/expect/test10.5
+	modified:   testsuite/expect/test10.6
+	modified:   testsuite/expect/test10.7
+	modified:   testsuite/expect/test10.8
+	modified:   testsuite/expect/test10.9
+	modified:   testsuite/expect/test11.1
+	modified:   testsuite/expect/test11.2
+	modified:   testsuite/expect/test11.3
+	modified:   testsuite/expect/test11.4
+	modified:   testsuite/expect/test11.5
+	modified:   testsuite/expect/test11.6
+	modified:   testsuite/expect/test11.7
+	modified:   testsuite/expect/test11.8
+	modified:   testsuite/expect/test12.1
+	modified:   testsuite/expect/test12.2
+	modified:   testsuite/expect/test12.2.prog.c
+	modified:   testsuite/expect/test12.3
+	modified:   testsuite/expect/test12.4
+	modified:   testsuite/expect/test12.5
+	modified:   testsuite/expect/test12.6
+	modified:   testsuite/expect/test12.7
+	modified:   testsuite/expect/test13.1
+	modified:   testsuite/expect/test13.2
+	modified:   testsuite/expect/test14.1
+	modified:   testsuite/expect/test14.2
+	modified:   testsuite/expect/test14.3
+	modified:   testsuite/expect/test14.4
+	modified:   testsuite/expect/test14.5
+	modified:   testsuite/expect/test14.6
+	modified:   testsuite/expect/test14.7
+	modified:   testsuite/expect/test14.8
+	modified:   testsuite/expect/test14.9
+	modified:   testsuite/expect/test15.1
+	modified:   testsuite/expect/test15.10
+	modified:   testsuite/expect/test15.11
+	modified:   testsuite/expect/test15.12
+	modified:   testsuite/expect/test15.13
+	modified:   testsuite/expect/test15.14
+	modified:   testsuite/expect/test15.15
+	modified:   testsuite/expect/test15.16
+	deleted:    testsuite/expect/test15.17
+	modified:   testsuite/expect/test15.18
+	modified:   testsuite/expect/test15.19
+	modified:   testsuite/expect/test15.2
+	modified:   testsuite/expect/test15.20
+	modified:   testsuite/expect/test15.21
+	modified:   testsuite/expect/test15.22
+	modified:   testsuite/expect/test15.23
+	modified:   testsuite/expect/test15.24
+	modified:   testsuite/expect/test15.25
+	modified:   testsuite/expect/test15.26
+	modified:   testsuite/expect/test15.3
+	modified:   testsuite/expect/test15.4
+	modified:   testsuite/expect/test15.5
+	modified:   testsuite/expect/test15.6
+	modified:   testsuite/expect/test15.7
+	modified:   testsuite/expect/test15.8
+	modified:   testsuite/expect/test15.9
+	modified:   testsuite/expect/test16.1
+	modified:   testsuite/expect/test16.2
+	modified:   testsuite/expect/test16.3
+	modified:   testsuite/expect/test16.4
+	modified:   testsuite/expect/test16.4.prog.c
+	modified:   testsuite/expect/test17.1
+	modified:   testsuite/expect/test17.10
+	modified:   testsuite/expect/test17.11
+	modified:   testsuite/expect/test17.12
+	modified:   testsuite/expect/test17.13
+	modified:   testsuite/expect/test17.14
+	modified:   testsuite/expect/test17.15
+	modified:   testsuite/expect/test17.15.prog.c
+	modified:   testsuite/expect/test17.16
+	modified:   testsuite/expect/test17.17
+	modified:   testsuite/expect/test17.18
+	modified:   testsuite/expect/test17.19
+	modified:   testsuite/expect/test17.2
+	modified:   testsuite/expect/test17.20
+	modified:   testsuite/expect/test17.21
+	modified:   testsuite/expect/test17.22
+	modified:   testsuite/expect/test17.23
+	modified:   testsuite/expect/test17.24
+	modified:   testsuite/expect/test17.25
+	modified:   testsuite/expect/test17.26
+	modified:   testsuite/expect/test17.27
+	modified:   testsuite/expect/test17.28
+	modified:   testsuite/expect/test17.29
+	modified:   testsuite/expect/test17.3
+	modified:   testsuite/expect/test17.31
+	modified:   testsuite/expect/test17.32
+	modified:   testsuite/expect/test17.33
+	modified:   testsuite/expect/test17.34
+	modified:   testsuite/expect/test17.4
+	modified:   testsuite/expect/test17.5
+	modified:   testsuite/expect/test17.6
+	modified:   testsuite/expect/test17.7
+	modified:   testsuite/expect/test17.8
+	modified:   testsuite/expect/test17.9
+	modified:   testsuite/expect/test19.1
+	modified:   testsuite/expect/test19.2
+	modified:   testsuite/expect/test19.3
+	modified:   testsuite/expect/test19.4
+	modified:   testsuite/expect/test19.5
+	modified:   testsuite/expect/test19.6
+	modified:   testsuite/expect/test19.7
+	modified:   testsuite/expect/test2.1
+	modified:   testsuite/expect/test2.10
+	modified:   testsuite/expect/test2.11
+	modified:   testsuite/expect/test2.12
+	modified:   testsuite/expect/test2.13
+	modified:   testsuite/expect/test2.14
+	modified:   testsuite/expect/test2.15
+	modified:   testsuite/expect/test2.16
+	modified:   testsuite/expect/test2.17
+	modified:   testsuite/expect/test2.18
+	modified:   testsuite/expect/test2.19
+	modified:   testsuite/expect/test2.2
+	modified:   testsuite/expect/test2.20
+	modified:   testsuite/expect/test2.21
+	modified:   testsuite/expect/test2.22
+	modified:   testsuite/expect/test2.23
+	modified:   testsuite/expect/test2.3
+	modified:   testsuite/expect/test2.4
+	modified:   testsuite/expect/test2.5
+	modified:   testsuite/expect/test2.6
+	modified:   testsuite/expect/test2.7
+	modified:   testsuite/expect/test2.8
+	modified:   testsuite/expect/test2.9
+	modified:   testsuite/expect/test20.1
+	modified:   testsuite/expect/test20.10
+	modified:   testsuite/expect/test20.11
+	modified:   testsuite/expect/test20.2
+	modified:   testsuite/expect/test20.3
+	modified:   testsuite/expect/test20.4
+	modified:   testsuite/expect/test20.5
+	modified:   testsuite/expect/test20.6
+	modified:   testsuite/expect/test20.7
+	modified:   testsuite/expect/test20.8
+	modified:   testsuite/expect/test20.9
+	modified:   testsuite/expect/test21.1
+	modified:   testsuite/expect/test21.10
+	modified:   testsuite/expect/test21.11
+	modified:   testsuite/expect/test21.12
+	modified:   testsuite/expect/test21.13
+	modified:   testsuite/expect/test21.14
+	modified:   testsuite/expect/test21.15
+	modified:   testsuite/expect/test21.16
+	modified:   testsuite/expect/test21.17
+	modified:   testsuite/expect/test21.18
+	modified:   testsuite/expect/test21.19
+	modified:   testsuite/expect/test21.2
+	modified:   testsuite/expect/test21.20
+	modified:   testsuite/expect/test21.21
+	modified:   testsuite/expect/test21.22
+	modified:   testsuite/expect/test21.23
+	modified:   testsuite/expect/test21.24
+	modified:   testsuite/expect/test21.25
+	modified:   testsuite/expect/test21.26
+	modified:   testsuite/expect/test21.27
+	modified:   testsuite/expect/test21.28
+	modified:   testsuite/expect/test21.29
+	modified:   testsuite/expect/test21.3
+	modified:   testsuite/expect/test21.30
+	modified:   testsuite/expect/test21.31
+	modified:   testsuite/expect/test21.32
+	modified:   testsuite/expect/test21.4
+	modified:   testsuite/expect/test21.5
+	modified:   testsuite/expect/test21.6
+	modified:   testsuite/expect/test21.7
+	modified:   testsuite/expect/test21.8
+	modified:   testsuite/expect/test21.9
+	modified:   testsuite/expect/test22.1
+	modified:   testsuite/expect/test22.2
+	modified:   testsuite/expect/test23.1
+	modified:   testsuite/expect/test23.2
+	modified:   testsuite/expect/test24.1
+	modified:   testsuite/expect/test24.1.prog.c
+	modified:   testsuite/expect/test24.2
+	modified:   testsuite/expect/test25.1
+	modified:   testsuite/expect/test26.1
+	modified:   testsuite/expect/test26.2
+	modified:   testsuite/expect/test27.1
+	modified:   testsuite/expect/test27.2
+	modified:   testsuite/expect/test27.3
+	modified:   testsuite/expect/test27.4
+	modified:   testsuite/expect/test27.5
+	modified:   testsuite/expect/test28.1
+	modified:   testsuite/expect/test28.2
+	modified:   testsuite/expect/test28.3
+	modified:   testsuite/expect/test28.4
+	modified:   testsuite/expect/test28.5
+	modified:   testsuite/expect/test28.6
+	modified:   testsuite/expect/test28.7
+	modified:   testsuite/expect/test29.1
+	modified:   testsuite/expect/test29.2
+	modified:   testsuite/expect/test29.3
+	modified:   testsuite/expect/test29.4
+	modified:   testsuite/expect/test29.5
+	modified:   testsuite/expect/test29.6
+	modified:   testsuite/expect/test29.7
+	modified:   testsuite/expect/test29.8
+	modified:   testsuite/expect/test3.1
+	modified:   testsuite/expect/test3.10
+	modified:   testsuite/expect/test3.11
+	modified:   testsuite/expect/test3.12
+	modified:   testsuite/expect/test3.2
+	modified:   testsuite/expect/test3.3
+	modified:   testsuite/expect/test3.4
+	modified:   testsuite/expect/test3.5
+	modified:   testsuite/expect/test3.6
+	modified:   testsuite/expect/test3.7
+	modified:   testsuite/expect/test3.7.prog.c
+	modified:   testsuite/expect/test3.8
+	modified:   testsuite/expect/test3.9
+	modified:   testsuite/expect/test30.1
+	modified:   testsuite/expect/test31.1
+	modified:   testsuite/expect/test32.1
+	modified:   testsuite/expect/test32.10
+	modified:   testsuite/expect/test32.11
+	modified:   testsuite/expect/test32.12
+	modified:   testsuite/expect/test32.2
+	modified:   testsuite/expect/test32.3
+	modified:   testsuite/expect/test32.4
+	modified:   testsuite/expect/test32.5
+	modified:   testsuite/expect/test32.6
+	modified:   testsuite/expect/test32.7
+	modified:   testsuite/expect/test32.8
+	modified:   testsuite/expect/test32.9
+	modified:   testsuite/expect/test4.1
+	modified:   testsuite/expect/test4.10
+	modified:   testsuite/expect/test4.11
+	modified:   testsuite/expect/test4.12
+	modified:   testsuite/expect/test4.2
+	modified:   testsuite/expect/test4.3
+	modified:   testsuite/expect/test4.4
+	modified:   testsuite/expect/test4.5
+	modified:   testsuite/expect/test4.6
+	modified:   testsuite/expect/test4.7
+	modified:   testsuite/expect/test4.8
+	modified:   testsuite/expect/test4.9
+	modified:   testsuite/expect/test5.1
+	modified:   testsuite/expect/test5.2
+	modified:   testsuite/expect/test5.3
+	modified:   testsuite/expect/test5.4
+	modified:   testsuite/expect/test5.5
+	modified:   testsuite/expect/test5.6
+	modified:   testsuite/expect/test5.7
+	modified:   testsuite/expect/test5.8
+	modified:   testsuite/expect/test6.1
+	modified:   testsuite/expect/test6.10
+	modified:   testsuite/expect/test6.11
+	modified:   testsuite/expect/test6.12
+	modified:   testsuite/expect/test6.13
+	modified:   testsuite/expect/test6.13.prog.c
+	modified:   testsuite/expect/test6.14
+	modified:   testsuite/expect/test6.2
+	modified:   testsuite/expect/test6.3
+	modified:   testsuite/expect/test6.4
+	modified:   testsuite/expect/test6.5
+	modified:   testsuite/expect/test6.6
+	modified:   testsuite/expect/test6.7
+	modified:   testsuite/expect/test6.7.prog.c
+	modified:   testsuite/expect/test6.8
+	modified:   testsuite/expect/test6.9
+	modified:   testsuite/expect/test7.1
+	modified:   testsuite/expect/test7.10
+	modified:   testsuite/expect/test7.11
+	modified:   testsuite/expect/test7.11.prog.c
+	modified:   testsuite/expect/test7.12
+	modified:   testsuite/expect/test7.12.prog.c
+	modified:   testsuite/expect/test7.13
+	modified:   testsuite/expect/test7.14
+	modified:   testsuite/expect/test7.15
+	modified:   testsuite/expect/test7.15.prog.c
+	modified:   testsuite/expect/test7.16
+	modified:   testsuite/expect/test7.2
+	modified:   testsuite/expect/test7.2.prog.c
+	modified:   testsuite/expect/test7.3
+	modified:   testsuite/expect/test7.3.io.c
+	modified:   testsuite/expect/test7.3.prog.c
+	modified:   testsuite/expect/test7.4
+	modified:   testsuite/expect/test7.4.prog.c
+	modified:   testsuite/expect/test7.5
+	modified:   testsuite/expect/test7.5.prog.c
+	modified:   testsuite/expect/test7.6
+	modified:   testsuite/expect/test7.6.prog.c
+	deleted:    testsuite/expect/test7.7
+	deleted:    testsuite/expect/test7.7.crypto.c
+	deleted:    testsuite/expect/test7.7.prog.c
+	deleted:    testsuite/expect/test7.8
+	deleted:    testsuite/expect/test7.8.prog.c
+	modified:   testsuite/expect/test7.9
+	modified:   testsuite/expect/test7.9.prog.c
+	modified:   testsuite/expect/test8.1
+	modified:   testsuite/expect/test8.10
+	modified:   testsuite/expect/test8.11
+	modified:   testsuite/expect/test8.2
+	modified:   testsuite/expect/test8.20
+	modified:   testsuite/expect/test8.21
+	modified:   testsuite/expect/test8.21.bash
+	modified:   testsuite/expect/test8.22
+	modified:   testsuite/expect/test8.22.prog.c
+	modified:   testsuite/expect/test8.23
+	modified:   testsuite/expect/test8.24
+	modified:   testsuite/expect/test8.25
+	modified:   testsuite/expect/test8.3
+	modified:   testsuite/expect/test8.4
+	modified:   testsuite/expect/test8.4.prog.c
+	modified:   testsuite/expect/test8.5
+	modified:   testsuite/expect/test8.6
+	deleted:    testsuite/expect/test8.7
+	deleted:    testsuite/expect/test8.7.crypto.c
+	deleted:    testsuite/expect/test8.7.prog.c
+	modified:   testsuite/expect/test8.8
+	modified:   testsuite/expect/test8.9
+	modified:   testsuite/expect/test9.1
+	modified:   testsuite/expect/test9.2
+	modified:   testsuite/expect/test9.3
+	modified:   testsuite/expect/test9.4
+	modified:   testsuite/expect/test9.5
+	modified:   testsuite/expect/test9.6
+	modified:   testsuite/expect/test9.7
+	modified:   testsuite/expect/test9.7.bash
+	modified:   testsuite/expect/test9.8
+	modified:   testsuite/expect/test9.9
+	modified:   testsuite/expect/test9.9.bash
+	modified:   testsuite/expect/test9.9.prog.c
+	deleted:    testsuite/expect/usleep
+	modified:   testsuite/slurm_unit/Makefile.in
+	modified:   testsuite/slurm_unit/README
+	modified:   testsuite/slurm_unit/api/Makefile.in
+	modified:   testsuite/slurm_unit/api/manual/Makefile.in
+	modified:   testsuite/slurm_unit/api/manual/cancel-tst.c
+	modified:   testsuite/slurm_unit/api/manual/complete-tst.c
+	modified:   testsuite/slurm_unit/api/manual/job_info-tst.c
+	modified:   testsuite/slurm_unit/api/manual/node_info-tst.c
+	modified:   testsuite/slurm_unit/api/manual/partition_info-tst.c
+	modified:   testsuite/slurm_unit/api/manual/reconfigure-tst.c
+	modified:   testsuite/slurm_unit/api/manual/submit-tst.c
+	modified:   testsuite/slurm_unit/api/manual/update_config-tst.c
+	modified:   testsuite/slurm_unit/common/Makefile.am
+	modified:   testsuite/slurm_unit/common/Makefile.in
+	modified:   testsuite/slurm_unit/common/pack-test.c
+	modified:   testsuite/slurm_unit/common/runall.exp
+	deleted:    testsuite/slurm_unit/common/runqsw.c
+	modified:   testsuite/slurm_unit/common/xhash-test.c
+	modified:   testsuite/slurm_unit/common/xtree-test.c
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+
+	.DS_Store
+	CONTRIBUTING.md
+	Makefile
+	autom4te.cache/
+	auxdir/Makefile
+	auxdir/ax_check_compile_flag.m4
+	auxdir/ax_check_zlib.m4
+	auxdir/ax_gcc_builtin.m4
+	auxdir/x_ac_curl.m4
+	auxdir/x_ac_deprecated.m4
+	auxdir/x_ac_json.m4
+	auxdir/x_ac_lz4.m4
+	auxdir/x_ac_netloc.m4
+	auxdir/x_ac_pmix.m4
+	auxdir/x_ac_ssh2.m4
+	auxdir/x_ac_systemd.m4
+	auxdir/x_ac_ucx.m4
+	auxdir/x_ac_uid_gid_size.m4
+	config.h
+	config.log
+	config.status
+	contribs/Makefile
+	contribs/cray/.deps/
+	contribs/cray/Makefile
+	contribs/cray/capmc
+	contribs/cray/capmc_resume.c
+	contribs/cray/capmc_suspend.c
+	contribs/cray/cnselect
+	contribs/cray/csm/
+	contribs/cray/plugstack.conf.template
+	contribs/lua/Makefile
+	contribs/mic/Makefile
+	contribs/openlava/
+	contribs/pam/.deps/
+	contribs/pam/Makefile
+	contribs/pam_slurm_adopt/
+	contribs/perlapi/Makefile
+	contribs/perlapi/libslurm/Makefile
+	contribs/perlapi/libslurm/perl/Makefile.PL
+	contribs/perlapi/libslurmdb/Makefile
+	contribs/perlapi/libslurmdb/perl/Makefile.PL
+	contribs/perlapi/libslurmdb/perl/t/06-jobs_get.t
+	contribs/perlapi/libslurmdb/perl/t/07-qos_get.t
+	contribs/pmi2/.deps/
+	contribs/pmi2/Makefile
+	contribs/pmi2/README
+	contribs/pmi2/testpmixring.c
+	contribs/seff/
+	contribs/sgather/Makefile
+	contribs/sgi/
+	contribs/simulator/.deps/
+	contribs/simulator/.swf2trace_filter.c.swp
+	contribs/simulator/Makefile
+	contribs/simulator/Makefile.in
+	contribs/simulator/swf2trace
+	contribs/simulator/swf2trace_cirne
+	contribs/simulator/swf2trace_filter
+	contribs/sjobexit/Makefile
+	contribs/slurm.spec-legacy
+	contribs/torque/Makefile
+	doc/Makefile
+	doc/html/Makefile
+	doc/html/bb_plugins.shtml
+	doc/html/burst_buffer.shtml
+	doc/html/configurator.easy.html
+	doc/html/configurator.html
+	doc/html/fair_tree.shtml
+	doc/html/federation.shtml
+	doc/html/fonts.css
+	doc/html/fonts.ttf
+	doc/html/heterogeneous_jobs.shtml
+	doc/html/intel_knl.shtml
+	doc/html/jquery.min.js
+	doc/html/licenses.shtml
+	doc/html/mcs.shtml
+	doc/html/mcs_plugins.shtml
+	doc/html/node_features_plugins.shtml
+	doc/html/pam_slurm_adopt.shtml
+	doc/html/power_mgmt.shtml
+	doc/html/power_plugins.shtml
+	doc/html/reset.css
+	doc/html/route_plugin.shtml
+	doc/html/slurm.css
+	doc/html/squeue_color.png
+	doc/html/style.css
+	doc/html/tres.shtml
+	doc/html/user_permissions.shtml
+	doc/html/wckey.shtml
+	doc/man/Makefile
+	doc/man/man1/Makefile
+	doc/man/man3/Makefile
+	doc/man/man3/slurm_allocate_pack_job_blocking.3
+	doc/man/man3/slurm_free_job_array_resp.3
+	doc/man/man3/slurm_job_cpus_allocated_str_on_node.3
+	doc/man/man3/slurm_job_cpus_allocated_str_on_node_id.3
+	doc/man/man3/slurm_job_will_run2.3
+	doc/man/man3/slurm_pack_job_lookup.3
+	doc/man/man3/slurm_pack_job_will_run.3
+	doc/man/man3/slurm_requeue2.3
+	doc/man/man3/slurm_resume2.3
+	doc/man/man3/slurm_submit_batch_pack_job.3
+	doc/man/man3/slurm_suspend2.3
+	doc/man/man3/slurm_update_job2.3
+	doc/man/man5/Makefile
+	doc/man/man5/burst_buffer.conf.5
+	doc/man/man5/knl.conf.5
+	doc/man/man8/Makefile
+	etc/Makefile
+	etc/Makefile.am
+	etc/Makefile.in
+	etc/layouts.d.power.conf.example
+	etc/layouts.d.power_cpufreq.conf.example
+	etc/layouts.d.unit.conf.example
+	etc/slurmctld.service.in
+	etc/slurmd.service.in
+	etc/slurmdbd.service.in
+	libtool
+	slurm/slurm.h
+	slurm/stamp-h2
+	slurm_configure.log
+	src/Makefile
+	src/api/.deps/
+	src/api/Makefile
+	src/api/assoc_mgr_info.c
+	src/api/burst_buffer_info.c
+	src/api/federation_info.c
+	src/api/layout_info.c
+	src/api/powercap_info.c
+	src/bcast/
+	src/common/.deps/
+	src/common/Makefile
+	src/common/callerid.c
+	src/common/callerid.h
+	src/common/entity.c
+	src/common/entity.h
+	src/common/group_cache.c
+	src/common/group_cache.h
+	src/common/layout.c
+	src/common/layout.h
+	src/common/layouts_mgr.c
+	src/common/layouts_mgr.h
+	src/common/mapping.c
+	src/common/mapping.h
+	src/common/msg_aggr.c
+	src/common/msg_aggr.h
+	src/common/node_features.c
+	src/common/node_features.h
+	src/common/parse_value.c
+	src/common/parse_value.h
+	src/common/power.c
+	src/common/power.h
+	src/common/run_command.c
+	src/common/run_command.h
+	src/common/slurm_acct_gather_interconnect.c
+	src/common/slurm_acct_gather_interconnect.h
+	src/common/slurm_mcs.c
+	src/common/slurm_mcs.h
+	src/common/slurm_mpi.h
+	src/common/slurm_opt.h
+	src/common/slurm_persist_conn.c
+	src/common/slurm_persist_conn.h
+	src/common/slurm_route.c
+	src/common/slurm_route.h
+	src/common/slurm_time.c
+	src/common/slurm_time.h
+	src/common/state_control.c
+	src/common/state_control.h
+	src/common/x11_util.c
+	src/common/x11_util.h
+	src/common/xlua.c
+	src/common/xlua.h
+	src/database/.deps/
+	src/database/Makefile
+	src/db_api/.deps/
+	src/db_api/Makefile
+	src/db_api/federation_functions.c
+	src/db_api/job_functions.c
+	src/db_api/tres_functions.c
+	src/layouts/
+	src/plugins/Makefile
+	src/plugins/accounting_storage/Makefile
+	src/plugins/accounting_storage/common/.deps/
+	src/plugins/accounting_storage/common/Makefile
+	src/plugins/accounting_storage/filetxt/.deps/
+	src/plugins/accounting_storage/filetxt/Makefile
+	src/plugins/accounting_storage/mysql/.deps/
+	src/plugins/accounting_storage/mysql/Makefile
+	src/plugins/accounting_storage/mysql/as_mysql_convert.c
+	src/plugins/accounting_storage/mysql/as_mysql_convert.h
+	src/plugins/accounting_storage/mysql/as_mysql_federation.c
+	src/plugins/accounting_storage/mysql/as_mysql_federation.h
+	src/plugins/accounting_storage/mysql/as_mysql_fix_runaway_jobs.c
+	src/plugins/accounting_storage/mysql/as_mysql_fix_runaway_jobs.h
+	src/plugins/accounting_storage/mysql/as_mysql_tres.c
+	src/plugins/accounting_storage/mysql/as_mysql_tres.h
+	src/plugins/accounting_storage/none/.deps/
+	src/plugins/accounting_storage/none/Makefile
+	src/plugins/accounting_storage/slurmdbd/.deps/
+	src/plugins/accounting_storage/slurmdbd/Makefile
+	src/plugins/acct_gather_energy/Makefile
+	src/plugins/acct_gather_energy/cray/
+	src/plugins/acct_gather_energy/ibmaem/
+	src/plugins/acct_gather_energy/ipmi/.deps/
+	src/plugins/acct_gather_energy/ipmi/Makefile
+	src/plugins/acct_gather_energy/none/.deps/
+	src/plugins/acct_gather_energy/none/Makefile
+	src/plugins/acct_gather_energy/rapl/.deps/
+	src/plugins/acct_gather_energy/rapl/Makefile
+	src/plugins/acct_gather_filesystem/Makefile
+	src/plugins/acct_gather_filesystem/lustre/.deps/
+	src/plugins/acct_gather_filesystem/lustre/Makefile
+	src/plugins/acct_gather_filesystem/none/.deps/
+	src/plugins/acct_gather_filesystem/none/Makefile
+	src/plugins/acct_gather_interconnect/
+	src/plugins/acct_gather_profile/Makefile
+	src/plugins/acct_gather_profile/hdf5/.deps/
+	src/plugins/acct_gather_profile/hdf5/Makefile
+	src/plugins/acct_gather_profile/hdf5/sh5util/.deps/
+	src/plugins/acct_gather_profile/hdf5/sh5util/Makefile
+	src/plugins/acct_gather_profile/hdf5/sh5util/sh5util.h
+	src/plugins/acct_gather_profile/none/.deps/
+	src/plugins/acct_gather_profile/none/Makefile
+	src/plugins/auth/Makefile
+	src/plugins/auth/munge/.deps/
+	src/plugins/auth/munge/Makefile
+	src/plugins/auth/none/.deps/
+	src/plugins/auth/none/Makefile
+	src/plugins/burst_buffer/
+	src/plugins/checkpoint/Makefile
+	src/plugins/checkpoint/blcr/.deps/
+	src/plugins/checkpoint/blcr/Makefile
+	src/plugins/checkpoint/blcr/cr_checkpoint.sh
+	src/plugins/checkpoint/blcr/cr_restart.sh
+	src/plugins/checkpoint/none/.deps/
+	src/plugins/checkpoint/none/Makefile
+	src/plugins/checkpoint/ompi/.deps/
+	src/plugins/checkpoint/ompi/Makefile
+	src/plugins/core_spec/Makefile
+	src/plugins/core_spec/cray/.deps/
+	src/plugins/core_spec/cray/Makefile
+	src/plugins/core_spec/none/.deps/
+	src/plugins/core_spec/none/Makefile
+	src/plugins/crypto/Makefile
+	src/plugins/crypto/munge/.deps/
+	src/plugins/crypto/munge/Makefile
+	src/plugins/crypto/openssl/.deps/
+	src/plugins/crypto/openssl/Makefile
+	src/plugins/ext_sensors/Makefile
+	src/plugins/ext_sensors/none/.deps/
+	src/plugins/ext_sensors/none/Makefile
+	src/plugins/ext_sensors/rrd/.deps/
+	src/plugins/ext_sensors/rrd/Makefile
+	src/plugins/gres/Makefile
+	src/plugins/gres/common/
+	src/plugins/gres/gpu/.deps/
+	src/plugins/gres/gpu/Makefile
+	src/plugins/gres/mic/.deps/
+	src/plugins/gres/mic/Makefile
+	src/plugins/gres/nic/.deps/
+	src/plugins/gres/nic/Makefile
+	src/plugins/job_container/Makefile
+	src/plugins/job_container/cncu/.deps/
+	src/plugins/job_container/cncu/Makefile
+	src/plugins/job_container/none/.deps/
+	src/plugins/job_container/none/Makefile
+	src/plugins/job_submit/Makefile
+	src/plugins/job_submit/all_partitions/.deps/
+	src/plugins/job_submit/all_partitions/Makefile
+	src/plugins/job_submit/cray/.deps/
+	src/plugins/job_submit/cray/Makefile
+	src/plugins/job_submit/defaults/.deps/
+	src/plugins/job_submit/defaults/Makefile
+	src/plugins/job_submit/logging/.deps/
+	src/plugins/job_submit/logging/Makefile
+	src/plugins/job_submit/lua/.deps/
+	src/plugins/job_submit/lua/Makefile
+	src/plugins/job_submit/partition/.deps/
+	src/plugins/job_submit/partition/Makefile
+	src/plugins/job_submit/pbs/.deps/
+	src/plugins/job_submit/pbs/Makefile
+	src/plugins/job_submit/require_timelimit/.deps/
+	src/plugins/job_submit/require_timelimit/Makefile
+	src/plugins/job_submit/throttle/.deps/
+	src/plugins/job_submit/throttle/Makefile
+	src/plugins/jobacct_gather/Makefile
+	src/plugins/jobacct_gather/cgroup/.deps/
+	src/plugins/jobacct_gather/cgroup/Makefile
+	src/plugins/jobacct_gather/common/.deps/
+	src/plugins/jobacct_gather/common/Makefile
+	src/plugins/jobacct_gather/linux/.deps/
+	src/plugins/jobacct_gather/linux/Makefile
+	src/plugins/jobacct_gather/none/.deps/
+	src/plugins/jobacct_gather/none/Makefile
+	src/plugins/jobcomp/Makefile
+	src/plugins/jobcomp/elasticsearch/
+	src/plugins/jobcomp/filetxt/.deps/
+	src/plugins/jobcomp/filetxt/Makefile
+	src/plugins/jobcomp/mysql/.deps/
+	src/plugins/jobcomp/mysql/Makefile
+	src/plugins/jobcomp/none/.deps/
+	src/plugins/jobcomp/none/Makefile
+	src/plugins/jobcomp/script/.deps/
+	src/plugins/jobcomp/script/Makefile
+	src/plugins/launch/Makefile
+	src/plugins/launch/aprun/.deps/
+	src/plugins/launch/aprun/Makefile
+	src/plugins/launch/poe/.deps/
+	src/plugins/launch/poe/Makefile
+	src/plugins/launch/runjob/.deps/
+	src/plugins/launch/runjob/Makefile
+	src/plugins/launch/slurm/.deps/
+	src/plugins/launch/slurm/Makefile
+	src/plugins/mcs/
+	src/plugins/mpi/Makefile
+	src/plugins/mpi/none/.deps/
+	src/plugins/mpi/none/Makefile
+	src/plugins/mpi/openmpi/.deps/
+	src/plugins/mpi/openmpi/Makefile
+	src/plugins/mpi/pmi2/.deps/
+	src/plugins/mpi/pmi2/Makefile
+	src/plugins/mpi/pmi2/ring.c
+	src/plugins/mpi/pmi2/ring.h
+	src/plugins/mpi/pmix/
+	src/plugins/node_features/
+	src/plugins/power/
+	src/plugins/preempt/Makefile
+	src/plugins/preempt/job_prio/
+	src/plugins/preempt/none/.deps/
+	src/plugins/preempt/none/Makefile
+	src/plugins/preempt/partition_prio/.deps/
+	src/plugins/preempt/partition_prio/Makefile
+	src/plugins/preempt/qos/.deps/
+	src/plugins/preempt/qos/Makefile
+	src/plugins/priority/Makefile
+	src/plugins/priority/basic/.deps/
+	src/plugins/priority/basic/Makefile
+	src/plugins/priority/multifactor/.deps/
+	src/plugins/priority/multifactor/Makefile
+	src/plugins/priority/multifactor/fair_tree.c
+	src/plugins/priority/multifactor/fair_tree.h
+	src/plugins/priority/multifactor/priority_multifactor.h
+	src/plugins/proctrack/Makefile
+	src/plugins/proctrack/cgroup/.deps/
+	src/plugins/proctrack/cgroup/Makefile
+	src/plugins/proctrack/cray/.deps/
+	src/plugins/proctrack/cray/Makefile
+	src/plugins/proctrack/linuxproc/.deps/
+	src/plugins/proctrack/linuxproc/Makefile
+	src/plugins/proctrack/lua/.deps/
+	src/plugins/proctrack/lua/Makefile
+	src/plugins/proctrack/pgid/.deps/
+	src/plugins/proctrack/pgid/Makefile
+	src/plugins/proctrack/sgi_job/.deps/
+	src/plugins/proctrack/sgi_job/Makefile
+	src/plugins/route/
+	src/plugins/sched/Makefile
+	src/plugins/sched/backfill/.deps/
+	src/plugins/sched/backfill/Makefile
+	src/plugins/sched/builtin/.deps/
+	src/plugins/sched/builtin/Makefile
+	src/plugins/sched/hold/.deps/
+	src/plugins/sched/hold/Makefile
+	src/plugins/select/Makefile
+	src/plugins/select/alps/.deps/
+	src/plugins/select/alps/Makefile
+	src/plugins/select/alps/libalps/.deps/
+	src/plugins/select/alps/libalps/Makefile
+	src/plugins/select/alps/libemulate/.deps/
+	src/plugins/select/alps/libemulate/Makefile
+	src/plugins/select/bluegene/.deps/
+	src/plugins/select/bluegene/Makefile
+	src/plugins/select/bluegene/ba_bgq/.deps/
+	src/plugins/select/bluegene/ba_bgq/Makefile
+	src/plugins/select/bluegene/bl_bgq/.deps/
+	src/plugins/select/bluegene/bl_bgq/Makefile
+	src/plugins/select/bluegene/sfree/.deps/
+	src/plugins/select/bluegene/sfree/Makefile
+	src/plugins/select/cons_res/.deps/
+	src/plugins/select/cons_res/Makefile
+	src/plugins/select/cray/.deps/
+	src/plugins/select/cray/Makefile
+	src/plugins/select/cray/ccm.c
+	src/plugins/select/cray/ccm.h
+	src/plugins/select/linear/.deps/
+	src/plugins/select/linear/Makefile
+	src/plugins/select/other/.deps/
+	src/plugins/select/other/Makefile
+	src/plugins/select/serial/.deps/
+	src/plugins/select/serial/Makefile
+	src/plugins/slurmctld/Makefile
+	src/plugins/slurmctld/nonstop/.deps/
+	src/plugins/slurmctld/nonstop/Makefile
+	src/plugins/switch/Makefile
+	src/plugins/switch/cray/.deps/
+	src/plugins/switch/cray/Makefile
+	src/plugins/switch/cray/cookies.c
+	src/plugins/switch/cray/gpu.c
+	src/plugins/switch/cray/iaa.c
+	src/plugins/switch/cray/pe_info.c
+	src/plugins/switch/cray/scaling.c
+	src/plugins/switch/cray/switch_cray.h
+	src/plugins/switch/cray/util.c
+	src/plugins/switch/generic/.deps/
+	src/plugins/switch/generic/Makefile
+	src/plugins/switch/none/.deps/
+	src/plugins/switch/none/Makefile
+	src/plugins/switch/nrt/.deps/
+	src/plugins/switch/nrt/Makefile
+	src/plugins/switch/nrt/libpermapi/.deps/
+	src/plugins/switch/nrt/libpermapi/Makefile
+	src/plugins/task/Makefile
+	src/plugins/task/affinity/.deps/
+	src/plugins/task/affinity/Makefile
+	src/plugins/task/cgroup/.deps/
+	src/plugins/task/cgroup/Makefile
+	src/plugins/task/cray/.deps/
+	src/plugins/task/cray/Makefile
+	src/plugins/task/none/.deps/
+	src/plugins/task/none/Makefile
+	src/plugins/topology/3d_torus/.deps/
+	src/plugins/topology/3d_torus/Makefile
+	src/plugins/topology/Makefile
+	src/plugins/topology/hypercube/
+	src/plugins/topology/node_rank/.deps/
+	src/plugins/topology/node_rank/Makefile
+	src/plugins/topology/none/.deps/
+	src/plugins/topology/none/Makefile
+	src/plugins/topology/tree/.deps/
+	src/plugins/topology/tree/Makefile
+	src/sacct/.deps/
+	src/sacct/Makefile
+	src/sacctmgr/.deps/
+	src/sacctmgr/Makefile
+	src/sacctmgr/federation_functions.c
+	src/sacctmgr/reservation_functions.c
+	src/sacctmgr/runaway_job_functions.c
+	src/sacctmgr/tres_function.c
+	src/salloc/.deps/
+	src/salloc/Makefile
+	src/sattach/.deps/
+	src/sattach/Makefile
+	src/sbatch/.deps/
+	src/sbatch/Makefile
+	src/sbcast/.deps/
+	src/sbcast/Makefile
+	src/scancel/.deps/
+	src/scancel/Makefile
+	src/scontrol/.deps/
+	src/scontrol/Makefile
+	src/scontrol/info_assoc_mgr.c
+	src/scontrol/info_burst_buffer.c
+	src/scontrol/info_fed.c
+	src/scontrol/info_layout.c
+	src/scontrol/update_layout.c
+	src/scontrol/update_powercap.c
+	src/sdiag/.deps/
+	src/sdiag/Makefile
+	src/sinfo/.deps/
+	src/sinfo/Makefile
+	src/slurmctld/.deps/
+	src/slurmctld/Makefile
+	src/slurmctld/burst_buffer.c
+	src/slurmctld/burst_buffer.h
+	src/slurmctld/fed_mgr.c
+	src/slurmctld/fed_mgr.h
+	src/slurmctld/heartbeat.c
+	src/slurmctld/heartbeat.h
+	src/slurmctld/power_save.h
+	src/slurmctld/powercapping.c
+	src/slurmctld/powercapping.h
+	src/slurmd/Makefile
+	src/slurmd/common/.deps/
+	src/slurmd/common/Makefile
+	src/slurmd/common/fname.c
+	src/slurmd/common/fname.h
+	src/slurmd/common/log_ctld.c
+	src/slurmd/common/log_ctld.h
+	src/slurmd/common/slurmd_cgroup.c
+	src/slurmd/common/slurmd_cgroup.h
+	src/slurmd/common/xcgroup.c
+	src/slurmd/common/xcgroup.h
+	src/slurmd/common/xcpuinfo.c
+	src/slurmd/common/xcpuinfo.h
+	src/slurmd/slurmd/.deps/
+	src/slurmd/slurmd/Makefile
+	src/slurmd/slurmstepd/.deps/
+	src/slurmd/slurmstepd/Makefile
+	src/slurmd/slurmstepd/x11_forwarding.c
+	src/slurmd/slurmstepd/x11_forwarding.h
+	src/slurmdbd/.deps/
+	src/slurmdbd/Makefile
+	src/smap/.deps/
+	src/smap/Makefile
+	src/smd/Makefile
+	src/sprio/.deps/
+	src/sprio/Makefile
+	src/squeue/.deps/
+	src/squeue/Makefile
+	src/sreport/.deps/
+	src/sreport/Makefile
+	src/srun/.deps/
+	src/srun/Makefile
+	src/srun/libsrun/.deps/
+	src/srun/libsrun/Makefile
+	src/srun_cr/.deps/
+	src/srun_cr/Makefile
+	src/sshare/.deps/
+	src/sshare/Makefile
+	src/sstat/.deps/
+	src/sstat/Makefile
+	src/strigger/.deps/
+	src/strigger/Makefile
+	src/sview/.deps/
+	src/sview/Makefile
+	src/sview/bb_info.c
+	stamp-h1
+	testsuite/Makefile
+	testsuite/expect/Makefile
+	testsuite/expect/etc.33.1.1/
+	testsuite/expect/etc.33.1.2/
+	testsuite/expect/etc.33.1.3/
+	testsuite/expect/etc.33.1.4/
+	testsuite/expect/globals_federation
+	testsuite/expect/globals_hetero_jobs
+	testsuite/expect/inc21.21_tests
+	testsuite/expect/inc21.30.17
+	testsuite/expect/inc21.34.1
+	testsuite/expect/inc21.34.2
+	testsuite/expect/inc21.34_tests
+	testsuite/expect/inc22.1.fed
+	testsuite/expect/slurm_status
+	testsuite/expect/test1.100
+	testsuite/expect/test1.101
+	testsuite/expect/test1.102
+	testsuite/expect/test1.103
+	testsuite/expect/test1.104
+	testsuite/expect/test1.105
+	testsuite/expect/test1.106
+	testsuite/expect/test1.107
+	testsuite/expect/test1.108
+	testsuite/expect/test1.109
+	testsuite/expect/test1.110
+	testsuite/expect/test1.111
+	testsuite/expect/test1.112
+	testsuite/expect/test1.113
+	testsuite/expect/test1.114
+	testsuite/expect/test1.115
+	testsuite/expect/test1.74
+	testsuite/expect/test1.75
+	testsuite/expect/test1.76
+	testsuite/expect/test1.76.bash
+	testsuite/expect/test1.76.batch
+	testsuite/expect/test1.77
+	testsuite/expect/test1.99
+	testsuite/expect/test12.8
+	testsuite/expect/test14.10
+	testsuite/expect/test15.27
+	testsuite/expect/test15.30
+	testsuite/expect/test15.31
+	testsuite/expect/test15.32
+	testsuite/expect/test15.33
+	testsuite/expect/test15.34
+	testsuite/expect/test15.35
+	testsuite/expect/test15.36
+	testsuite/expect/test15.37
+	testsuite/expect/test15.38
+	testsuite/expect/test15.39
+	testsuite/expect/test17.35
+	testsuite/expect/test17.36
+	testsuite/expect/test17.37
+	testsuite/expect/test17.38
+	testsuite/expect/test17.39
+	testsuite/expect/test17.40
+	testsuite/expect/test17.41
+	testsuite/expect/test17.42
+	testsuite/expect/test17.43
+	testsuite/expect/test17.44
+	testsuite/expect/test17.45
+	testsuite/expect/test17.51
+	testsuite/expect/test17.52
+	testsuite/expect/test17.53
+	testsuite/expect/test17.54
+	testsuite/expect/test17.55
+	testsuite/expect/test17.56
+	testsuite/expect/test17.57
+	testsuite/expect/test17.58
+	testsuite/expect/test17.59
+	testsuite/expect/test17.60
+	testsuite/expect/test17.61
+	testsuite/expect/test17.62
+	testsuite/expect/test17.63
+	testsuite/expect/test17.64
+	testsuite/expect/test19.8
+	testsuite/expect/test19.9
+	testsuite/expect/test2.24
+	testsuite/expect/test2.25
+	testsuite/expect/test2.26
+	testsuite/expect/test20.12
+	testsuite/expect/test20.13
+	testsuite/expect/test21.33
+	testsuite/expect/test21.34
+	testsuite/expect/test21.35
+	testsuite/expect/test21.36
+	testsuite/expect/test21.37
+	testsuite/expect/test21.38
+	testsuite/expect/test24.3
+	testsuite/expect/test24.3.prog.c
+	testsuite/expect/test24.4
+	testsuite/expect/test24.4.prog.c
+	testsuite/expect/test28.10
+	testsuite/expect/test28.8
+	testsuite/expect/test28.9
+	testsuite/expect/test3.13
+	testsuite/expect/test3.14
+	testsuite/expect/test3.15
+	testsuite/expect/test3.16
+	testsuite/expect/test31.2
+	testsuite/expect/test33.1
+	testsuite/expect/test33.1.prog.c
+	testsuite/expect/test34.1
+	testsuite/expect/test34.2
+	testsuite/expect/test35.1
+	testsuite/expect/test35.2
+	testsuite/expect/test35.3
+	testsuite/expect/test36.1
+	testsuite/expect/test36.2
+	testsuite/expect/test36.3
+	testsuite/expect/test36.4
+	testsuite/expect/test37.1
+	testsuite/expect/test37.10
+	testsuite/expect/test37.11
+	testsuite/expect/test37.12
+	testsuite/expect/test37.13
+	testsuite/expect/test37.14
+	testsuite/expect/test37.15
+	testsuite/expect/test37.16
+	testsuite/expect/test37.2
+	testsuite/expect/test37.3
+	testsuite/expect/test37.4
+	testsuite/expect/test37.5
+	testsuite/expect/test37.6
+	testsuite/expect/test37.7
+	testsuite/expect/test37.8
+	testsuite/expect/test37.9
+	testsuite/expect/test38.1
+	testsuite/expect/test38.10
+	testsuite/expect/test38.11
+	testsuite/expect/test38.12
+	testsuite/expect/test38.13
+	testsuite/expect/test38.14
+	testsuite/expect/test38.15
+	testsuite/expect/test38.16
+	testsuite/expect/test38.17
+	testsuite/expect/test38.2
+	testsuite/expect/test38.3
+	testsuite/expect/test38.4
+	testsuite/expect/test38.5
+	testsuite/expect/test38.6
+	testsuite/expect/test38.6.prog.c
+	testsuite/expect/test38.7
+	testsuite/expect/test38.7.prog.c
+	testsuite/expect/test38.8
+	testsuite/expect/test38.9
+	testsuite/expect/test4.13
+	testsuite/expect/test4.14
+	testsuite/expect/test5.10
+	testsuite/expect/test5.11
+	testsuite/expect/test5.9
+	testsuite/expect/test6.15
+	testsuite/expect/test6.16
+	testsuite/expect/test6.17
+	testsuite/expect/test7.17
+	testsuite/expect/test7.17.prog.c
+	testsuite/expect/test7.17_configs/
+	testsuite/slurm_unit/Makefile
+	testsuite/slurm_unit/api/.deps/
+	testsuite/slurm_unit/api/Makefile
+	testsuite/slurm_unit/api/manual/.deps/
+	testsuite/slurm_unit/api/manual/Makefile
+	testsuite/slurm_unit/common/.deps/
+	testsuite/slurm_unit/common/Makefile
+	testsuite/slurm_unit/common/slurm_protocol_pack/
+	testsuite/slurm_unit/common/slurmdb_pack/
+	tmp
+
+no changes added to commit (use "git add" and/or "git commit -a")
