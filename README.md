@@ -1,5 +1,4 @@
-This is a version of SLURM simulator's code improved and ported to SLURM 17.11 at Barcelona Supercomputing Center by Ana Jokanovic and Marco D'Amico. The reference paper on the simulator's validation is un
-der review process.
+This is a version of SLURM simulator's code improved and ported to SLURM 17.11 at Barcelona Supercomputing Center by Ana Jokanovic and Marco D'Amico. The reference paper on the simulator's validation is under review process.
 The starting point for the improvements was the simulator's version by Gonzalo Rodrigo from Umea University & Berkley Lab reported in the paper https://link.springer.com/chapter/10.1007/978-3-319-77398-8\_9.
 
 COMPILATION:
@@ -11,7 +10,7 @@ SLURM daemons' binaries will be installed in install/slurm\_programs/sbin.
 SLURM and SLURM simulator's binaries will be installed in install/slurm\_programs/bin.
 
 CONFIGURATION:
-Before you start the simulation make sure you change in the files all the bsc33882 to your account.
+Before you start the simulation make sure you change in the all the files bsc33882 to your account name; the account name should appear only in install/slurm\_conf/slurm.conf.template and install/slurm\_conf/users.sim.
 Configuration file template is under install/slurm\_conf/slurm.conf.template; here you should set your configuration.
 Also, in slurm\_conf/user.sim file make sure all the users are set to correct ids (check: id -u username).
 
