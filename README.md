@@ -34,8 +34,8 @@ CONFIGURING SIMULATIONS TO RUN LOCALLY ON UBUNTU MACHINES (OR VMs):
 Repeat the COMPILATION and CONFIGURATION steps above plus the steps below.
 
 REPLACE TOKENS WITH YOUR HOSTNAME:
-$>#hostname
-$>renan-Latitude-E7450
+$\>#hostname
+$\>renan-Latitude-E7450
 edit install/slurm\_conf/slurm.conf.template
 ControlMachine=renan-Latitude-E7450
 ControlAddr=renan-Latitude-E7450
