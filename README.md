@@ -34,19 +34,21 @@ CONFIGURING SIMULATIONS TO RUN LOCALLY ON UBUNTU MACHINES (OR VMs):
 Repeat the COMPILATION and CONFIGURATION steps above plus the steps below.
 
 REPLACE TOKENS WITH YOUR HOSTNAME:
+
 #e.g.	$>#hostname
-#	$>renan-Latitude-E7450
-#	edit install/slurm\_conf/slurm.conf.template
-#
-#	ControlMachine=renan-Latitude-E7450
-# 	ControlAddr=renan-Latitude-E7450
-#	FrontendName=renan-Latitude-E7450
+#$>renan-Latitude-E7450
+#edit install/slurm\_conf/slurm.conf.template
+#ControlMachine=renan-Latitude-E7450
+#ControlAddr=renan-Latitude-E7450
+#FrontendName=renan-Latitude-E7450
 
 EDIT PORTS:
+
 #e.g.	edit install/slurm\_conf/slurm.conf.template
-#	SlurmctldPort=68256
-#	SlurmdPort=68189
+#SlurmctldPort=68256
+#SlurmdPort=68189
 
 RUNNING SIMULATION LOCALLY IN UBUNTU MACHINES (OR VMs):
 run\_local\_simulation.sh is a script to launch a simulation locally in your laptop or VM running Ubuntu.
+
 #e.g.	run\_local\_simulation.sh 0 /home/renan/SLURM\_SIMULATOR-master/cirne.10n.maxjob8n.anl.200.sim
