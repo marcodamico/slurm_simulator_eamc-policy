@@ -81,12 +81,14 @@ int sync_loop_wait_time = 1000; /* minimum uSeconds that the sync loop waits
  	 	 	 	 	 	 	 	  before advancing to add time_incr to the
  	 	 	 	 	 	 	 	  simulated time*/
 int signaled  = 0;     /* signal from slurmd */
+int trace_format = 0; /*0 defaut format (binary) : 1 simple format (ascii): 2 modular format (ascii)*/
 char*  workload_trace_file = NULL; /* Name of the file containing the workload to simulate */
 char   default_trace_file[] = "test.trace";
 char   help_msg[]= "sim_mgr [endtime]\n\t[-c | --compath <cpath>]\n\t[-f | "
-		   "--fork]\n\t[-a | --accelerator <secs>]\n\t[-w | --wrkldfile"
-		   " <filename> ]\n\t[-h | --help]\n"
-		   "\t\t[-t | --looptime] <uSeconds>\n"
+		   "--fork]\n\t[-a | --accelerator <secs>]\n\t[-m | --mwf "
+		   "<filename> ]\n\t[-s | --wrkldascii <filename> ] "
+		   "\n\t[-w | --wrkldfile <filename> ]\n\t[-h | --help]\n"
+		   "\t[-t | --looptime] <uSeconds>\n"
 		   "Notes:\n\t'endtime' is "
 		   "specified as seconds since Unix epoch. If 0 is specified "
 		   "then the\n\t\tsimulator will run indefinitely.\n\t'cpath' "
@@ -526,6 +528,8 @@ generateJob(job_trace_t* jobd) {
 	dmesg.cpus_per_task = jobd->cpus_per_task;
 	dmesg.min_nodes     = jobd->tasks;
 	dmesg.ntasks_per_node = jobd->tasks_per_node;
+	if (trace_format > 1)
+	dmesg.features = jobd->rreq_constraint;
 
 	/* Need something for environment--Should make this een more generic! */
 	dmesg.environment  = (char**)malloc(sizeof(char*)*2);
@@ -653,6 +657,7 @@ init_trace_info(void *ptr, int op) {
 	static int count = 0;
 
 	if (op == 0) {
+		// RFS: The calloc does not asure the ->next pointer will be NULL since the pointer will be the job structure initialized during the read_job_trace_record
 		new_trace_record = calloc(1, sizeof(job_trace_t));
 		if (new_trace_record == NULL) {
 			printf("init_trace_info: Error in calloc.\n");
@@ -692,70 +697,124 @@ init_trace_info(void *ptr, int op) {
 	return 0;
 }
 
-#if 0
+
 void displayJobTraceT(job_trace_t* rptr) {
-	printf(
-		"%8d"
-		" %10s"
-		" %12ld"
-		" %10d"
-		" %10d"
-		" %7d"
-		" %12s"
-		" %12s"
-		" %12s"
-		" %15d"
-		" %17d"
-		" %12s"
-		" %12s"
-		"\n",
-		rptr->job_id,
-		SAFE_PRINT(rptr->username),
-		rptr->submit,
-		rptr->duration,
-		rptr->wclimit,
-		rptr->tasks,
-		SAFE_PRINT(rptr->qosname),
-		SAFE_PRINT(rptr->partition),
-		SAFE_PRINT(rptr->account),
-		rptr->cpus_per_task,
-		rptr->tasks_per_node,
-		SAFE_PRINT(rptr->reservation),
-		SAFE_PRINT(rptr->dependency)
-);
+	if (trace_format > 1)
+		printf(
+			"%8d"
+			" %9s"
+			" %11ld"
+			" %9d"
+			" %9d"
+			" %7d"
+			" %11s"
+			" %11s"
+			" %11s"
+			" %14d"
+			" %16d"
+			" %11s"
+			" %11s"
+			" %12s"
+			"\n",
+			rptr->job_id,
+			SAFE_PRINT(rptr->username),
+			rptr->submit,
+			rptr->duration,
+			rptr->wclimit,
+			rptr->tasks,
+			SAFE_PRINT(rptr->qosname),
+			SAFE_PRINT(rptr->partition),
+			SAFE_PRINT(rptr->account),
+			rptr->cpus_per_task,
+			rptr->tasks_per_node,
+			SAFE_PRINT(rptr->reservation),
+			SAFE_PRINT(rptr->dependency),
+			SAFE_PRINT(rptr->rreq_constraint)
+		);
+	else 
+		printf(
+			"%8d"
+			" %10s"
+			" %12ld"
+			" %10d"
+			" %10d"
+			" %7d"
+			" %12s"
+			" %12s"
+			" %12s"
+			" %15d"
+			" %17d"
+			" %12s"
+			" %12s"
+			"\n",
+			rptr->job_id,
+			SAFE_PRINT(rptr->username),
+			rptr->submit,
+			rptr->duration,
+			rptr->wclimit,
+			rptr->tasks,
+			SAFE_PRINT(rptr->qosname),
+			SAFE_PRINT(rptr->partition),
+			SAFE_PRINT(rptr->account),
+			rptr->cpus_per_task,
+			rptr->tasks_per_node,
+			SAFE_PRINT(rptr->reservation),
+			SAFE_PRINT(rptr->dependency)
+		);
 }
-#endif
+
 
 int init_job_trace() {
 	int trace_file;
 	job_trace_t new_job;
 	int total_trace_records = 0;
+	FILE * trace_file_ptr = NULL;
 
         trace_recs_end_sim = timemgr_data + SIM_TRACE_RECS_END_SIM_OFFSET; /*ANA: Shared memory variable that will keep value of the total number of jobs in the log; once they are all finished controller will set it to -1 */
 
-	trace_file = open(workload_trace_file, O_RDONLY);
-	if (trace_file < 0) {
-		printf("Error opening file %s\n", workload_trace_file);
-		return -1;
-	}
-
-#if 0
-	printf("%8s %10s %12s %10s %10s %7s %12s %12s %12s %15s %17s %12s %12s\n",
+	if (trace_format > 1)
+		printf("%8s %9s %11s %9s %9s %7s %11s %11s %11s %14s %16s %11s %11s %12s\n",
+		"job_id:", "username:", "submit:", "duration:", "wclimit:",
+		"tasks:", "qosname:", "partition: ", "account:", "cpus_per_task:",
+		"tasks_per_node:", "reservation:", "dependency:", "features:");
+	else 
+		printf("%8s %10s %12s %10s %10s %7s %12s %12s %12s %15s %17s %12s %12s\n",
 		"job_id:", "username:", "submit:", "duration:", "wclimit:",
 		"tasks:", "qosname:", "partition: ", "account:", "cpus_per_task:",
 		"tasks_per_node:", "reservation:", "dependency: ");
-#endif
+
 	int ret_val=0;
-	while((ret_val=read_job_trace_record(trace_file, &new_job))>0) {
-#if 0
-		displayJobTraceT(&new_job);
-#endif
-		init_trace_info(&new_job, 0);
-		total_trace_records++;
+	if (trace_format) {
+
+		trace_file_ptr = fopen(workload_trace_file, "r");
+
+		while((ret_val=read_job_trace_record_ascii(trace_file_ptr, &new_job, trace_format))>0) {
+
+			displayJobTraceT(&new_job);
+
+			init_trace_info(&new_job, 0);
+			total_trace_records++;
+		}
 	}
-	if (ret_val==-1) {
-		printf("Error opening manifest\n");
-		return -1;
+	else { 
+		trace_file = open(workload_trace_file, O_RDONLY);
+		
+		if (trace_file < 0) {
+			printf("Error opening file %s\n", workload_trace_file);
+			return -1;
+		}
+		while((ret_val=read_job_trace_record(trace_file, &new_job))>0) {
+
+			displayJobTraceT(&new_job);
+
+			init_trace_info(&new_job, 0);
+			total_trace_records++;
+		}
+
+		if (ret_val==-1) {
+			printf("Error opening manifest\n");
+			return -1;
+		}
 	}
 
 	printf("Trace initialization done. Total trace records: %d\n",
@@ -878,6 +937,7 @@ main(int argc, char *argv[], char *envp[]) {
 	char thelib[1024];
 	struct stat buf;
 	int ix, envcount = countEnvVars(envp);
+	int trace_format = 0;
 
 	/*struct sigaction sa;
 	sa.sa_handler = handlerSignal;
@@ -1078,6 +1138,8 @@ getArgs(int argc, char** argv) {
 		{"fork",	0, 0, 'f'},
 		{"compath",	1, 0, 'c'},
 		{"accelerator",	1, 0, 'a'},
+		{"mwf",	1, 0, 'm'},
+		{"wrkldascii",	1, 0, 's'},
 		{"wrkldfile",	1, 0, 'w'},
 		{"help",	0, 0, 'h'},
 		{"looptime",	1, 0, 't'}
@@ -1087,7 +1149,7 @@ getArgs(int argc, char** argv) {
 	char* ptr;
 
 	while (1) {
-		if ((opt_char = getopt_long(argc, argv, "fc:ha:w:t:" , long_options,
+		if ((opt_char = getopt_long(argc, argv, "fc:ha:m:s:w:t:" , long_options,
 						&option_index)) == -1 )
 			break;
 
@@ -1101,7 +1163,16 @@ getArgs(int argc, char** argv) {
 			case ('a'): /* Eventually use strtol instead of atoi */
 				time_incr = atoi(optarg);
 				break;
+			case ('m'):
+				trace_format = 2;
+				workload_trace_file = strdup(optarg);
+				break;
+			case ('s'):
+				trace_format = 1;
+				workload_trace_file = strdup(optarg);
+				break;	
 			case ('w'):
+				trace_format = 0;
 				workload_trace_file = strdup(optarg);
 				break;
 			case ('h'):
