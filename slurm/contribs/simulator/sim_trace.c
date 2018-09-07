@@ -124,7 +124,7 @@ int read_job_trace_record_ascii(FILE * trace_file_ptr, job_trace_t *job_trace, i
 	// modular workload format ascii (extended format)
 	if (trace_format == 2) {
 		ret_val = fscanf(trace_file_ptr,
-		"%d,%d,%29[^,],%d,%d,%d,%d,%d,%29[^,],%d,%d,%d,%d,%29[^,],%d,%d,%d,%d,%d,%d,%d,%d,%29[^,],%29[^,],%29[^,],%29[^,],%d,%29[^,],%d,%d,%d,%d,%d,%d,%d,%d,%29[^,],%29[^,],%d,%d",
+		"%d,%d,%29[^,],%d,%d,%d,%d,%d,%29[^,],%d,%d,%d,%d,%29[^,],%d,%d,%d,%d,%d,%d,%d,%d,%29[^,],%29[^,],%29[^,],%29[^,],%d,%29[^,],%d,%d,%d,%d,%d,%d,%d,%d,%29[^,],%29[^,],%d,%29[^,],%d",
 		&job_trace->modular_job_id,
 		&job_trace->total_components,
 		job_trace->modular_jobname,
@@ -158,7 +158,7 @@ int read_job_trace_record_ascii(FILE * trace_file_ptr, job_trace_t *job_trace, i
 		&job_trace->ralloc_threads_per_process,
 		&job_trace->ralloc_memory_per_node,
 		&job_trace->ralloc_freq,
-		//&job_trace->ralloc_avg_power,
+		&job_trace->ralloc_avg_power,
 		&job_trace->ralloc_nam,
 		&job_trace->ralloc_local_storage,
 		job_trace->ralloc_network_features,
@@ -171,9 +171,9 @@ int read_job_trace_record_ascii(FILE * trace_file_ptr, job_trace_t *job_trace, i
 		job_trace->submit = job_trace->submit_modular_job_time;
 		job_trace->duration = job_trace->component_run_time;
 		job_trace->wclimit = job_trace->modular_requested_time;
-		job_trace->tasks = job_trace->total_components;
-		job_trace->cpus_per_task = 	job_trace->rreq_processes_per_node;
-		job_trace->tasks_per_node = job_trace->rreq_threads_per_process;
+		job_trace->tasks = job_trace->rreq_nodes * job_trace->rreq_processes_per_node;
+		job_trace->cpus_per_task = 	job_trace->rreq_threads_per_process;
+		job_trace->tasks_per_node = job_trace->rreq_processes_per_node;
 
 		strcpy(job_trace->partition, job_trace->rreq_partition_name);
 		strcpy(job_trace->username, "tester");

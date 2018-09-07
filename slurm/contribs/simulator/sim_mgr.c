@@ -528,8 +528,9 @@ generateJob(job_trace_t* jobd) {
 	dmesg.cpus_per_task = jobd->cpus_per_task;
 	dmesg.min_nodes     = jobd->tasks;
 	dmesg.ntasks_per_node = jobd->tasks_per_node;
-	if (trace_format > 1)
-	dmesg.features = jobd->rreq_constraint;
+	if (trace_format > 1) {
+		dmesg.features = strdup(jobd->rreq_constraint);
+	}
 
 	/* Need something for environment--Should make this een more generic! */
 	dmesg.environment  = (char**)malloc(sizeof(char*)*2);
@@ -714,7 +715,9 @@ void displayJobTraceT(job_trace_t* rptr) {
 			" %16d"
 			" %11s"
 			" %11s"
-			" %12s"
+			" %6s"
+			" %6s"
+			" %d"
 			"\n",
 			rptr->job_id,
 			SAFE_PRINT(rptr->username),
@@ -729,7 +732,9 @@ void displayJobTraceT(job_trace_t* rptr) {
 			rptr->tasks_per_node,
 			SAFE_PRINT(rptr->reservation),
 			SAFE_PRINT(rptr->dependency),
-			SAFE_PRINT(rptr->rreq_constraint)
+			SAFE_PRINT(rptr->rreq_constraint),
+			SAFE_PRINT(rptr->rreq_hint),
+			SAFE_PRINT(rptr->ralloc_avg_power)
 		);
 	else 
 		printf(
@@ -773,10 +778,10 @@ int init_job_trace() {
         trace_recs_end_sim = timemgr_data + SIM_TRACE_RECS_END_SIM_OFFSET; /*ANA: Shared memory variable that will keep value of the total number of jobs in the log; once they are all finished controller will set it to -1 */
 
 	if (trace_format > 1)
-		printf("%8s %9s %11s %9s %9s %7s %11s %11s %11s %14s %16s %11s %11s %12s\n",
+		printf("%8s %9s %11s %9s %9s %7s %11s %11s %11s %14s %16s %11s %11s %6s %6s\n",
 		"job_id:", "username:", "submit:", "duration:", "wclimit:",
 		"tasks:", "qosname:", "partition: ", "account:", "cpus_per_task:",
-		"tasks_per_node:", "reservation:", "dependency:", "features:");
+		"tasks_per_node:", "reservation:", "dependency:", "features:", "hints:", "power:");
 	else 
 		printf("%8s %10s %12s %10s %10s %7s %12s %12s %12s %15s %17s %12s %12s\n",
 		"job_id:", "username:", "submit:", "duration:", "wclimit:",
