@@ -8761,6 +8761,7 @@ _pack_job_desc_msg(job_desc_msg_t * job_desc_ptr, Buf buffer,
 		pack64(job_desc_ptr->fed_siblings_active, buffer);
 		pack64(job_desc_ptr->fed_siblings_viable, buffer);
 		packstr(job_desc_ptr->gres, buffer);
+		packstr(job_desc_ptr->hints, buffer);
 		pack32(job_desc_ptr->job_id, buffer);
 		packstr(job_desc_ptr->job_id_str, buffer);
 		packstr(job_desc_ptr->name, buffer);
@@ -9099,6 +9100,7 @@ _pack_job_desc_msg(job_desc_msg_t * job_desc_ptr, Buf buffer,
 		pack16(job_desc_ptr->kill_on_node_fail, buffer);
 		packstr(job_desc_ptr->features, buffer);
 		packstr(job_desc_ptr->gres, buffer);
+		packstr(job_desc_ptr->hints, buffer);
 		pack32(job_desc_ptr->job_id, buffer);
 		packstr(job_desc_ptr->job_id_str, buffer);
 		packstr(job_desc_ptr->name, buffer);
@@ -9288,6 +9290,7 @@ _unpack_job_desc_msg(job_desc_msg_t ** job_desc_buffer_ptr, Buf buffer,
 		safe_unpack64(&job_desc_ptr->fed_siblings_active, buffer);
 		safe_unpack64(&job_desc_ptr->fed_siblings_viable, buffer);
 		safe_unpackstr_xmalloc(&job_desc_ptr->gres, &uint32_tmp,buffer);
+		safe_unpackstr_xmalloc(&job_desc_ptr->hints, &uint32_tmp, buffer);
 		safe_unpack32(&job_desc_ptr->job_id, buffer);
 		safe_unpackstr_xmalloc(&job_desc_ptr->job_id_str,
 				       &uint32_tmp,
@@ -9464,6 +9467,7 @@ _unpack_job_desc_msg(job_desc_msg_t ** job_desc_buffer_ptr, Buf buffer,
 				       &uint32_tmp, buffer);
 		safe_unpack64(&job_desc_ptr->fed_siblings_viable, buffer);
 		safe_unpackstr_xmalloc(&job_desc_ptr->gres, &uint32_tmp,buffer);
+		safe_unpackstr_xmalloc(&job_desc_ptr->hints, &uint32_tmp, buffer);
 		safe_unpack32(&job_desc_ptr->job_id, buffer);
 		safe_unpackstr_xmalloc(&job_desc_ptr->job_id_str,
 				       &uint32_tmp,
@@ -9638,6 +9642,7 @@ _unpack_job_desc_msg(job_desc_msg_t ** job_desc_buffer_ptr, Buf buffer,
 		safe_unpackstr_xmalloc(&job_desc_ptr->features,
 				       &uint32_tmp, buffer);
 		safe_unpackstr_xmalloc(&job_desc_ptr->gres, &uint32_tmp,buffer);
+		safe_unpackstr_xmalloc(&job_desc_ptr->hints, &uint32_tmp,buffer);
 		safe_unpack32(&job_desc_ptr->job_id, buffer);
 		safe_unpackstr_xmalloc(&job_desc_ptr->job_id_str,
 				       &uint32_tmp,
