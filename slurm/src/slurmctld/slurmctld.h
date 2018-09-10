@@ -502,6 +502,7 @@ struct job_details {
 	List feature_list;		/* required features with
 					 * node counts */
 	char *features;			/* required features */
+	char *hints;			/* required for the cons_res for the features */
 	uint32_t magic;			/* magic cookie for data integrity */
 	uint32_t max_cpus;		/* maximum number of cpus */
 	uint32_t max_nodes;		/* maximum number of nodes */
