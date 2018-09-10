@@ -48,6 +48,7 @@ SlurmctldLogFile=TOKEN_SLURM_USER_PATH/slurm_varios/log/slurmctld.log
 SlurmdDebug=0
 SlurmdLogFile=TOKEN_SLURM_USER_PATH/slurm_varios/log/slurmd.log
 
+DebugFlags=Backfill,HeteroJobs,Protocol
 #DebugFlags=Backfill
 
 SlurmdSpoolDir=TOKEN_SLURM_USER_PATH/slurm_varios/var/spool
