@@ -1,6 +1,5 @@
 #include <fcntl.h>
 #include "sim_trace.h"
-#include <stdio.h>
 #include <unistd.h>
 #include <string.h>
 //#include "src/common/xmalloc.h" Including xmalloc and using malloc
