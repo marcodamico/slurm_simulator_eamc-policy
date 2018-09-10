@@ -43,9 +43,9 @@ JobCompType=jobcomp/script
 #JobCompType=jobcomp/none
 JobCompLoc=TOKEN_SLURM_USER_PATH/slurm_varios/trace.sh
 
-SlurmctldDebug=0
+SlurmctldDebug=7
 SlurmctldLogFile=TOKEN_SLURM_USER_PATH/slurm_varios/log/slurmctld.log
-SlurmdDebug=0
+SlurmdDebug=7
 SlurmdLogFile=TOKEN_SLURM_USER_PATH/slurm_varios/log/slurmd.log
 
 DebugFlags=Backfill,HeteroJobs,Protocol
@@ -64,9 +64,9 @@ SchedulerType=sched/backfill
 SchedulerParameters=bf_interval=30,bf_queue_limit=TOKEN_BF_QUEUE_LIMIT,default_queue_depth=50
 ###PriorityDecayHalfLife=7-0
 #PriorityDecayHalfLife=14-00:00:00
-###SelectType=select/cons_res
-SelectType=select/linear # As close as this simulator env can get to being select/alps
-###SelectTypeParameters=CR_CPU
+SelectType=select/cons_res
+#SelectType=select/linear # As close as this simulator env can get to being select/alps
+SelectTypeParameters=CR_CPU
 
 #PriorityType=priority/multifactor
 #PriorityWeightAge=50000000 ###100
