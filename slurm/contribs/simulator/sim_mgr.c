@@ -529,8 +529,10 @@ generateJob(job_trace_t* jobd) {
 	dmesg.min_nodes     = jobd->tasks;
 	dmesg.ntasks_per_node = jobd->tasks_per_node;
 	if (trace_format > 1) {
-		dmesg.features = strdup(jobd->rreq_constraint);
-		dmesg.hints = strdup(jobd->rreq_hint);
+		if (strcmp(jobd->rreq_constraint,"-1"))
+			dmesg.features = strdup(jobd->rreq_constraint);
+		if (strcmp(jobd->rreq_hint,"-1"))
+			dmesg.hints = strdup(jobd->rreq_hint);
 	}
 
 	/* Need something for environment--Should make this een more generic! */

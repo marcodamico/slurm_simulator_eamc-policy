@@ -8,6 +8,8 @@
 
 char* read_file(char *file_name) {
 	int file;
+	int ret_val = 0;
+
 	if ((file = open(file_name, O_RDONLY)) < 0 ) {
 		printf("Error opening text file: %s\nAbort!\n", file_name);
 		return NULL;
@@ -17,17 +19,21 @@ char* read_file(char *file_name) {
 	lseek (file, 0, SEEK_SET);
 	if (buffer)
 	{
-	   read(file, buffer, length);
+	   ret_val = read(file, buffer, length);
 	}
 	close(file);
-	return buffer;
+
+	if (ret_val > 0)
+		return buffer;
+	
+	return NULL;
 }
 
 int read_job_trace_record(int trace_file, job_trace_t *job_trace) {
-	long record_type = 0;
-	char *manifest;
-	job_trace_t ref_record;
-	ssize_t ret_val;
+	//long record_type = 0;
+	//char *manifest;
+	//job_trace_t ref_record;
+	ssize_t ret_val = 0;
 /*	ssize_t ret_val=read(trace_file, &record_type, sizeof(record_type));
 	if (!ret_val) {
 		return ret_val;
@@ -68,10 +74,10 @@ int read_job_trace_record(int trace_file, job_trace_t *job_trace) {
 }
 
 int read_job_trace_record_ascii(FILE * trace_file_ptr, job_trace_t *job_trace, int trace_format) {
-	long record_type = 0;
-	char *manifest;
-	job_trace_t ref_record;
-	ssize_t ret_val;
+	//long record_type = 0;
+	//char *manifest;
+	//job_trace_t ref_record;
+	ssize_t ret_val = 0;
 /*	ssize_t ret_val=read(trace_file, &record_type, sizeof(record_type));
 	if (!ret_val) {
 		return ret_val;
@@ -90,14 +96,15 @@ int read_job_trace_record_ascii(FILE * trace_file_ptr, job_trace_t *job_trace, i
 
 	// simple format in ascii (same from binary format)
 	if (trace_format == 1) {
-		ret_val = fscanf(trace_file_ptr, "%d,%29[^,],%ld,%d,%d,%d,%29[^,],%29[^,],%d,%d", &job_trace->job_id, job_trace->username,
+		ret_val = fscanf(trace_file_ptr, "%d;%29[^;];%ld;%d;%d;%d;%29[^;];%29[^;];%d;%d",
+		&job_trace->job_id, job_trace->username,
 		&job_trace->submit, &job_trace->duration, &job_trace->wclimit,
 		&job_trace->tasks, job_trace->partition, job_trace->account,
 		&job_trace->cpus_per_task, &job_trace->tasks_per_node);
 
-		job_trace->qosname[0] = '|\0';
-		job_trace->reservation[0] = '|\0';
-		job_trace->dependency[0] = '|\0';
+		job_trace->qosname[0] = '\0';
+		job_trace->reservation[0] = '\0';
+		job_trace->dependency[0] = '\0';
 
 		strcpy(job_trace->manifest_filename, "|\0");
 		if (!ret_val)
@@ -123,7 +130,7 @@ int read_job_trace_record_ascii(FILE * trace_file_ptr, job_trace_t *job_trace, i
 	// modular workload format ascii (extended format)
 	if (trace_format == 2) {
 		ret_val = fscanf(trace_file_ptr,
-		"%d,%d,%29[^,],%d,%d,%d,%d,%d,%29[^,],%d,%d,%d,%d,%29[^,],%d,%d,%d,%d,%d,%d,%d,%d,%29[^,],%29[^,],%29[^,],%29[^,],%d,%29[^,],%d,%d,%d,%d,%d,%d,%d,%d,%29[^,],%29[^,],%d,%29[^,],%d",
+		"%d;%d;%29[^;];%d;%d;%d;%d;%d;%29[^;];%d;%d;%d;%d;%29[^;];%d;%d;%d;%d;%d;%d;%d;%d;%29[^;];%29[^;];%29[^;];%29[^;];%d;%29[^;];%d;%d;%d;%d;%d;%d;%d;%d;%29[^;];%29[^;];%d;%29[^;];%d",
 		&job_trace->modular_job_id,
 		&job_trace->total_components,
 		job_trace->modular_jobname,
@@ -178,9 +185,9 @@ int read_job_trace_record_ascii(FILE * trace_file_ptr, job_trace_t *job_trace, i
 		strcpy(job_trace->username, "tester");
 		strcpy(job_trace->account, "1000"); 
 
-		job_trace->qosname[0] = '|\0';
-		job_trace->reservation[0] = '|\0';
-		job_trace->dependency[0] = '|\0';
+		job_trace->qosname[0] = '\0';
+		job_trace->reservation[0] = '\0';
+		job_trace->dependency[0] = '\0';
 
 		strcpy(job_trace->manifest_filename, "|\0");
 		if (!ret_val)
