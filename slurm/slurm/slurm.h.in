@@ -575,7 +575,8 @@ enum select_plugin_type {
 	/* 105 unused (originally was for ALPS cons_res which won't happen) */
 	SELECT_PLUGIN_SERIAL        = 106, /* Serial */
 	SELECT_PLUGIN_CRAY_LINEAR   = 107, /* Linear on a Native Cray */
-	SELECT_PLUGIN_CRAY_CONS_RES = 108  /* Cons Res on a Native Cray */
+	SELECT_PLUGIN_CRAY_CONS_RES = 108,  /* Cons Res on a Native Cray */
+        SELECT_PLUGIN_BSC_CONS_RES      = 111 /* Cons Res on a normal system */
 };
 
 /* switch plugin (id) in use by cluster */
@@ -992,6 +993,8 @@ enum ctx_keys {
 
 /* By default, distribute cores using a block approach inside the nodes */
 #define CR_CORE_DEFAULT_DIST_BLOCK 0x1000
+
+#define CR_OTHER_BSC_CONS_RES 0x2000
 
 #define CR_LLN		0x4000  /* Select nodes by "least loaded." */
 

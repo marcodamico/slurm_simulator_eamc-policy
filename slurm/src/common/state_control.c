@@ -118,7 +118,8 @@ extern int state_control_corecnt_supported(void)
 	uint32_t select_type = slurmdb_setup_plugin_id_select();
 
 	if (select_type != SELECT_PLUGIN_CONS_RES &&
-	    select_type != SELECT_PLUGIN_CRAY_CONS_RES)
+	    (select_type != SELECT_PLUGIN_BSC_CONS_RES) &&
+	    (select_type != SELECT_PLUGIN_CRAY_CONS_RES))
 		return SLURM_ERROR;
 
 	return SLURM_SUCCESS;
