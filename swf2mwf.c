@@ -86,8 +86,8 @@ int read_job (FILE * trace_file_ptr, job_trace_t * job_trace) {
 	// simple format in ascii (same from binary format)
 	ret_val = fscanf(trace_file_ptr, "%d;%ld;%d;%d;%d;%d;%d;%d;%ld;%ld;%d;%29[^;];%29[^;];%d;%29[^;];%29[^;];%d",
 		&job_trace->modular_job_id, &job_trace->submit_modular_job_time, &job_trace->wait_modular_job_time,
-		&job_trace->component_run_time, &job_trace->ralloc_processes_per_node, &ignore, &job_trace->ralloc_memory_per_node,
-		&job_trace->cpus_per_task, &job_trace->modular_requested_time,
+		&job_trace->component_run_time,	&ignore, &ignore, &ignore,
+		&job_trace->rreq_nodes, &job_trace->modular_requested_time,
 		&job_trace->rreq_memory_per_node, &job_trace->status,
 		job_trace->username, job_trace->account, &job_trace->rreq_executable_number,
 		job_trace->qosname, job_trace->partition, &ignore);
@@ -98,9 +98,17 @@ int read_job (FILE * trace_file_ptr, job_trace_t * job_trace) {
 	job_trace->submit_modular_job_time = job_trace->submit_modular_job_time - earlier_submit_time;
 	
 	sprintf(job_trace->modular_jobname,"Job %d",job_trace->modular_job_id);
+	sprintf(job_trace->component_jobname,"HPC %d",job_trace->modular_job_id);
 	job_trace->total_components = 1;
 	job_trace->tasks = 1;
-	
+
+	if (job_trace->modular_job_id % 3 == 0)
+		strcpy(job_trace->rreq_partition_name,"CM");
+	if (job_trace->modular_job_id % 3 == 1)
+		strcpy(job_trace->rreq_partition_name,"ESB");
+	if (job_trace->modular_job_id % 3 == 2)
+		strcpy(job_trace->rreq_partition_name,"DAM");
+		
 	job_trace->qosname[0] = '\0';
 	job_trace->reservation[0] = '\0';
 	job_trace->dependency[0] = '\0';
@@ -133,39 +141,39 @@ int main (int argc, char **argv) {
                 new_job->modular_requested_time,
                 new_job->num_components_at_submitted_time,
                 new_job->component_job_id,
-                new_job->component_jobname,
+		new_job->component_jobname,
                 new_job->wait_component_job_time,
                 new_job->component_run_time,
                 new_job->status,
                 new_job->rreq_executable_number,
                 new_job->rreq_partition_name,
                 new_job->rreq_nodes,
-                new_job->rreq_processes_per_node,
-                new_job->rreq_threads_per_process,
+                -1, //new_job->rreq_processes_per_node,
+                -1, //new_job->rreq_threads_per_process,
                 new_job->rreq_memory_per_node,
-                new_job->rreq_freq,
-                new_job->rreq_reference_power,
-                new_job->rreq_nam,
-                new_job->rreq_local_storage,
-                new_job->rreq_network_features,
-                new_job->rreq_constraint,
-                new_job->rreq_hint,
-                new_job->rreq_licenses,
-                new_job->ralloc_module_id,
-                new_job->ralloc_partition,
-                new_job->ralloc_nodes,
-                new_job->ralloc_processes_per_node,
-                new_job->ralloc_threads_per_process,
-                new_job->ralloc_memory_per_node,
-                new_job->ralloc_freq,
-                new_job->ralloc_avg_power,
-                new_job->ralloc_nam,
-                new_job->ralloc_local_storage,
-                new_job->ralloc_network_features,
-                new_job->ralloc_licenses,
-                new_job->after_complition_job_id,
-                new_job->dependency_type,
-                new_job->think_rreq_component_time);
+                -1, //new_job->rreq_freq,
+                -1, //new_job->rreq_reference_power,
+                -1, //new_job->rreq_nam,
+                -1, //new_job->rreq_local_storage,
+                "-1", //new_job->rreq_network_features,
+                "-1", //new_job->rreq_constraint,
+                "-1", //new_job->rreq_hint,
+                "-1", //new_job->rreq_licenses,
+                -1, //new_job->ralloc_module_id,
+                "-1", //new_job->ralloc_partition,
+                -1, //new_job->ralloc_nodes,
+                -1, //new_job->ralloc_processes_per_node,
+                -1, //new_job->ralloc_threads_per_process,
+                -1, //new_job->ralloc_memory_per_node,
+                -1, //new_job->ralloc_freq,
+                -1, //new_job->ralloc_avg_power,
+                -1, //new_job->ralloc_nam,
+                -1, //new_job->ralloc_local_storage,
+                "-1", //new_job->ralloc_network_features,
+                "-1", //new_job->ralloc_licenses,
+                -1, //new_job->after_complition_job_id,
+                "-1", //new_job->dependency_type,
+                -1); //new_job->think_rreq_component_time);
 
 		memset(new_job,0,sizeof(job_trace_t));
 	}
