@@ -144,7 +144,7 @@ int main (int argc, char** argv) {
 		totalBoundedSlowDown += i;
 	}
 	globalBoundedSlowDown += totalBoundedSlowDown;
-	cout << "avgBoundedSlowDown: " << totalSlowDown / CM << endl;
+	cout << "avgBoundedSlowDown: " << totalBoundedSlowDown / CM << endl;
 
 
 	cout << "##### Partition ESB - 150 nodes - " << ESB << " jobs #####" << endl;
@@ -175,7 +175,7 @@ int main (int argc, char** argv) {
 		totalBoundedSlowDown += i;
 	}
 	globalBoundedSlowDown += totalBoundedSlowDown;
-	cout << "avgBoundedSlowDown: " << totalSlowDown / ESB << endl;
+	cout << "avgBoundedSlowDown: " << totalBoundedSlowDown / ESB << endl;
 
 	cout << "##### Partition DAM - 25 nodes - " << DAM << "#####" << endl;
 
@@ -205,13 +205,13 @@ int main (int argc, char** argv) {
 		totalBoundedSlowDown += i;
 	}
 	globalBoundedSlowDown += totalBoundedSlowDown;
-	cout << "avgBoundedSlowDown: " << totalSlowDown / DAM << endl;
+	cout << "avgBoundedSlowDown: " << totalBoundedSlowDown / DAM << endl;
 
 	cout << "#####     #####" << endl;
 	cout << "globalWaitTime: " << globalWaitTime / jobs << endl;
 	cout << "globalResponseTime: " << globalResponseTime / jobs << endl;
 	cout << "globalSlowDown: " << globalSlowDown / jobs << endl;
-
+	cout << "globalBoundedSlowDown: " << globalBoundedSlowDown / jobs << endl;
 //	for (unsigned i = 0 ; i < dataTable.size(); ++i) {
 //	    	cout << dataTable[i][i] << endl;
 //	}
