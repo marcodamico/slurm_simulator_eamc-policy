@@ -11,7 +11,7 @@ using namespace std;
 
 int CM = 0, ESB = 0, DAM = 0, jobs = 0;
 int globalWaitTime = 0, globalResponseTime = 0;
-double globalSlowDown = 0, globalBoundedSlowDown = 0;	
+double globalSlowDown = 0, globalBoundedSlowDown = 0;
 vector <int> waitTimeCM, waitTimeESB, waitTimeDAM;
 vector <int> responseTimeCM, responseTimeESB, responseTimeDAM;
 vector <double> slowDownCM, slowDownESB, slowDownDAM;
@@ -43,6 +43,8 @@ void parseFile (ifstream *input, ofstream *output) {
 	double slowDown = 0, boundedSlowDown = 0;
 	string line;
 
+	*output << "JobId Partition NodeCn waitTime responseTime slowDown boundedSlowDown runTime" << endl;
+
 	while (getline(*input, line)) {
 		int submitTime = 0, startTime = 0, endTime = 0, runTime = 0;
 		stringstream ss(line);
@@ -64,7 +66,7 @@ void parseFile (ifstream *input, ofstream *output) {
 		responseTime = endTime - submitTime;
 		slowDown =responseTime / static_cast <double> (runTime);
 		boundedSlowDown = (responseTime + max(runTime,MIN_RUNTIME)) / static_cast <double> ( max(runTime,MIN_RUNTIME));
-		// JobId Partition NodeCn waitTime responseTime slowDown runTime
+		// JobId Partition NodeCn waitTime responseTime slowDown boundedSlowDown runTime
 		*output << row[0] << " " << row[5] << " " << row[11] << " " << waitTime << " " << responseTime << " "  << slowDown << " " <<  boundedSlowDown <<  " " << runTime << endl;
 
 		if (row[5] == "CM" || row[5] == "CM,DAM") {
@@ -112,7 +114,7 @@ double computeTime (vector <double> accumulatedTime) {
 }
 
 void printPartitions (string partition, int numNodes) {
-	int totalWaitTime = 0, totalResponseTime = 0;
+	int totalWaitTime = 0, totalResponseTime = 0, numJobs = 0;
 	double totalSlowDown = 0, totalBoundedSlowDown = 0;
 
 	cout << "##### Partition " << partition << " - " << numNodes << " nodes - ";
@@ -122,34 +124,34 @@ void printPartitions (string partition, int numNodes) {
 		totalResponseTime = computeTime(responseTimeCM);
 		totalSlowDown = computeTime(slowDownCM);
 		totalBoundedSlowDown = computeTime(boundedSlowDownCM);
-		cout << CM;
+		numJobs =  CM;
 	} else if (partition == "ESB") {
 		totalWaitTime = computeTime(waitTimeESB);
 	        totalResponseTime = computeTime(responseTimeESB);
 		totalSlowDown = computeTime(slowDownESB);
 		totalBoundedSlowDown = computeTime(boundedSlowDownESB);
-		cout << ESB;
+		numJobs = ESB;
 	} else if (partition == "DAM") {
 		totalWaitTime = computeTime(waitTimeDAM);
         	totalResponseTime = computeTime(responseTimeDAM);
 	        totalSlowDown = computeTime(slowDownDAM);
 		totalBoundedSlowDown = computeTime(boundedSlowDownDAM);
-		cout << DAM;
+		numJobs = DAM;
 	}
 
-	cout  << " jobs #####" << endl;
+	cout  << numJobs << " jobs #####" << endl;
 
 	globalWaitTime += totalWaitTime;
-	cout << "avgWaitTime: " << totalWaitTime / static_cast <double> (numNodes) << endl;
+	cout << "avgWaitTime: " << totalWaitTime / static_cast <double> (numJobs) << endl;
 
 	globalResponseTime += totalResponseTime;
-	cout << "avgResponseTime: " << totalResponseTime / static_cast <double> (numNodes) << endl;
+	cout << "avgResponseTime: " << totalResponseTime / static_cast <double> (numJobs) << endl;
 
 	globalSlowDown += totalSlowDown;
-	cout << "avgSlowDown: " << totalSlowDown / numNodes << endl;
+	cout << "avgSlowDown: " << totalSlowDown / numJobs << endl;
 
 	globalBoundedSlowDown += totalBoundedSlowDown;
-	cout << "avgBoundedSlowDown: " << totalBoundedSlowDown / numNodes << endl;
+	cout << "avgBoundedSlowDown: " << totalBoundedSlowDown / numJobs << endl;
 }
 
 void printGlobals () {
@@ -172,8 +174,6 @@ int main (int argc, char** argv) {
 
 	input.open(argv[1]);
 	output.open(argv[2]);
-
-	output << "JobId Partition NodeCn waitTime responseTime slowDown runTime" << endl;
 
 	if (input.is_open()) {
 		parseFile(&input,&output);
