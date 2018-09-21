@@ -65,7 +65,7 @@ void parseFile (ifstream *input, ofstream *output) {
 		waitTime = startTime - submitTime;
 		responseTime = endTime - submitTime;
 		slowDown = (waitTime + runTime) / static_cast <double> (runTime);
-		boundedSlowDown = (waitTime + max(runTime,MIN_RUNTIME)) / static_cast <double> ( max(runTime,MIN_RUNTIME));
+		boundedSlowDown = (waitTime + max(runTime,MIN_RUNTIME)) / static_cast <double> (max(runTime,MIN_RUNTIME));
 		// JobId Partition NodeCn waitTime responseTime slowDown boundedSlowDown runTime
 		*output << row[0] << " " << row[5] << " " << row[11] << " " << waitTime << " " << responseTime << " "  << slowDown << " " <<  boundedSlowDown <<  " " << runTime << endl;
 
