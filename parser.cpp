@@ -69,19 +69,19 @@ void parseFile (ifstream *input, ofstream *output) {
 		// JobId Partition NodeCn waitTime responseTime slowDown boundedSlowDown runTime
 		*output << row[0] << " " << row[5] << " " << row[11] << " " << waitTime << " " << responseTime << " "  << slowDown << " " <<  boundedSlowDown <<  " " << runTime << endl;
 
-		if (row[5] == "CM" || row[5] == "CM,DAM") {
+		if (row[5].substr(0,2) == "CM") {
 			CM++;
 			waitTimeCM.push_back(waitTime);
 			responseTimeCM.push_back(responseTime);
 			slowDownCM.push_back(slowDown);
 			boundedSlowDownCM.push_back(boundedSlowDown);
-		} else if (row[5] == "ESB" || row[5] == "ESB,DAM") {
+		} else if (row[5].substr(0,3) == "ESB") {
 			ESB++;
 			waitTimeESB.push_back(waitTime);
 			responseTimeESB.push_back(responseTime);
 			slowDownESB.push_back(slowDown);
 			boundedSlowDownESB.push_back(boundedSlowDown);
-		} else if (row[5] == "DAM" || row[5] == "DAM,CM" || row[5] == "DAM,ESB") {
+		} else if (row[5].substr(0,3) == "DAM") {
 			DAM++;
 			waitTimeDAM.push_back(waitTime);
 			responseTimeDAM.push_back(responseTime);
