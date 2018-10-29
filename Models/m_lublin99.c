@@ -373,7 +373,7 @@ unsigned long time_from_begin[2];
 /*----------------------------------------------------------------------------*/
 /*                      THE MAIN FUNCTION                                     */
 /*----------------------------------------------------------------------------*/
-int main()
+int main(int argc, char *argv[])
 {
   int i;
   double a1[2],b1[2],a2[2],b2[2],pa[2],pb[2];
@@ -385,6 +385,17 @@ int main()
   double weights[2][BUCKETS] ; /* the appropriate weight (points) for each    */
 			       /* time-interval used in the arrive function   */
   long seed;
+  int num_jobs = 0, system_size = 0;
+  char partition_name[32];
+
+  if (argc < 4) {
+	printf("use: ./program num_jobs system_size partition_name\n");
+	exit(0);
+  }
+
+  num_jobs = atoi(argv[1]);
+  system_size = atoi(argv[2]);
+  strcpy(partition_name, argv[3]);
 
   seed = (long)time(NULL);
   srand48(seed);
@@ -403,23 +414,25 @@ int main()
   printf("; Version: 2\n");
   printf("; Acknowledge: Uri Lublin, Hebrew University\n");
   printf("; Information: http://www.cs.huji.ac.il/labs/parallel/workload\n");
-  printf("; MaxJobs: %d\n", SIZE);
-  printf("; MaxRecords: %d\n", SIZE);
-  printf("; MaxNodes: %d\n", 1<<UHI);
+  printf("; MaxJobs: %d\n", num_jobs);
+  printf("; MaxRecords: %d\n", num_jobs);
+  printf("; MaxNodes: %d\n", system_size);
   printf("; MaxRuntime: %d\n", (int)exp((double)TOO_MUCH_TIME));
 #endif
 
-  for (i=0; i<SIZE ; i++) {
+  UHi[BATCH]  =  system_size;
+
+  for (i=0; i<num_jobs ; i++) {
     arr_time = arrive(&type,weights,aarr,barr);
     nodes = calc_number_of_nodes(SerialProb[type] , Pow2Prob[type],
 				 ULow[type], UMed[type], UHi[type], Uprob[type]);
     run_time = time_from_nodes(a1[type] , b1[type] , a2[type] , b2[type],
 			       pa[type] , pb[type] , nodes);
 #if SWF
-    printf("%5d %7lu -1 %7lu %3d -1 -1 -1 -1 -1 1 -1 -1 -1 %d -1 -1 -1\n",
-	   i+1, arr_time, run_time, nodes, type);
+    printf("%5d %7lu -1 %7lu %3d -1 -1 -1 -1 -1 1 -1 -1 -1 %d %s -1 -1\n",
+	   i+1, arr_time, run_time, nodes, type, partition_name);
 #else
-    printf("%lu\t%u\t%lu\t%d\n", arr_time , nodes , run_time , type);
+    printf("%lu\t%u\t%lu\t%d\t%s\n", arr_time , nodes , run_time , type, partition_name);
 #endif
   }
 
