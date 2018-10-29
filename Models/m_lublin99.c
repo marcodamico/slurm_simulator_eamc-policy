@@ -407,10 +407,10 @@ int main(int argc, char *argv[])
   /* for each job (of SIZE jobs) calculate its type (if needed) , arrival time
    * number of nodes and run time, and print them.
    */
-#if SWF
-  /*
-   * print SWF header comments
-   */
+/*#if SWF
+  
+  //print SWF header comments
+   
   printf("; Version: 2\n");
   printf("; Acknowledge: Uri Lublin, Hebrew University\n");
   printf("; Information: http://www.cs.huji.ac.il/labs/parallel/workload\n");
@@ -419,6 +419,7 @@ int main(int argc, char *argv[])
   printf("; MaxNodes: %d\n", system_size);
   printf("; MaxRuntime: %d\n", (int)exp((double)TOO_MUCH_TIME));
 #endif
+*/
 
   UHi[BATCH]  =  system_size;
 
@@ -429,7 +430,7 @@ int main(int argc, char *argv[])
     run_time = time_from_nodes(a1[type] , b1[type] , a2[type] , b2[type],
 			       pa[type] , pb[type] , nodes);
 #if SWF
-    printf("%5d %7lu -1 %7lu %3d -1 -1 -1 -1 -1 1 -1 -1 -1 %d %s -1 -1\n",
+    printf("%d;%lu;-1;%lu;%d;-1;-1;-1;-1;-1;1;tester;-1;-1;%d;%s;-1;-1\n",
 	   i+1, arr_time, run_time, nodes, type, partition_name);
 #else
     printf("%lu\t%u\t%lu\t%d\t%s\n", arr_time , nodes , run_time , type, partition_name);

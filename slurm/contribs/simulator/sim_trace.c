@@ -78,6 +78,7 @@ int read_job_trace_record_ascii(FILE * trace_file_ptr, job_trace_t *job_trace, i
 	//char *manifest;
 	//job_trace_t ref_record;
 	ssize_t ret_val = 0;
+	ssize_t dummy = 0;
 /*	ssize_t ret_val=read(trace_file, &record_type, sizeof(record_type));
 	if (!ret_val) {
 		return ret_val;
@@ -127,8 +128,43 @@ int read_job_trace_record_ascii(FILE * trace_file_ptr, job_trace_t *job_trace, i
 		}
 	}
 
-	// modular workload format ascii (extended format)
+// standard format in ascii (all columns from models)
 	if (trace_format == 2) {
+		ret_val = fscanf(trace_file_ptr, "%d;%ld;%d;%d;%d;%d;%d;%d;%d;%d;%d;%29[^;];%d;%d;%29[^;];%29[^;];%d;%d",
+		&job_trace->job_id, &job_trace->submit, &job_trace->wait_modular_job_time, 
+		&job_trace->duration, &job_trace->tasks, 
+		&dummy, &job_trace->rreq_memory_per_node, &dummy, &job_trace->wclimit, &dummy, 
+		&job_trace->status, job_trace->username, job_trace->account, &dummy,
+		job_trace->qosname,	job_trace->partition,
+		&dummy, &dummy);
+
+		job_trace->qosname[0] = '\0';
+		job_trace->reservation[0] = '\0';
+		job_trace->dependency[0] = '\0';
+
+		strcpy(job_trace->manifest_filename, "|\0");
+		if (!ret_val)
+			return ret_val;
+		if (job_trace->manifest_filename[0]!='|') {
+			/*Marco: changed xtrsup to strdup*/
+			char *file_name_copy=strdup(job_trace->manifest_filename);
+			char *real_file_name=strtok(file_name_copy,"-");
+			if (!real_file_name)
+				real_file_name=job_trace->manifest_filename;
+			job_trace->manifest = read_file(real_file_name);
+			free(file_name_copy);
+			if (job_trace->manifest == NULL) {
+				printf("Missing manifest file!! %s\n",
+						real_file_name);
+				return -1;
+			}
+		} else {
+			job_trace->manifest=NULL;
+		}
+	}
+
+	// modular workload format ascii (extended format)
+	if (trace_format == 3) {
 		ret_val = fscanf(trace_file_ptr,
 		"%d;%d;%29[^;];%d;%d;%d;%d;%d;%29[^;];%d;%d;%d;%d;%29[^;];%d;%d;%d;%d;%d;%d;%d;%d;%29[^;];%29[^;];%29[^;];%29[^;];%d;%29[^;];%d;%d;%d;%d;%d;%d;%d;%d;%29[^;];%29[^;];%d;%29[^;];%d",
 		&job_trace->modular_job_id,

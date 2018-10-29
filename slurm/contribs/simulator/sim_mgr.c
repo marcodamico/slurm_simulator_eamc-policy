@@ -40,6 +40,9 @@
 //#include "src/unittests_lib/tools.h"
 #include <getopt.h>
 
+static DAM = 0;
+static splitPartition = 0;
+
 #undef DEBUG
 int sim_mgr_debug_level = 9;
 
@@ -81,12 +84,12 @@ int sync_loop_wait_time = 1000; /* minimum uSeconds that the sync loop waits
  	 	 	 	 	 	 	 	  before advancing to add time_incr to the
  	 	 	 	 	 	 	 	  simulated time*/
 int signaled  = 0;     /* signal from slurmd */
-int trace_format = 0; /*0 defaut format (binary) : 1 simple format (ascii): 2 modular format (ascii)*/
+int trace_format = 0; /*0 defaut format (binary) : 1 simple format (ascii): 2 standard format (ascii) : 3 modular format (ascii)*/
 char*  workload_trace_file = NULL; /* Name of the file containing the workload to simulate */
 char   default_trace_file[] = "test.trace";
 char   help_msg[]= "sim_mgr [endtime]\n\t[-c | --compath <cpath>]\n\t[-f | "
-		   "--fork]\n\t[-a | --accelerator <secs>]\n\t[-m | --mwf "
-		   "<filename> ]\n\t[-s | --wrkldascii <filename> ] "
+		   "--fork]\n\t[-a | --accelerator <secs>]\n\t[-s | --swf "
+		   "<filename> ]\n\t[-m | --mwf <filename> ]\n\t[-i | --wrkldascii <filename> ]"
 		   "\n\t[-w | --wrkldfile <filename> ]\n\t[-h | --help]\n"
 		   "\t[-t | --looptime] <uSeconds>\n"
 		   "Notes:\n\t'endtime' is "
@@ -524,11 +527,11 @@ generateJob(job_trace_t* jobd) {
 	dmesg.reservation   = strdup(jobd->reservation);
 	dmesg.dependency    = re_write_dependencies(jobd->dependency);
 	dmesg.num_tasks     = jobd->tasks;
-	dmesg.min_cpus      = jobd->tasks * jobd->cpus_per_task; 
+	dmesg.min_cpus      = jobd->tasks * jobd->cpus_per_task;
 	dmesg.cpus_per_task = jobd->cpus_per_task;
 	dmesg.min_nodes     = jobd->tasks;
 	dmesg.ntasks_per_node = jobd->tasks_per_node;
-	if (trace_format > 1) {
+	if (trace_format > 2) {
 		if (strcmp(jobd->rreq_constraint,"-1"))
 			dmesg.features = strdup(jobd->rreq_constraint);
 		if (strcmp(jobd->rreq_hint,"-1"))
@@ -780,7 +783,7 @@ int init_job_trace() {
 
         trace_recs_end_sim = timemgr_data + SIM_TRACE_RECS_END_SIM_OFFSET; /*ANA: Shared memory variable that will keep value of the total number of jobs in the log; once they are all finished controller will set it to -1 */
 
-	if (trace_format > 1)
+	if (trace_format > 2)
 		printf("%8s %9s %11s %9s %9s %7s %11s %11s %11s %14s %16s %11s %11s %6s %6s\n",
 		"job_id:", "username:", "submit:", "duration:", "wclimit:",
 		"tasks:", "qosname:", "partition: ", "account:", "cpus_per_task:",
@@ -1146,6 +1149,7 @@ getArgs(int argc, char** argv) {
 		{"fork",	0, 0, 'f'},
 		{"compath",	1, 0, 'c'},
 		{"accelerator",	1, 0, 'a'},
+		{"swf",	1, 0, 'm'},
 		{"mwf",	1, 0, 'm'},
 		{"wrkldascii",	1, 0, 's'},
 		{"wrkldfile",	1, 0, 'w'},
@@ -1157,7 +1161,7 @@ getArgs(int argc, char** argv) {
 	char* ptr;
 
 	while (1) {
-		if ((opt_char = getopt_long(argc, argv, "fc:ha:m:s:w:t:" , long_options,
+		if ((opt_char = getopt_long(argc, argv, "fc:ha:s:m:i:w:t:" , long_options,
 						&option_index)) == -1 )
 			break;
 
@@ -1171,11 +1175,15 @@ getArgs(int argc, char** argv) {
 			case ('a'): /* Eventually use strtol instead of atoi */
 				time_incr = atoi(optarg);
 				break;
-			case ('m'):
+			case ('s'):
 				trace_format = 2;
 				workload_trace_file = strdup(optarg);
+				break;	
+			case ('m'):
+				trace_format = 3;
+				workload_trace_file = strdup(optarg);
 				break;
-			case ('s'):
+			case ('i'):
 				trace_format = 1;
 				workload_trace_file = strdup(optarg);
 				break;	
