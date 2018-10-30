@@ -40,9 +40,6 @@
 //#include "src/unittests_lib/tools.h"
 #include <getopt.h>
 
-static DAM = 0;
-static splitPartition = 0;
-
 #undef DEBUG
 int sim_mgr_debug_level = 9;
 
@@ -527,11 +524,11 @@ generateJob(job_trace_t* jobd) {
 	dmesg.reservation   = strdup(jobd->reservation);
 	dmesg.dependency    = re_write_dependencies(jobd->dependency);
 	dmesg.num_tasks     = jobd->tasks;
-	dmesg.min_cpus      = jobd->tasks * jobd->cpus_per_task;
+	dmesg.min_cpus      = jobd->tasks * jobd->cpus_per_task; 
 	dmesg.cpus_per_task = jobd->cpus_per_task;
 	dmesg.min_nodes     = jobd->tasks;
 	dmesg.ntasks_per_node = jobd->tasks_per_node;
-	if (trace_format > 2) {
+	if (trace_format > 2) {	
 		if (strcmp(jobd->rreq_constraint,"-1"))
 			dmesg.features = strdup(jobd->rreq_constraint);
 		if (strcmp(jobd->rreq_hint,"-1"))
@@ -706,7 +703,7 @@ init_trace_info(void *ptr, int op) {
 
 
 void displayJobTraceT(job_trace_t* rptr) {
-	if (trace_format > 1)
+	if (trace_format > 2)
 		printf(
 			"%8d"
 			" %9s"
