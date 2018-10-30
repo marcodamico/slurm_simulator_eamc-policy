@@ -116,23 +116,9 @@ int read_job (FILE * trace_file_ptr, job_trace_t * job_trace) {
 	return ret_val;
 }
 
+void print_record (job_trace_t * new_job) {
 
-int main (int argc, char **argv) {
-        FILE * file = NULL;
-	job_trace_t * new_job = NULL;
-        int ret_val = 0;
-
-        if (argc != 2) {
-                printf("use: swf2mwf tracefile > output\n");
-                exit(0);
-        }
-
-        file = fopen(argv[1], "r");
-
-	new_job = calloc(1,sizeof(job_trace_t));
-
-        while ((ret_val = read_job(file, new_job)) > 0) {
-                printf("%d;%d;%s;%ld;%d;%ld;%d;%d;%s;%d;%d;%d;%d;%s;%d;%d;%d;%ld;%d;%d;%d;%d;%s;%s;%s;%s;%d;%s;%d;%d;%d;%d;%d;%d;%d;%d;%s;%s;%d;%s;%d\n",
+         printf("%d;%d;%s;%ld;%d;%ld;%d;%d;%s;%d;%d;%d;%d;%s;%d;%d;%d;%ld;%d;%d;%d;%d;%s;%s;%s;%s;%d;%s;%d;%d;%d;%d;%d;%d;%d;%d;%s;%s;%d;%s;%d\n",
 		new_job->modular_job_id,
                 new_job->total_components,
                 new_job->modular_jobname,
@@ -174,7 +160,24 @@ int main (int argc, char **argv) {
                 -1, //new_job->after_complition_job_id,
                 "-1", //new_job->dependency_type,
                 -1); //new_job->think_rreq_component_time);
+}
 
+int main (int argc, char **argv) {
+        FILE * file = NULL;
+	job_trace_t * new_job = NULL;
+        int ret_val = 0;
+
+        if (argc != 2) {
+                printf("use: swf2mwf tracefile > output\n");
+                exit(0);
+        }
+
+        file = fopen(argv[1], "r");
+
+	new_job = calloc(1,sizeof(job_trace_t));
+
+        while ((ret_val = read_job(file, new_job)) > 0) {
+		print_record(new_job);
 		memset(new_job,0,sizeof(job_trace_t));
 	}
 
