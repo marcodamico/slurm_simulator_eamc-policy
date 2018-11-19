@@ -130,21 +130,23 @@ int read_job_trace_record_ascii(FILE * trace_file_ptr, job_trace_t *job_trace, i
 
 // standard format in ascii (all columns from models)
 	if (trace_format == 2) {
-		ret_val = fscanf(trace_file_ptr, "%d;%ld;%d;%d;%d;%d;%d;%d;%d;%d;%d;%29[^;];%d;%d;%29[^;];%29[^;];%d;%d",
+		ret_val = fscanf(trace_file_ptr, "%d;%ld;%d;%d;%d;%d;%d;%d;%d;%d;%d;%29[^;];%29[^;];%d;%29[^;];%29[^;];%29[^;];%d",
 		&job_trace->job_id, &job_trace->submit, &job_trace->wait_modular_job_time, 
 		&job_trace->duration, &job_trace->tasks, 
 		&dummy, &job_trace->rreq_memory_per_node, &dummy, &job_trace->wclimit, &dummy, 
 		&job_trace->status, job_trace->username, job_trace->account, &dummy,
 		job_trace->qosname,	job_trace->partition,
-		&dummy, &dummy);
+		job_trace->dependency, &dummy);
 
-		job_trace->cpus_per_task = 48;
+		job_trace->cpus_per_task = 1;
 		job_trace->tasks_per_node = 1;
 
 		job_trace->account[0] = '\0';
 		job_trace->qosname[0] = '\0';
 		job_trace->reservation[0] = '\0';
-		job_trace->dependency[0] = '\0';
+
+		if(!strcmp(job_trace->dependency, "-1"))
+			job_trace->dependency[0] = '\0';
 
 		strcpy(job_trace->manifest_filename, "|\0");
 		if (!ret_val)
@@ -170,7 +172,7 @@ int read_job_trace_record_ascii(FILE * trace_file_ptr, job_trace_t *job_trace, i
 	// modular workload format ascii (extended format)
 	if (trace_format == 3) {
 		ret_val = fscanf(trace_file_ptr,
-		"%d;%d;%29[^;];%d;%d;%d;%d;%d;%29[^;];%d;%d;%d;%d;%29[^;];%d;%d;%d;%d;%d;%d;%d;%d;%29[^;];%29[^;];%29[^;];%29[^;];%d;%29[^;];%d;%d;%d;%d;%d;%d;%d;%d;%29[^;];%29[^;];%d;%29[^;];%d",
+		"%d;%d;%29[^;];%d;%d;%d;%d;%d;%29[^;];%d;%d;%d;%d;%29[^;];%d;%d;%d;%d;%d;%d;%d;%d;%29[^;];%29[^;];%29[^;];%29[^;];%d;%29[^;];%d;%d;%d;%d;%d;%d;%d;%d;%29[^;];%29[^;];%29[^;];%29[^;];%d",
 		&job_trace->modular_job_id,
 		&job_trace->total_components,
 		job_trace->modular_jobname,
@@ -209,7 +211,7 @@ int read_job_trace_record_ascii(FILE * trace_file_ptr, job_trace_t *job_trace, i
 		&job_trace->ralloc_local_storage,
 		job_trace->ralloc_network_features,
 		job_trace->ralloc_licenses,
-		&job_trace->after_complition_job_id,
+		job_trace->after_complition_job_id,
 		job_trace->dependency_type,
 		&job_trace->think_rreq_component_time);
 

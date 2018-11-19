@@ -202,42 +202,79 @@ uint32_t _get_real_job_id(uint32_t trace_job_id) {
  * "afterok:2,afterok:3") with the same structure as dep_string but
  * replacing the trace job ids for real jobs ids.
  */
-char *re_write_dependencies(char *dep_string) {
+char *re_write_dependencies(job_trace_t * jobd) {
 	char *token;
 	char *saveptr1;
-	uint32_t trace_job_id, real_job_id;
+	uint32_t trace_job_id, real_job_id, dep_count = 0, index = 0;
 	char buffer[10*1024] = "\0";
 	char buffer_2[10*1024] = "\0";
+	char buffer_3[10][1024];
 	char *new_dep = &buffer;
 	char *new_dep_copy=&buffer_2;
-
-
 	char first=1;
-	for(token = strtok_r(dep_string, ":", &saveptr1);
-		token;
-		token = strtok_r(dep_string, ":", &saveptr1))
-	{
-		dep_string=NULL;
-		char *dep_type = token;
-		//assert_equal_str(token, "afterok", "Bad sbatch depedency format");
-		token = strtok_r(NULL, ",", &saveptr1);
-		trace_job_id = atoi(token);
-		real_job_id = _get_real_job_id(trace_job_id);
-		if (real_job_id==NO_VAL) {
-			error("Real job id not found for job id: %d", trace_job_id);
-			real_job_id=trace_job_id;
+
+	if (trace_format > 2) {	
+		char dep_string[1024];
+		strcpy(dep_string,jobd->after_complition_job_id);
+		token = strtok_r(dep_string, ",", &saveptr1);
+		if (strcmp(dep_string,"-1")) {
+			while (token != NULL) {
+				trace_job_id = atoi(token);
+				real_job_id = _get_real_job_id(trace_job_id);
+				sprintf(buffer_3[dep_count], "%d", real_job_id);
+				dep_count++;
+				// strtok return the full string when no separator is found
+				if (!strcmp(token,jobd->after_complition_job_id))
+					break;
+				token = strtok_r(NULL, ",", &saveptr1);
+			}
+			strcpy(dep_string,jobd->dependency_type);
+			token = strtok_r(dep_string, ",", &saveptr1);
+			while (token != NULL) {
+				if (first) {
+					sprintf(new_dep_copy, "%s%s:%s", new_dep_copy, token, buffer_3[index]);
+					first = 0;
+				}
+				else {
+					sprintf(new_dep_copy, "%s,%s:%s", new_dep_copy, token, buffer_3[index]);	
+				}
+				// strtok return the full string when no separator is found
+				if (!strcmp(token,jobd->dependency_type))
+					break;
+				token = strtok_r(NULL, ",", &saveptr1);
+				index++;
+			}
+			new_dep = new_dep_copy;
 		}
-		if (first) {
-			sprintf(new_dep_copy, "%s%s:%d", new_dep, dep_type,
-							real_job_id);
-		} else {
-			sprintf(new_dep_copy, "%s,%s:%d", new_dep, dep_type,
-						    real_job_id);
+	}
+	else {
+		char *dep_string = jobd->dependency;
+		for(token = strtok_r(dep_string, ":", &saveptr1);
+			token;
+			token = strtok_r(dep_string, ":", &saveptr1))
+		{
+			dep_string=NULL;
+			char *dep_type = token;
+			//assert_equal_str(token, "afterok", "Bad sbatch depedency format");
+			token = strtok_r(NULL, ",", &saveptr1);
+			trace_job_id = atoi(token);
+			real_job_id = _get_real_job_id(trace_job_id);
+			if (real_job_id==NO_VAL) {
+				error("Real job id not found for job id: %d", trace_job_id);
+				real_job_id=trace_job_id;
+			}
+			if (first) {
+				sprintf(new_dep_copy, "%s%s:%d", new_dep, dep_type,
+								real_job_id);
+			} else {
+				sprintf(new_dep_copy, "%s,%s:%d", new_dep, dep_type,
+								real_job_id);
+			}
+			char *aux=new_dep;
+			new_dep = new_dep_copy;
+			new_dep_copy = aux;
+			first = 0;
 		}
-		char *aux=new_dep;
-		new_dep = new_dep_copy;
-		new_dep_copy = aux;
-		first = 0;
 	}
 	return xstrdup(new_dep);
 }
@@ -522,7 +559,7 @@ generateJob(job_trace_t* jobd) {
 	dmesg.partition     = strdup(jobd->partition);
 	dmesg.account       = strdup(jobd->account);
 	dmesg.reservation   = strdup(jobd->reservation);
-	dmesg.dependency    = re_write_dependencies(jobd->dependency);
+	dmesg.dependency    = re_write_dependencies(jobd);
 	dmesg.num_tasks     = jobd->tasks;
 	dmesg.min_cpus      = jobd->tasks * jobd->cpus_per_task; 
 	dmesg.cpus_per_task = jobd->cpus_per_task;

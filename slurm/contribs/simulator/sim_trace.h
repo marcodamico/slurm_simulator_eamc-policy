@@ -73,7 +73,7 @@ typedef struct job_trace {
     char ralloc_network_features[MAX_MWF_STR_LEN]; // network reqs
     char ralloc_licenses[MAX_MWF_STR_LEN];
     // dependencies - inputs
-    int after_complition_job_id;
+    char after_complition_job_id[MAX_MWF_STR_LEN];
     char dependency_type[MAX_MWF_STR_LEN];
     int think_rreq_component_time;
 } job_trace_t;
