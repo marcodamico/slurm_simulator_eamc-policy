@@ -109,7 +109,7 @@ char   help_msg[]= "sim_mgr [endtime]\n\t[-c | --compath <cpath>]\n\t[-f | "
 		   "\t\tvalue is 1.\n";
 
 /* Function prototypes */
-void  generateJob(job_trace_t* jobd);
+void  generateJob(job_trace_t* jobd, List *job_req_list, int modular_jobid, int *duration);
 void  dumping_shared_mem();
 void  fork_daemons(int idx);
 char* getPathFromSelf(char*);
@@ -332,11 +332,14 @@ dumping_shared_mem() {
 static void*
 time_mgr(void *arg) {
 
+	job_desc_msg_t *dmesg;
+	List job_req_list = NULL;
 	int child;
 	long int wait_time;
 	struct timeval t1 /*, t2*/;
 	struct timeval t_start, t_end, i_loop;
-	int i, j;
+	int i, j, total_comp = 0, modular_jobid = 0;
+	int * duration = NULL;
 
 	printf("INFO: Creating time_mgr thread\n");
 
@@ -388,6 +391,9 @@ time_mgr(void *arg) {
 					" seconds for last jobs to be registered\n",
 					seconds_to_finish);
 			time_end=t_start.tv_sec;
+		}
+		else {
+			info("trace_recs_end_sim: %d", *trace_recs_end_sim);
 		}
 		if (time_end && (t_start.tv_sec-time_end>seconds_to_finish)) {
 			fprintf(stderr, "Wait is over, time to end all processes in the"
@@ -468,12 +474,47 @@ time_mgr(void *arg) {
 				       "%u\n", __LINE__, *current_sim);
 #endif
 
-				generateJob (trace_head);
 
-				/* Let's free trace record */
-				temp_ptr = trace_head;
-				trace_head = trace_head->next;
-				free(temp_ptr);
+				// if we have more than 1 component at submitt time, prepare for a job pack submission
+				if (trace_format > 2 && trace_head->total_components > 1) {
+					modular_jobid = trace_head->modular_job_id;
+					total_comp = trace_head->total_components;
+
+					// first position of duration array will have the number of total_components
+					// the rest of the positions will have the duration of each job pack			
+					duration = (int *) calloc(total_comp+1, sizeof(int));
+					duration[0] = total_comp;
+
+					job_req_list = list_create(NULL);
+
+					for (int comp = 0; comp < total_comp; ++comp) {
+
+						dmesg = xmalloc(sizeof(job_desc_msg_t));
+
+						slurm_init_job_desc_msg(dmesg);
+					
+						list_append(job_req_list, dmesg);
+
+						generate_job_desc_msg(dmesg, trace_head);
+						duration[comp+1] = trace_head->duration;
+
+						/* Let's free trace record */
+						temp_ptr = trace_head;
+						trace_head = trace_head->next;
+						free(temp_ptr);
+					}
+					generateJob (trace_head, &job_req_list, modular_jobid, duration);
+
+					free(duration);
+				}
+				else {
+					generateJob (trace_head, &job_req_list, 0, NULL);
+
+					/* Let's free trace record */
+					temp_ptr = trace_head;
+					trace_head = trace_head->next;
+					free(temp_ptr);
+				}
 
 			} else {
 				/*
@@ -523,14 +564,64 @@ time_mgr(void *arg) {
 	return 0;
 }
 
+void generate_job_desc_msg(job_desc_msg_t* dmesg, job_trace_t* jobd) {
+		char script[8192], line[1024];
+		uid_t uidt;
+		gid_t gidt;
+
+		/* First, set up and call Slurm C-API for actual job submission. */
+		dmesg->time_limit    = jobd->wclimit;
+		dmesg->job_id        = NO_VAL;
+		dmesg->name	    = "sim_job";
+		uidt = userIdFromName(jobd->username, &gidt);
+		dmesg->user_id       = uidt;
+		dmesg->group_id      = gidt;
+		dmesg->work_dir      = strdup("/tmp"); /* hardcoded to /tmp for now */
+		dmesg->qos           = strdup(jobd->qosname);
+		dmesg->partition     = strdup(jobd->partition);
+		dmesg->account       = strdup(jobd->account);
+		dmesg->reservation   = strdup(jobd->reservation);
+		dmesg->dependency    = re_write_dependencies(jobd);
+		dmesg->num_tasks     = jobd->tasks;
+		dmesg->min_cpus      = jobd->tasks * jobd->cpus_per_task; 
+		dmesg->cpus_per_task = jobd->cpus_per_task;
+		dmesg->min_nodes     = jobd->tasks;
+		dmesg->ntasks_per_node = jobd->tasks_per_node;
+		if (trace_format > 2) {	
+			if (strcmp(jobd->rreq_constraint,"-1"))
+				dmesg->features = strdup(jobd->rreq_constraint);
+			if (strcmp(jobd->rreq_hint,"-1"))
+				dmesg->hints = strdup(jobd->rreq_hint);
+		}
+
+		/* Need something for environment--Should make this een more generic! */
+		dmesg->environment  = (char**)malloc(sizeof(char*)*2);
+		dmesg->environment[0] = strdup("HOME=/root");
+		dmesg->env_size = 1;
+
+		/* Standard dummy script. */
+		sprintf(line,"#SBATCH -n %u\n", jobd->tasks);
+		strcat(script, line);
+		strcat(script, "\necho \"Generated BATCH Job\"\necho \"La Fine!\"\n");
+
+		dmesg->script        = strdup(script);
+		if (jobd->manifest!=NULL) {
+	//		dmesg.wf_program = strdup(jobd->manifest);
+			dmesg->name=xmalloc(3+strlen(jobd->manifest_filename)+1+6+4+1);
+			sprintf(dmesg->name, "wf_%s%d",
+					jobd->manifest_filename,
+					workflow_count);
+			workflow_count+=1;
+		} else if (strlen(jobd->manifest_filename)>1) {
+			dmesg->name=xstrdup(jobd->manifest_filename+1);
+		}
+}
+
 void
-generateJob(job_trace_t* jobd) {
+generateJob(job_trace_t* jobd, List *job_req_list, int modular_jobid, int * duration) {
 	job_desc_msg_t dmesg;
 	submit_response_msg_t respMsg, *rptr = &respMsg;
 	int rv, ix, jx;
-	char script[8192], line[1024];
-	uid_t uidt;
-	gid_t gidt;
 
 #if 0
 	displayJobTraceT(jobd);
@@ -540,94 +631,91 @@ generateJob(job_trace_t* jobd) {
 	slurm_msg_t   resp_msg;
 	slurm_addr_t  remote_addr;
 	char* this_addr;
+	uint32_t trace_job_id;
 
-	uint32_t trace_job_id=jobd->job_id;
+	// NO job_req_list - Normal Submission
+	if (!modular_jobid) {
+		trace_job_id = jobd->job_id;
 
-	sprintf(script,"#!/bin/bash\n");
+		slurm_init_job_desc_msg(&dmesg);
+		generate_job_desc_msg(&dmesg, jobd);
 
-	slurm_init_job_desc_msg(&dmesg);
+		if ( slurm_submit_batch_job(&dmesg, &rptr) ) {
+			printf("Function: %s, Line: %d\n", __FUNCTION__, __LINE__);
+			slurm_perror ("slurm_submit_batch_job");
+		}
+	
+		_add_job_pair(trace_job_id, rptr->job_id);
 
-	/* First, set up and call Slurm C-API for actual job submission. */
-	dmesg.time_limit    = jobd->wclimit;
-	dmesg.job_id        = NO_VAL;
-	dmesg.name	    = "sim_job";
-	uidt = userIdFromName(jobd->username, &gidt);
-	dmesg.user_id       = uidt;
-	dmesg.group_id      = gidt;
-	dmesg.work_dir      = strdup("/tmp"); /* hardcoded to /tmp for now */
-	dmesg.qos           = strdup(jobd->qosname);
-	dmesg.partition     = strdup(jobd->partition);
-	dmesg.account       = strdup(jobd->account);
-	dmesg.reservation   = strdup(jobd->reservation);
-	dmesg.dependency    = re_write_dependencies(jobd);
-	dmesg.num_tasks     = jobd->tasks;
-	dmesg.min_cpus      = jobd->tasks * jobd->cpus_per_task; 
-	dmesg.cpus_per_task = jobd->cpus_per_task;
-	dmesg.min_nodes     = jobd->tasks;
-	dmesg.ntasks_per_node = jobd->tasks_per_node;
-	if (trace_format > 2) {	
-		if (strcmp(jobd->rreq_constraint,"-1"))
-			dmesg.features = strdup(jobd->rreq_constraint);
-		if (strcmp(jobd->rreq_hint,"-1"))
-			dmesg.hints = strdup(jobd->rreq_hint);
+		printf("\nResponse from job submission\n\terror_code: %u\n\t"
+			"job_id: %u\n\tstep_id: %u\n",
+			rptr->error_code, rptr->job_id, rptr->step_id);
+		printf("\n");
+
+		/*
+		* Second, send special Simulator message to the slurmd to inform it
+		* when the given job should terminate. job_id is obtained from whatever
+		* slurmctld returned.
+		*/
+		slurm_msg_t_init(&req_msg);
+		slurm_msg_t_init(&resp_msg);
+		req.job_id       = rptr->job_id;
+		req.duration     = jobd->duration;
+		req_msg.msg_type = REQUEST_SIM_JOB;
+		req_msg.data     = &req;
+		req_msg.protocol_version = SLURM_PROTOCOL_VERSION;
+		this_addr = "localhost";
+		slurm_set_addr(&req_msg.address, (uint16_t)slurm_get_slurmd_port(),
+							this_addr);
+		if (!jobd->manifest || 1) {
+			if (slurm_send_recv_node_msg(&req_msg, &resp_msg, 500000) < 0) {
+				printf("check_events_trace: error in slurm_send_recv_node_msg\n");
+			}
+		}
+
+		// slurm_free_submit_response_response_msg(req_msg);
+		// slurm_free_submit_response_response_msg(resp_msg);
+		/* Should release the memory of the resp_msg and req_msg. */
 	}
+	// THERE IS job_req_list - Job Pack Submission
+	else {
+		if ( slurm_submit_batch_pack_job(*job_req_list, &rptr) ) {
+			printf("Function: %s, Line: %d\n", __FUNCTION__, __LINE__);
+			slurm_perror ("slurm_submit_batch_pack_job");
+		}
 
-	/* Need something for environment--Should make this een more generic! */
-	dmesg.environment  = (char**)malloc(sizeof(char*)*2);
-	dmesg.environment[0] = strdup("HOME=/root");
-	dmesg.env_size = 1;
+		printf("\nResponse from job submission\n\terror_code: %u\n\t"
+			"job_id: %u\n\tstep_id: %u\n",
+			rptr->error_code, rptr->job_id, rptr->step_id);
+		printf("\n");
 
-	/* Standard dummy script. */
-	sprintf(line,"#SBATCH -n %u\n", jobd->tasks);
-	strcat(script, line);
-	strcat(script, "\necho \"Generated BATCH Job\"\necho \"La Fine!\"\n");
+		/*
+		* Second, send special Simulator message to the slurmd to inform it
+		* when the given job should terminate. job_id is obtained from whatever
+		* slurmctld returned.
+		*/
+		for (int comp = 0; comp < duration[0]; ++comp) {
+			_add_job_pair(modular_jobid+comp, rptr->job_id+comp);
+			slurm_msg_t_init(&req_msg);
+			slurm_msg_t_init(&resp_msg);
+			req.job_id       = rptr->job_id + comp;
+			req.duration     = duration[comp+1];
+			req_msg.msg_type = REQUEST_SIM_JOB;
+			req_msg.data     = &req;
+			req_msg.protocol_version = SLURM_PROTOCOL_VERSION;
+			this_addr = "localhost";
+			slurm_set_addr(&req_msg.address, (uint16_t)slurm_get_slurmd_port(),
+								this_addr);
+			
+			if (slurm_send_recv_node_msg(&req_msg, &resp_msg, 500000) < 0) {
+				printf("check_events_trace: error in slurm_send_recv_node_msg\n");
+			}
 
-	dmesg.script        = strdup(script);
-	if (jobd->manifest!=NULL) {
-//		dmesg.wf_program = strdup(jobd->manifest);
-		dmesg.name=xmalloc(3+strlen(jobd->manifest_filename)+1+6+4+1);
-		sprintf(dmesg.name, "wf_%s%d",
-				jobd->manifest_filename,
-				workflow_count);
-		workflow_count+=1;
-	} else if (strlen(jobd->manifest_filename)>1) {
-		dmesg.name=xstrdup(jobd->manifest_filename+1);
-	}
-
-	if ( slurm_submit_batch_job(&dmesg, &rptr) ) {
-		printf("Function: %s, Line: %d\n", __FUNCTION__, __LINE__);
-		slurm_perror ("slurm_submit_batch_job");
-	}
-
-	_add_job_pair(trace_job_id, rptr->job_id);
-
-	printf("\nResponse from job submission\n\terror_code: %u\n\t"
-	       "job_id: %u\n\tstep_id: %u\n",
-		rptr->error_code, rptr->job_id, rptr->step_id);
-	printf("\n");
-
-	/*
-	 * Second, send special Simulator message to the slurmd to inform it
-	 * when the given job should terminate. job_id is obtained from whatever
-	 * slurmctld returned.
-	 */
-	slurm_msg_t_init(&req_msg);
-	slurm_msg_t_init(&resp_msg);
-	req.job_id       = rptr->job_id;
-	req.duration     = jobd->duration;
-	req_msg.msg_type = REQUEST_SIM_JOB;
-	req_msg.data     = &req;
-	req_msg.protocol_version = SLURM_PROTOCOL_VERSION;
-	this_addr = "localhost";
-	slurm_set_addr(&req_msg.address, (uint16_t)slurm_get_slurmd_port(),
-						this_addr);
-	if (!jobd->manifest || 1) {
-		if (slurm_send_recv_node_msg(&req_msg, &resp_msg, 500000) < 0) {
-			printf("check_events_trace: error in slurm_send_recv_node_msg\n");
+			// slurm_free_submit_response_response_msg(req_msg);
+			// slurm_free_submit_response_response_msg(resp_msg);
+			/* Should release the memory of the resp_msg and req_msg. */		
 		}
 	}
-
-	/* Should release the memory of the resp_msg and req_msg. */
 }
 
 uid_t
