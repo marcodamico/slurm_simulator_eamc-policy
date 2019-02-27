@@ -81,12 +81,14 @@ int sync_loop_wait_time = 1000; /* minimum uSeconds that the sync loop waits
  	 	 	 	 	 	 	 	  before advancing to add time_incr to the
  	 	 	 	 	 	 	 	  simulated time*/
 int signaled  = 0;     /* signal from slurmd */
+int trace_format = 0; /*0 defaut format (binary) : 1 simple format (ascii): 2 standard format (ascii) : 3 modular format (ascii)*/
 char*  workload_trace_file = NULL; /* Name of the file containing the workload to simulate */
 char   default_trace_file[] = "test.trace";
 char   help_msg[]= "sim_mgr [endtime]\n\t[-c | --compath <cpath>]\n\t[-f | "
-		   "--fork]\n\t[-a | --accelerator <secs>]\n\t[-w | --wrkldfile"
-		   " <filename> ]\n\t[-h | --help]\n"
-		   "\t\t[-t | --looptime] <uSeconds>\n"
+		   "--fork]\n\t[-a | --accelerator <secs>]\n\t[-s | --swf "
+		   "<filename> ]\n\t[-m | --mwf <filename> ]\n\t[-i | --wrkldascii <filename> ]"
+		   "\n\t[-w | --wrkldfile <filename> ]\n\t[-h | --help]\n"
+		   "\t[-t | --looptime] <uSeconds>\n"
 		   "Notes:\n\t'endtime' is "
 		   "specified as seconds since Unix epoch. If 0 is specified "
 		   "then the\n\t\tsimulator will run indefinitely.\n\t'cpath' "
@@ -107,7 +109,7 @@ char   help_msg[]= "sim_mgr [endtime]\n\t[-c | --compath <cpath>]\n\t[-f | "
 		   "\t\tvalue is 1.\n";
 
 /* Function prototypes */
-void  generateJob(job_trace_t* jobd);
+void  generateJob(job_trace_t* jobd, List *job_req_list, int modular_jobid, int *duration);
 void  dumping_shared_mem();
 void  fork_daemons(int idx);
 char* getPathFromSelf(char*);
@@ -200,42 +202,79 @@ uint32_t _get_real_job_id(uint32_t trace_job_id) {
  * "afterok:2,afterok:3") with the same structure as dep_string but
  * replacing the trace job ids for real jobs ids.
  */
-char *re_write_dependencies(char *dep_string) {
+char *re_write_dependencies(job_trace_t * jobd) {
 	char *token;
 	char *saveptr1;
-	uint32_t trace_job_id, real_job_id;
+	uint32_t trace_job_id, real_job_id, dep_count = 0, index = 0;
 	char buffer[10*1024] = "\0";
 	char buffer_2[10*1024] = "\0";
+	char buffer_3[10][1024];
 	char *new_dep = &buffer;
 	char *new_dep_copy=&buffer_2;
-
-
 	char first=1;
-	for(token = strtok_r(dep_string, ":", &saveptr1);
-		token;
-		token = strtok_r(dep_string, ":", &saveptr1))
-	{
-		dep_string=NULL;
-		char *dep_type = token;
-		//assert_equal_str(token, "afterok", "Bad sbatch depedency format");
-		token = strtok_r(NULL, ",", &saveptr1);
-		trace_job_id = atoi(token);
-		real_job_id = _get_real_job_id(trace_job_id);
-		if (real_job_id==NO_VAL) {
-			error("Real job id not found for job id: %d", trace_job_id);
-			real_job_id=trace_job_id;
+
+	if (trace_format > 2) {	
+		char dep_string[1024];
+		strcpy(dep_string,jobd->after_complition_job_id);
+		token = strtok_r(dep_string, ",", &saveptr1);
+		if (strcmp(dep_string,"-1")) {
+			while (token != NULL) {
+				trace_job_id = atoi(token);
+				real_job_id = _get_real_job_id(trace_job_id);
+				sprintf(buffer_3[dep_count], "%d", real_job_id);
+				dep_count++;
+				// strtok return the full string when no separator is found
+				if (!strcmp(token,jobd->after_complition_job_id))
+					break;
+				token = strtok_r(NULL, ",", &saveptr1);
+			}
+			strcpy(dep_string,jobd->dependency_type);
+			token = strtok_r(dep_string, ",", &saveptr1);
+			while (token != NULL) {
+				if (first) {
+					sprintf(new_dep_copy, "%s%s:%s", new_dep_copy, token, buffer_3[index]);
+					first = 0;
+				}
+				else {
+					sprintf(new_dep_copy, "%s,%s:%s", new_dep_copy, token, buffer_3[index]);	
+				}
+				// strtok return the full string when no separator is found
+				if (!strcmp(token,jobd->dependency_type))
+					break;
+				token = strtok_r(NULL, ",", &saveptr1);
+				index++;
+			}
+			new_dep = new_dep_copy;
 		}
-		if (first) {
-			sprintf(new_dep_copy, "%s%s:%d", new_dep, dep_type,
-							real_job_id);
-		} else {
-			sprintf(new_dep_copy, "%s,%s:%d", new_dep, dep_type,
-						    real_job_id);
+	}
+	else {
+		char *dep_string = jobd->dependency;
+		for(token = strtok_r(dep_string, ":", &saveptr1);
+			token;
+			token = strtok_r(dep_string, ":", &saveptr1))
+		{
+			dep_string=NULL;
+			char *dep_type = token;
+			//assert_equal_str(token, "afterok", "Bad sbatch depedency format");
+			token = strtok_r(NULL, ",", &saveptr1);
+			trace_job_id = atoi(token);
+			real_job_id = _get_real_job_id(trace_job_id);
+			if (real_job_id==NO_VAL) {
+				error("Real job id not found for job id: %d", trace_job_id);
+				real_job_id=trace_job_id;
+			}
+			if (first) {
+				sprintf(new_dep_copy, "%s%s:%d", new_dep, dep_type,
+								real_job_id);
+			} else {
+				sprintf(new_dep_copy, "%s,%s:%d", new_dep, dep_type,
+								real_job_id);
+			}
+			char *aux=new_dep;
+			new_dep = new_dep_copy;
+			new_dep_copy = aux;
+			first = 0;
 		}
-		char *aux=new_dep;
-		new_dep = new_dep_copy;
-		new_dep_copy = aux;
-		first = 0;
 	}
 	return xstrdup(new_dep);
 }
@@ -293,11 +332,14 @@ dumping_shared_mem() {
 static void*
 time_mgr(void *arg) {
 
+	job_desc_msg_t *dmesg;
+	List job_req_list = NULL;
 	int child;
 	long int wait_time;
 	struct timeval t1 /*, t2*/;
 	struct timeval t_start, t_end, i_loop;
-	int i, j;
+	int i, j, total_comp = 0, modular_jobid = 0;
+	int * duration = NULL;
 
 	printf("INFO: Creating time_mgr thread\n");
 
@@ -349,6 +391,9 @@ time_mgr(void *arg) {
 					" seconds for last jobs to be registered\n",
 					seconds_to_finish);
 			time_end=t_start.tv_sec;
+		}
+		else {
+			info("trace_recs_end_sim: %d", *trace_recs_end_sim);
 		}
 		if (time_end && (t_start.tv_sec-time_end>seconds_to_finish)) {
 			fprintf(stderr, "Wait is over, time to end all processes in the"
@@ -429,12 +474,47 @@ time_mgr(void *arg) {
 				       "%u\n", __LINE__, *current_sim);
 #endif
 
-				generateJob (trace_head);
 
-				/* Let's free trace record */
-				temp_ptr = trace_head;
-				trace_head = trace_head->next;
-				free(temp_ptr);
+				// if we have more than 1 component at submitt time, prepare for a job pack submission
+				if (trace_format > 2 && trace_head->total_components > 1) {
+					modular_jobid = trace_head->modular_job_id;
+					total_comp = trace_head->total_components;
+
+					// first position of duration array will have the number of total_components
+					// the rest of the positions will have the duration of each job pack			
+					duration = (int *) calloc(total_comp+1, sizeof(int));
+					duration[0] = total_comp;
+
+					job_req_list = list_create(NULL);
+
+					for (int comp = 0; comp < total_comp; ++comp) {
+
+						dmesg = xmalloc(sizeof(job_desc_msg_t));
+
+						slurm_init_job_desc_msg(dmesg);
+					
+						list_append(job_req_list, dmesg);
+
+						generate_job_desc_msg(dmesg, trace_head);
+						duration[comp+1] = trace_head->duration;
+
+						/* Let's free trace record */
+						temp_ptr = trace_head;
+						trace_head = trace_head->next;
+						free(temp_ptr);
+					}
+					generateJob (trace_head, &job_req_list, modular_jobid, duration);
+
+					free(duration);
+				}
+				else {
+					generateJob (trace_head, &job_req_list, 0, NULL);
+
+					/* Let's free trace record */
+					temp_ptr = trace_head;
+					trace_head = trace_head->next;
+					free(temp_ptr);
+				}
 
 			} else {
 				/*
@@ -484,14 +564,64 @@ time_mgr(void *arg) {
 	return 0;
 }
 
+void generate_job_desc_msg(job_desc_msg_t* dmesg, job_trace_t* jobd) {
+		char script[8192], line[1024];
+		uid_t uidt;
+		gid_t gidt;
+
+		/* First, set up and call Slurm C-API for actual job submission. */
+		dmesg->time_limit    = jobd->wclimit;
+		dmesg->job_id        = NO_VAL;
+		dmesg->name	    = "sim_job";
+		uidt = userIdFromName(jobd->username, &gidt);
+		dmesg->user_id       = uidt;
+		dmesg->group_id      = gidt;
+		dmesg->work_dir      = strdup("/tmp"); /* hardcoded to /tmp for now */
+		dmesg->qos           = strdup(jobd->qosname);
+		dmesg->partition     = strdup(jobd->partition);
+		dmesg->account       = strdup(jobd->account);
+		dmesg->reservation   = strdup(jobd->reservation);
+		dmesg->dependency    = re_write_dependencies(jobd);
+		dmesg->num_tasks     = jobd->tasks;
+		dmesg->min_cpus      = jobd->tasks * jobd->cpus_per_task; 
+		dmesg->cpus_per_task = jobd->cpus_per_task;
+		dmesg->min_nodes     = jobd->tasks;
+		dmesg->ntasks_per_node = jobd->tasks_per_node;
+		if (trace_format > 2) {	
+			if (strcmp(jobd->rreq_constraint,"-1"))
+				dmesg->features = strdup(jobd->rreq_constraint);
+			if (strcmp(jobd->rreq_hint,"-1"))
+				dmesg->hints = strdup(jobd->rreq_hint);
+		}
+
+		/* Need something for environment--Should make this een more generic! */
+		dmesg->environment  = (char**)malloc(sizeof(char*)*2);
+		dmesg->environment[0] = strdup("HOME=/root");
+		dmesg->env_size = 1;
+
+		/* Standard dummy script. */
+		sprintf(line,"#SBATCH -n %u\n", jobd->tasks);
+		strcat(script, line);
+		strcat(script, "\necho \"Generated BATCH Job\"\necho \"La Fine!\"\n");
+
+		dmesg->script        = strdup(script);
+		if (jobd->manifest!=NULL) {
+	//		dmesg.wf_program = strdup(jobd->manifest);
+			dmesg->name=xmalloc(3+strlen(jobd->manifest_filename)+1+6+4+1);
+			sprintf(dmesg->name, "wf_%s%d",
+					jobd->manifest_filename,
+					workflow_count);
+			workflow_count+=1;
+		} else if (strlen(jobd->manifest_filename)>1) {
+			dmesg->name=xstrdup(jobd->manifest_filename+1);
+		}
+}
+
 void
-generateJob(job_trace_t* jobd) {
+generateJob(job_trace_t* jobd, List *job_req_list, int modular_jobid, int * duration) {
 	job_desc_msg_t dmesg;
 	submit_response_msg_t respMsg, *rptr = &respMsg;
 	int rv, ix, jx;
-	char script[8192], line[1024];
-	uid_t uidt;
-	gid_t gidt;
 
 #if 0
 	displayJobTraceT(jobd);
@@ -501,88 +631,91 @@ generateJob(job_trace_t* jobd) {
 	slurm_msg_t   resp_msg;
 	slurm_addr_t  remote_addr;
 	char* this_addr;
+	uint32_t trace_job_id;
 
-	uint32_t trace_job_id=jobd->job_id;
+	// NO job_req_list - Normal Submission
+	if (!modular_jobid) {
+		trace_job_id = jobd->job_id;
 
-	sprintf(script,"#!/bin/bash\n");
+		slurm_init_job_desc_msg(&dmesg);
+		generate_job_desc_msg(&dmesg, jobd);
 
-	slurm_init_job_desc_msg(&dmesg);
+		if ( slurm_submit_batch_job(&dmesg, &rptr) ) {
+			printf("Function: %s, Line: %d\n", __FUNCTION__, __LINE__);
+			slurm_perror ("slurm_submit_batch_job");
+		}
+	
+		_add_job_pair(trace_job_id, rptr->job_id);
 
-	/* First, set up and call Slurm C-API for actual job submission. */
-	dmesg.time_limit    = jobd->wclimit;
-	dmesg.job_id        = NO_VAL;
-	dmesg.name	    = "sim_job";
-	uidt = userIdFromName(jobd->username, &gidt);
-	dmesg.user_id       = uidt;
-	dmesg.group_id      = gidt;
-	dmesg.work_dir      = strdup("/tmp"); /* hardcoded to /tmp for now */
-	dmesg.qos           = strdup(jobd->qosname);
-	dmesg.partition     = strdup(jobd->partition);
-	dmesg.account       = strdup(jobd->account);
-	dmesg.reservation   = strdup(jobd->reservation);
-	dmesg.dependency    = re_write_dependencies(jobd->dependency);
-	dmesg.num_tasks     = jobd->tasks;
-	dmesg.min_cpus      = jobd->tasks * jobd->cpus_per_task; 
-	dmesg.cpus_per_task = jobd->cpus_per_task;
-	dmesg.min_nodes     = jobd->tasks;
-	dmesg.ntasks_per_node = jobd->tasks_per_node;
+		printf("\nResponse from job submission\n\terror_code: %u\n\t"
+			"job_id: %u\n\tstep_id: %u\n",
+			rptr->error_code, rptr->job_id, rptr->step_id);
+		printf("\n");
 
-	/* Need something for environment--Should make this een more generic! */
-	dmesg.environment  = (char**)malloc(sizeof(char*)*2);
-	dmesg.environment[0] = strdup("HOME=/root");
-	dmesg.env_size = 1;
+		/*
+		* Second, send special Simulator message to the slurmd to inform it
+		* when the given job should terminate. job_id is obtained from whatever
+		* slurmctld returned.
+		*/
+		slurm_msg_t_init(&req_msg);
+		slurm_msg_t_init(&resp_msg);
+		req.job_id       = rptr->job_id;
+		req.duration     = jobd->duration;
+		req_msg.msg_type = REQUEST_SIM_JOB;
+		req_msg.data     = &req;
+		req_msg.protocol_version = SLURM_PROTOCOL_VERSION;
+		this_addr = "localhost";
+		slurm_set_addr(&req_msg.address, (uint16_t)slurm_get_slurmd_port(),
+							this_addr);
+		if (!jobd->manifest || 1) {
+			if (slurm_send_recv_node_msg(&req_msg, &resp_msg, 500000) < 0) {
+				printf("check_events_trace: error in slurm_send_recv_node_msg\n");
+			}
+		}
 
-	/* Standard dummy script. */
-	sprintf(line,"#SBATCH -n %u\n", jobd->tasks);
-	strcat(script, line);
-	strcat(script, "\necho \"Generated BATCH Job\"\necho \"La Fine!\"\n");
-
-	dmesg.script        = strdup(script);
-	if (jobd->manifest!=NULL) {
-//		dmesg.wf_program = strdup(jobd->manifest);
-		dmesg.name=xmalloc(3+strlen(jobd->manifest_filename)+1+6+4+1);
-		sprintf(dmesg.name, "wf_%s%d",
-				jobd->manifest_filename,
-				workflow_count);
-		workflow_count+=1;
-	} else if (strlen(jobd->manifest_filename)>1) {
-		dmesg.name=xstrdup(jobd->manifest_filename+1);
+		// slurm_free_submit_response_response_msg(req_msg);
+		// slurm_free_submit_response_response_msg(resp_msg);
+		/* Should release the memory of the resp_msg and req_msg. */
 	}
+	// THERE IS job_req_list - Job Pack Submission
+	else {
+		if ( slurm_submit_batch_pack_job(*job_req_list, &rptr) ) {
+			printf("Function: %s, Line: %d\n", __FUNCTION__, __LINE__);
+			slurm_perror ("slurm_submit_batch_pack_job");
+		}
 
-	if ( slurm_submit_batch_job(&dmesg, &rptr) ) {
-		printf("Function: %s, Line: %d\n", __FUNCTION__, __LINE__);
-		slurm_perror ("slurm_submit_batch_job");
-	}
+		printf("\nResponse from job submission\n\terror_code: %u\n\t"
+			"job_id: %u\n\tstep_id: %u\n",
+			rptr->error_code, rptr->job_id, rptr->step_id);
+		printf("\n");
 
-	_add_job_pair(trace_job_id, rptr->job_id);
+		/*
+		* Second, send special Simulator message to the slurmd to inform it
+		* when the given job should terminate. job_id is obtained from whatever
+		* slurmctld returned.
+		*/
+		for (int comp = 0; comp < duration[0]; ++comp) {
+			_add_job_pair(modular_jobid+comp, rptr->job_id+comp);
+			slurm_msg_t_init(&req_msg);
+			slurm_msg_t_init(&resp_msg);
+			req.job_id       = rptr->job_id + comp;
+			req.duration     = duration[comp+1];
+			req_msg.msg_type = REQUEST_SIM_JOB;
+			req_msg.data     = &req;
+			req_msg.protocol_version = SLURM_PROTOCOL_VERSION;
+			this_addr = "localhost";
+			slurm_set_addr(&req_msg.address, (uint16_t)slurm_get_slurmd_port(),
+								this_addr);
+			
+			if (slurm_send_recv_node_msg(&req_msg, &resp_msg, 500000) < 0) {
+				printf("check_events_trace: error in slurm_send_recv_node_msg\n");
+			}
 
-	printf("\nResponse from job submission\n\terror_code: %u\n\t"
-	       "job_id: %u\n\tstep_id: %u\n",
-		rptr->error_code, rptr->job_id, rptr->step_id);
-	printf("\n");
-
-	/*
-	 * Second, send special Simulator message to the slurmd to inform it
-	 * when the given job should terminate. job_id is obtained from whatever
-	 * slurmctld returned.
-	 */
-	slurm_msg_t_init(&req_msg);
-	slurm_msg_t_init(&resp_msg);
-	req.job_id       = rptr->job_id;
-	req.duration     = jobd->duration;
-	req_msg.msg_type = REQUEST_SIM_JOB;
-	req_msg.data     = &req;
-	req_msg.protocol_version = SLURM_PROTOCOL_VERSION;
-	this_addr = "localhost";
-	slurm_set_addr(&req_msg.address, (uint16_t)slurm_get_slurmd_port(),
-						this_addr);
-	if (!jobd->manifest || 1) {
-		if (slurm_send_recv_node_msg(&req_msg, &resp_msg, 500000) < 0) {
-			printf("check_events_trace: error in slurm_send_recv_node_msg\n");
+			// slurm_free_submit_response_response_msg(req_msg);
+			// slurm_free_submit_response_response_msg(resp_msg);
+			/* Should release the memory of the resp_msg and req_msg. */		
 		}
 	}
-
-	/* Should release the memory of the resp_msg and req_msg. */
 }
 
 uid_t
@@ -653,6 +786,7 @@ init_trace_info(void *ptr, int op) {
 	static int count = 0;
 
 	if (op == 0) {
+		// RFS: The calloc does not asure the ->next pointer will be NULL since the pointer will be the job structure initialized during the read_job_trace_record
 		new_trace_record = calloc(1, sizeof(job_trace_t));
 		if (new_trace_record == NULL) {
 			printf("init_trace_info: Error in calloc.\n");
@@ -692,70 +826,128 @@ init_trace_info(void *ptr, int op) {
 	return 0;
 }
 
-#if 0
+
 void displayJobTraceT(job_trace_t* rptr) {
-	printf(
-		"%8d"
-		" %10s"
-		" %12ld"
-		" %10d"
-		" %10d"
-		" %7d"
-		" %12s"
-		" %12s"
-		" %12s"
-		" %15d"
-		" %17d"
-		" %12s"
-		" %12s"
-		"\n",
-		rptr->job_id,
-		SAFE_PRINT(rptr->username),
-		rptr->submit,
-		rptr->duration,
-		rptr->wclimit,
-		rptr->tasks,
-		SAFE_PRINT(rptr->qosname),
-		SAFE_PRINT(rptr->partition),
-		SAFE_PRINT(rptr->account),
-		rptr->cpus_per_task,
-		rptr->tasks_per_node,
-		SAFE_PRINT(rptr->reservation),
-		SAFE_PRINT(rptr->dependency)
-);
+	if (trace_format > 2)
+		printf(
+			"%8d"
+			" %9s"
+			" %11ld"
+			" %9d"
+			" %9d"
+			" %7d"
+			" %11s"
+			" %11s"
+			" %11s"
+			" %14d"
+			" %16d"
+			" %11s"
+			" %11s"
+			" %6s"
+			" %6s"
+			" %d"
+			"\n",
+			rptr->job_id,
+			SAFE_PRINT(rptr->username),
+			rptr->submit,
+			rptr->duration,
+			rptr->wclimit,
+			rptr->tasks,
+			SAFE_PRINT(rptr->qosname),
+			SAFE_PRINT(rptr->partition),
+			SAFE_PRINT(rptr->account),
+			rptr->cpus_per_task,
+			rptr->tasks_per_node,
+			SAFE_PRINT(rptr->reservation),
+			SAFE_PRINT(rptr->dependency),
+			SAFE_PRINT(rptr->rreq_constraint),
+			SAFE_PRINT(rptr->rreq_hint),
+			SAFE_PRINT(rptr->ralloc_avg_power)
+		);
+	else 
+		printf(
+			"%8d"
+			" %10s"
+			" %12ld"
+			" %10d"
+			" %10d"
+			" %7d"
+			" %12s"
+			" %12s"
+			" %12s"
+			" %15d"
+			" %17d"
+			" %12s"
+			" %12s"
+			"\n",
+			rptr->job_id,
+			SAFE_PRINT(rptr->username),
+			rptr->submit,
+			rptr->duration,
+			rptr->wclimit,
+			rptr->tasks,
+			SAFE_PRINT(rptr->qosname),
+			SAFE_PRINT(rptr->partition),
+			SAFE_PRINT(rptr->account),
+			rptr->cpus_per_task,
+			rptr->tasks_per_node,
+			SAFE_PRINT(rptr->reservation),
+			SAFE_PRINT(rptr->dependency)
+		);
 }
-#endif
+
 
 int init_job_trace() {
 	int trace_file;
 	job_trace_t new_job;
 	int total_trace_records = 0;
+	FILE * trace_file_ptr = NULL;
 
         trace_recs_end_sim = timemgr_data + SIM_TRACE_RECS_END_SIM_OFFSET; /*ANA: Shared memory variable that will keep value of the total number of jobs in the log; once they are all finished controller will set it to -1 */
 
-	trace_file = open(workload_trace_file, O_RDONLY);
-	if (trace_file < 0) {
-		printf("Error opening file %s\n", workload_trace_file);
-		return -1;
-	}
-
-#if 0
-	printf("%8s %10s %12s %10s %10s %7s %12s %12s %12s %15s %17s %12s %12s\n",
+	if (trace_format > 2)
+		printf("%8s %9s %11s %9s %9s %7s %11s %11s %11s %14s %16s %11s %11s %6s %6s\n",
+		"job_id:", "username:", "submit:", "duration:", "wclimit:",
+		"tasks:", "qosname:", "partition: ", "account:", "cpus_per_task:",
+		"tasks_per_node:", "reservation:", "dependency:", "features:", "hints:", "power:");
+	else 
+		printf("%8s %10s %12s %10s %10s %7s %12s %12s %12s %15s %17s %12s %12s\n",
 		"job_id:", "username:", "submit:", "duration:", "wclimit:",
 		"tasks:", "qosname:", "partition: ", "account:", "cpus_per_task:",
 		"tasks_per_node:", "reservation:", "dependency: ");
-#endif
+
 	int ret_val=0;
-	while((ret_val=read_job_trace_record(trace_file, &new_job))>0) {
-#if 0
-		displayJobTraceT(&new_job);
-#endif
-		init_trace_info(&new_job, 0);
-		total_trace_records++;
+	if (trace_format) {
+
+		trace_file_ptr = fopen(workload_trace_file, "r");
+
+		while((ret_val=read_job_trace_record_ascii(trace_file_ptr, &new_job, trace_format))>0) {
+
+			displayJobTraceT(&new_job);
+
+			init_trace_info(&new_job, 0);
+			total_trace_records++;
+		}
 	}
-	if (ret_val==-1) {
-		printf("Error opening manifest\n");
-		return -1;
+	else { 
+		trace_file = open(workload_trace_file, O_RDONLY);
+		
+		if (trace_file < 0) {
+			printf("Error opening file %s\n", workload_trace_file);
+			return -1;
+		}
+		while((ret_val=read_job_trace_record(trace_file, &new_job))>0) {
+
+			displayJobTraceT(&new_job);
+
+			init_trace_info(&new_job, 0);
+			total_trace_records++;
+		}
+
+		if (ret_val==-1) {
+			printf("Error opening manifest\n");
+			return -1;
+		}
 	}
 
 	printf("Trace initialization done. Total trace records: %d\n",
@@ -878,6 +1070,7 @@ main(int argc, char *argv[], char *envp[]) {
 	char thelib[1024];
 	struct stat buf;
 	int ix, envcount = countEnvVars(envp);
+	int trace_format = 0;
 
 	/*struct sigaction sa;
 	sa.sa_handler = handlerSignal;
@@ -1078,6 +1271,9 @@ getArgs(int argc, char** argv) {
 		{"fork",	0, 0, 'f'},
 		{"compath",	1, 0, 'c'},
 		{"accelerator",	1, 0, 'a'},
+		{"swf",	1, 0, 'm'},
+		{"mwf",	1, 0, 'm'},
+		{"wrkldascii",	1, 0, 's'},
 		{"wrkldfile",	1, 0, 'w'},
 		{"help",	0, 0, 'h'},
 		{"looptime",	1, 0, 't'}
@@ -1087,7 +1283,7 @@ getArgs(int argc, char** argv) {
 	char* ptr;
 
 	while (1) {
-		if ((opt_char = getopt_long(argc, argv, "fc:ha:w:t:" , long_options,
+		if ((opt_char = getopt_long(argc, argv, "fc:ha:s:m:i:w:t:" , long_options,
 						&option_index)) == -1 )
 			break;
 
@@ -1101,7 +1297,20 @@ getArgs(int argc, char** argv) {
 			case ('a'): /* Eventually use strtol instead of atoi */
 				time_incr = atoi(optarg);
 				break;
+			case ('s'):
+				trace_format = 2;
+				workload_trace_file = strdup(optarg);
+				break;	
+			case ('m'):
+				trace_format = 3;
+				workload_trace_file = strdup(optarg);
+				break;
+			case ('i'):
+				trace_format = 1;
+				workload_trace_file = strdup(optarg);
+				break;	
 			case ('w'):
+				trace_format = 0;
 				workload_trace_file = strdup(optarg);
 				break;
 			case ('h'):

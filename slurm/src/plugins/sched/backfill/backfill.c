@@ -954,7 +954,9 @@ extern void *backfill_agent(void *args)
 	}
 #endif
 	_load_config();
+#ifndef SLURM_SIMULATOR
 	last_backfill_time = time(NULL);
+#endif
 #ifdef SLURM_SIMULATOR
         open_BF_sync_semaphore_pg();
         //backfill_interval=2;

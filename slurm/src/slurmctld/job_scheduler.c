@@ -2681,6 +2681,11 @@ extern void launch_job(struct job_record *job_ptr)
 	uint16_t protocol_version = NO_VAL16;
 	agent_arg_t *agent_arg_ptr;
 	struct job_record *launch_job_ptr;
+	struct job_record *pack_leader, *pack_job;
+	ListIterator iter;
+
+
+	info("SIM: launch_job: entering function \n");
 
 #ifdef HAVE_FRONT_END
 	front_end_record_t *front_end_ptr;
@@ -2697,12 +2702,13 @@ extern void launch_job(struct job_record *job_ptr)
 	if (!launch_job_ptr)
 		return;
 
+#ifndef SLURM_SIMULATOR
 	launch_msg_ptr = _build_launch_job_msg(launch_job_ptr,protocol_version);
 	if (launch_msg_ptr == NULL)
 		return;
+
 	if (launch_job_ptr->pack_job_id)
 		_set_pack_env(launch_job_ptr, launch_msg_ptr);
-#ifndef SLURM_SIMULATOR
 	agent_arg_ptr = (agent_arg_t *) xmalloc(sizeof(agent_arg_t));
 	agent_arg_ptr->protocol_version = protocol_version;
 	agent_arg_ptr->node_count = 1;
@@ -2715,43 +2721,96 @@ extern void launch_job(struct job_record *job_ptr)
 	/* Launch the RPC via agent */
 	agent_queue_request(agent_arg_ptr);
 #else
+	{
+		pack_leader = find_job_record(job_ptr->pack_job_id);
+		if (!pack_leader) {
+			launch_msg_ptr = _build_launch_job_msg(launch_job_ptr,protocol_version);
+			if (launch_msg_ptr == NULL)
+			return;
 
-        {
-                slurm_msg_t msg, resp;
-                slurm_msg_t_init(&msg);
-                msg.msg_type = REQUEST_BATCH_JOB_LAUNCH;
-                msg.data = launch_msg_ptr;
-                info("SIM: sending message type REQUEST_BATCH_JOB_LAUNCH to %s\n", job_ptr->batch_host);
+			slurm_msg_t msg, resp;
+			slurm_msg_t_init(&msg);
+			msg.msg_type = REQUEST_BATCH_JOB_LAUNCH;
+			msg.data = launch_msg_ptr;
+			info("SIM: sending message type REQUEST_BATCH_JOB_LAUNCH to %s\n", job_ptr->batch_host);
 
-                if(slurm_conf_get_addr(job_ptr->batch_host, &msg.address) == SLURM_ERROR) {
-                                error("SIM: "
-                                      "can't find address for host %s, "
-                                      "check slurm.conf",
-                                      job_ptr->batch_host);
-                }
+			if(slurm_conf_get_addr(job_ptr->batch_host, &msg.address) == SLURM_ERROR) {
+							error("SIM: "
+								"can't find address for host %s, "
+								"check slurm.conf",
+								job_ptr->batch_host);
+			}
 
-                if (slurm_send_recv_node_msg(&msg, &resp, 5000000) != SLURM_SUCCESS) {
-                                error("SIM: slurm_send_only_node_msg failed\n");
-                } else {
-                        if (resp.data) {
-                                                xfree(resp.data);
-                                        }
-                                        if (resp.auth_cred)
-                                                g_slurm_auth_destroy(resp.auth_cred);
-                }
+			if (slurm_send_recv_node_msg(&msg, &resp, 5000000) != SLURM_SUCCESS) {
+							error("SIM: slurm_send_only_node_msg failed\n");
+			} else {
+					if (resp.data) {
+											xfree(resp.data);
+									}
+									if (resp.auth_cred)
+											g_slurm_auth_destroy(resp.auth_cred);
+			}
 
-                /* Let's free memory allocated */
+			/* Let's free memory allocated */
 
-                if(launch_msg_ptr->environment){
-                        xfree(launch_msg_ptr->environment[0]);
-                        xfree(launch_msg_ptr->environment);
-                }
-                g_slurm_auth_destroy(msg.auth_cred);
-                slurm_free_job_launch_msg(launch_msg_ptr);
+			if(launch_msg_ptr->environment){
+					xfree(launch_msg_ptr->environment[0]);
+					xfree(launch_msg_ptr->environment);
+			}
+			g_slurm_auth_destroy(msg.auth_cred);
+			slurm_free_job_launch_msg(launch_msg_ptr);
+		}
+		else {
 
+			if (!pack_leader->pack_job_list) {
+				error("Job pack leader %pJ lacks pack_job_list", job_ptr);
+				return NULL;
+			}
+			iter = list_iterator_create(pack_leader->pack_job_list);
+			while ((pack_job = (struct job_record *) list_next(iter))) {
 
+				info("SIM: while: job_id: %d ptr_addr: %d \n", pack_job->job_id, pack_job);
 
-        }
+				launch_msg_ptr = _build_launch_job_msg(pack_job,protocol_version);
+				info("SIM: while: launch_msg_ptr %d \n", launch_msg_ptr);
+				if (launch_msg_ptr == NULL)
+					return;
+
+					slurm_msg_t msg, resp;
+					slurm_msg_t_init(&msg);
+					msg.msg_type = REQUEST_BATCH_JOB_LAUNCH;
+					msg.data = launch_msg_ptr;
+					info("SIM: sending message type REQUEST_BATCH_JOB_LAUNCH to %s\n", job_ptr->batch_host);
+
+					if(slurm_conf_get_addr(job_ptr->batch_host, &msg.address) == SLURM_ERROR) {
+									error("SIM: "
+										"can't find address for host %s, "
+										"check slurm.conf",
+										job_ptr->batch_host);
+					}
+
+					if (slurm_send_recv_node_msg(&msg, &resp, 5000000) != SLURM_SUCCESS) {
+									error("SIM: slurm_send_only_node_msg failed\n");
+					} else {
+							if (resp.data) {
+													xfree(resp.data);
+											}
+											if (resp.auth_cred)
+													g_slurm_auth_destroy(resp.auth_cred);
+					}
+
+					/* Let's free memory allocated */
+
+					if(launch_msg_ptr->environment){
+							xfree(launch_msg_ptr->environment[0]);
+							xfree(launch_msg_ptr->environment);
+					}
+					g_slurm_auth_destroy(msg.auth_cred);
+					slurm_free_job_launch_msg(launch_msg_ptr);
+			}
+			list_iterator_destroy(iter);
+		}
+    }
 #endif
 }
 

@@ -142,6 +142,8 @@ extern int other_select_init(void)
 
 	if (other_select_type_param & CR_OTHER_CONS_RES)
 		type = "select/cons_res";
+	else if (other_select_type_param & CR_OTHER_BSC_CONS_RES)
+		type = "select/bsc_cons_res";
 	else
 		type = "select/linear";
 

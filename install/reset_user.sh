@@ -10,6 +10,11 @@
 # Written by Gonzalo P. Rodrigo <gprodrigoalvarez@lbl.gov>
 #
 
+DEFUNCT=$(ps -ef | grep slurm | grep defunct | tr -s " " | cut -d " " -f 2)
+if [[ $DEFUNCT ]]; then
+kill -9 $(ps -ef | grep slurm | grep defunct | tr -s " " | cut -d " " -f 2)
+fi
+
 rm -rf slurm_varios/acct/*
 rm -rf slurm_varios/log/*
 rm -rf slurm_varios/var/state/*

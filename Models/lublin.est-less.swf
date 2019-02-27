@@ -1,0 +1,1 @@
+use: ./program num_jobs system_size partition_name

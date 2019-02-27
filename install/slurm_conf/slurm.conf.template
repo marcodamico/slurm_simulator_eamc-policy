@@ -43,11 +43,12 @@ JobCompType=jobcomp/script
 #JobCompType=jobcomp/none
 JobCompLoc=TOKEN_SLURM_USER_PATH/slurm_varios/trace.sh
 
-SlurmctldDebug=0
+SlurmctldDebug=7
 SlurmctldLogFile=TOKEN_SLURM_USER_PATH/slurm_varios/log/slurmctld.log
-SlurmdDebug=0
+SlurmdDebug=7
 SlurmdLogFile=TOKEN_SLURM_USER_PATH/slurm_varios/log/slurmd.log
 
+DebugFlags=Backfill,HeteroJobs,Protocol
 #DebugFlags=Backfill
 
 SlurmdSpoolDir=TOKEN_SLURM_USER_PATH/slurm_varios/var/spool
@@ -63,9 +64,9 @@ SchedulerType=sched/backfill
 SchedulerParameters=bf_interval=30,bf_queue_limit=TOKEN_BF_QUEUE_LIMIT,default_queue_depth=50
 ###PriorityDecayHalfLife=7-0
 #PriorityDecayHalfLife=14-00:00:00
-###SelectType=select/cons_res
-SelectType=select/linear # As close as this simulator env can get to being select/alps
-###SelectTypeParameters=CR_CPU
+SelectType=select/bsc_cons_res
+#SelectType=select/linear # As close as this simulator env can get to being select/alps
+SelectTypeParameters=CR_CPU
 
 #PriorityType=priority/multifactor
 #PriorityWeightAge=50000000 ###100
@@ -111,6 +112,21 @@ FastSchedule=2
 
 #PartitionName=normal Nodes=nid0[0008-0063,0072-0127,0136-0191,0200-0255,0264-0323,0328-0383,0388-0451,0456-0511,0516-0579,0584-0767,0772-0835,0840-0895,0900-0963,0968-1151,1156-1219,1224-1279,1284-1535,1540-1603,1608-1663,1668-1919,1924-1987,1992-2047,2052-2303,2308-2371,2376-2431,2436-2687,2692-2755,2760-2815,2820-3071,3076-3139,3144-3455,3460-3523,3528-3839,3844-3907,3912-4223,4228-4291,4296-4607,4992-5443,5448-5759,5764-5827,5832-5951,5956-6143] Default=YES State=UP Shared=EXCLUSIVE DefMemPerNode=64000
 
-NodeName=n[1-TOKEN_NNODES] Sockets=2 CoresPerSocket=24 ThreadsPerCore=1
-PartitionName=normal Nodes=n[1-TOKEN_NNODES] Default=YES MaxTime=INFINITE State=UP Shared=NO
+#NodeName=n1 Sockets=2 CoresPerSocket=24 ThreadsPerCore=1 Features=x
+#NodeName=n2 Sockets=2 CoresPerSocket=24 ThreadsPerCore=1 Features=x
+#NodeName=n3 Sockets=2 CoresPerSocket=24 ThreadsPerCore=1 Features=x
+#NodeName=n4 Sockets=2 CoresPerSocket=24 ThreadsPerCore=1 Features=x
+#NodeName=n5 Sockets=2 CoresPerSocket=24 ThreadsPerCore=1 Features=y
+#NodeName=n6 Sockets=2 CoresPerSocket=24 ThreadsPerCore=1 Features=y
+#NodeName=n7 Sockets=2 CoresPerSocket=24 ThreadsPerCore=1 Features=y
+#NodeName=n8 Sockets=2 CoresPerSocket=24 ThreadsPerCore=1 Features=y
+NodeName=n[1-50] Sockets=2 CoresPerSocket=12 ThreadsPerCore=1
+NodeName=n[51-200] Sockets=2 CoresPerSocket=28 ThreadsPerCore=1
+NodeName=n[201-225] Sockets=2 CoresPerSocket=20 ThreadsPerCore=1
+NodeName=n[226-TOKEN_NNODES] Sockets=2 CoresPerSocket=24 ThreadsPerCore=1
 
+
+PartitionName=CM Nodes=n[1-50] Default=YES MaxTime=INFINITE State=UP Shared=NO #12CpS
+PartitionName=ESB Nodes=n[51-200] Default=YES MaxTime=INFINITE State=UP Shared=NO #28CpS
+PartitionName=DAM Nodes=n[201-225] Default=YES MaxTime=INFINITE State=UP Shared=NO #???
+PartitionName=normal Nodes=n[226-TOKEN_NNODES] Default=YES MaxTime=INFINITE State=UP Shared=NO

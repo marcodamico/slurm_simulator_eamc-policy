@@ -575,7 +575,8 @@ enum select_plugin_type {
 	/* 105 unused (originally was for ALPS cons_res which won't happen) */
 	SELECT_PLUGIN_SERIAL        = 106, /* Serial */
 	SELECT_PLUGIN_CRAY_LINEAR   = 107, /* Linear on a Native Cray */
-	SELECT_PLUGIN_CRAY_CONS_RES = 108  /* Cons Res on a Native Cray */
+	SELECT_PLUGIN_CRAY_CONS_RES = 108,  /* Cons Res on a Native Cray */
+        SELECT_PLUGIN_BSC_CONS_RES      = 111 /* Cons Res on a normal system */
 };
 
 /* switch plugin (id) in use by cluster */
@@ -992,6 +993,8 @@ enum ctx_keys {
 
 /* By default, distribute cores using a block approach inside the nodes */
 #define CR_CORE_DEFAULT_DIST_BLOCK 0x1000
+
+#define CR_OTHER_BSC_CONS_RES 0x2000
 
 #define CR_LLN		0x4000  /* Select nodes by "least loaded." */
 
@@ -1473,6 +1476,7 @@ typedef struct job_descriptor {	/* For submit, allocate, and update requests */
 	char *gres;		/* comma separated list of required generic
 				 * resources, default NONE */
 	uint32_t group_id;	/* group to assume, if run as root. */
+	char *hints;		/* to be used to decide which features to use */
 	uint16_t immediate;	/* 1 if allocate to run or fail immediately,
 				 * 0 if to be queued awaiting resources */
 	uint32_t job_id;	/* job ID, default set by SLURM */
@@ -1655,6 +1659,7 @@ typedef struct job_info {
 				 * one per allocated node */
 	char **gres_detail_str;	/* Details of GRES index alloc per node */
 	uint32_t group_id;	/* group job submitted as */
+	char *hints; 		/* to be used to decide which features to use */
 	uint32_t job_id;	/* job ID */
 	job_resources_t *job_resrcs; /* opaque data type, job resources */
 	uint32_t job_state;	/* state of the job, see enum job_states */
