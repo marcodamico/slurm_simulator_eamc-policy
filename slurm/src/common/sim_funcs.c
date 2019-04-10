@@ -277,10 +277,10 @@ void determine_users_sim_path() {
 }
 
 static int getting_simulation_users() {
-	char              username[100], users_sim_file_name[128];
+	char              username[100], users_sim_file_name[1024];
 	char              uid_string[10];
 	sim_user_info_t * new_sim_user;
-	//uid_t             sim_uid;
+	uid_t             sim_uid;
 	int               fich, pos;
 	char              c;
 

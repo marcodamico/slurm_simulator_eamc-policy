@@ -55,6 +55,7 @@ char  daemon1[1024];
 char  daemon2[1024];
 char  default_sim_daemons_path[] = "/sbin";
 char* sim_daemons_path = NULL;
+int napps;
 
 char SEM_NAME[] = "serversem";
 sem_t* mutexserver;
@@ -587,6 +588,12 @@ void generate_job_desc_msg(job_desc_msg_t* dmesg, job_trace_t* jobd) {
 		dmesg->cpus_per_task = jobd->cpus_per_task;
 		dmesg->min_nodes     = jobd->tasks;
 		dmesg->ntasks_per_node = jobd->tasks_per_node;
+
+		int app_id = 1 + rand() % (napps - 1); //8 apps
+	    char appid[100];
+	    sprintf(appid,"%d", app_id);
+	    dmesg->comment       = strdup(appid);
+
 		if (trace_format > 2) {	
 			if (strcmp(jobd->rreq_constraint,"-1"))
 				dmesg->features = strdup(jobd->rreq_constraint);
@@ -1159,6 +1166,10 @@ main(int argc, char *argv[], char *envp[]) {
                 /*return -1;*/
         }
 
+	//read apps info - TODO: move this path to slurm.conf and sim.conf
+	FILE *apps_fp = fopen("/home/marcodamico/PhD/sims/conf/apps","r");
+    fscanf(apps_fp,"%d", napps);
+    fclose(apps_fp);
 
 	/* Launch the slurmctld and slurmd here */
 	if (launch_daemons) {

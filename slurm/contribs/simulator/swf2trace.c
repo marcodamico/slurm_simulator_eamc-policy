@@ -90,6 +90,8 @@ int main(int argc, char* argv[])
         // for now keep username, partition and account constant.
         strcpy(job_arr[idx].username, "tester");
         strcpy(job_arr[idx].partition, "normal");
+        //Marco subits to 2 partitions
+        //strcpy(job_arr[idx].partition, "normal,normal2");
         strcpy(job_arr[idx].account, "1000");
         //strcpy(job_trace->manifest_filename, "|\0");
         //job_trace->manifest=NULL; 
