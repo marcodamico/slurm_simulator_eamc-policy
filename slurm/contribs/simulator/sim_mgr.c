@@ -393,9 +393,9 @@ time_mgr(void *arg) {
 					seconds_to_finish);
 			time_end=t_start.tv_sec;
 		}
-		else {
-			info("trace_recs_end_sim: %d", *trace_recs_end_sim);
-		}
+		// else {
+		// 	info("trace_recs_end_sim: %d", *trace_recs_end_sim);
+		// }
 		if (time_end && (t_start.tv_sec-time_end>seconds_to_finish)) {
 			fprintf(stderr, "Wait is over, time to end all processes in the"
 					" simulation\n");
