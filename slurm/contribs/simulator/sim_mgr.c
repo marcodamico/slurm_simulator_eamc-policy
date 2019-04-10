@@ -1167,8 +1167,12 @@ main(int argc, char *argv[], char *envp[]) {
         }
 
 	//read apps info - TODO: move this path to slurm.conf and sim.conf
-	FILE *apps_fp = fopen("/home/marcodamico/PhD/sims/conf/apps","r");
-    fscanf(apps_fp,"%d", napps);
+	FILE *apps_fp = fopen("/home/renan/SLURM_SIMULATOR/conf/apps","r");
+	if (!apps_fp) {
+		error("Unable to open apps file");
+		return -1;
+	}
+    fscanf(apps_fp,"%d", &napps);
     fclose(apps_fp);
 
 	/* Launch the slurmctld and slurmd here */
