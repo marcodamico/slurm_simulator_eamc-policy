@@ -176,9 +176,9 @@
 /*                          CONSTANTS                                          */
 /*#############################################################################*/
 
-#define SIZE 50000               /* number of jobs - size of the output         */
-#define TOO_MUCH_TIME 12        /* no more than two days =exp(12) for runtime  */
-#define TOO_MUCH_ARRIVE_TIME 13 /* no more than 5 days =exp(13) for arrivetime */
+#define SIZE 1000               /* number of jobs - size of the output         */
+#define TOO_MUCH_TIME 9         /* no more than two days =exp(12) for runtime  */
+#define TOO_MUCH_ARRIVE_TIME 1 /* no more than 5 days =exp(13) for arrivetime */
 
 #define BUCKETS 48            /* number of buckets in one day -- 48 half hours */
 /* we now define (calculate) how many seconds are in one hour,day,bucket       */
@@ -427,6 +427,10 @@ int main(int argc, char *argv[])
     arr_time = arrive(&type,weights,aarr,barr);
     nodes = calc_number_of_nodes(SerialProb[type] , Pow2Prob[type],
 				 ULow[type], UMed[type], UHi[type], Uprob[type]);
+
+    if (nodes > system_size)
+	nodes = system_size;
+
     run_time = time_from_nodes(a1[type] , b1[type] , a2[type] , b2[type],
 			       pa[type] , pb[type] , nodes);
 #if SWF
