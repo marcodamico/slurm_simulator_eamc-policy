@@ -56,10 +56,13 @@ char  daemon2[1024];
 char  default_sim_daemons_path[] = "/sbin";
 char* sim_daemons_path = NULL;
 int napps;
+static int CM = 0;
+static int DAM = 0;
+
 
 char SEM_NAME[] = "serversem";
 sem_t* mutexserver;
-/*ANA: Replacing signals with shared vars for slurmd registration ***/
+/*ANA: Replacing signals with shared vars for slurmd registration */
 char    sig_sem_name[]  = "signalsem";
 sem_t* mutexsignal = SEM_FAILED;
 
@@ -285,7 +288,7 @@ char *re_write_dependencies(job_trace_t * jobd) {
 handlerSignal(int signo) {
 	printf ("SIM_MGR [%d] got a %d signal--signaled: %d\n", getpid(), signo, signaled);
 	//signaled++;
-	*slurmd_registered += 1; /*ANA: Replacing signals with shared vars for slurmd registration ***/
+	slurmd_registered += 1; //ANA: Replacing signals with shared vars for slurmd registration
 //}*/
 
 
@@ -347,7 +350,7 @@ time_mgr(void *arg) {
 	current_sim      = timemgr_data + SIM_SECONDS_OFFSET;
 	current_micro    = timemgr_data + SIM_MICROSECONDS_OFFSET;
 	global_sync_flag = timemgr_data + SIM_GLOBAL_SYNC_FLAG_OFFSET;
-	slurmd_registered = timemgr_data + SIM_SLURMD_REGISTERED_OFFSET; /*ANA: Replacing signals with shared vars for slurmd registration ***/
+	slurmd_registered = timemgr_data + SIM_SLURMD_REGISTERED_OFFSET; /*ANA: Replacing signals with shared vars for slurmd registration */
 
 	memset(timemgr_data, 0, 32); /* st on 14-October-2015 moved from build_shared_memory to here as only sim_mgr should change the values, even if someone else "built" the shm segment. */
 
@@ -579,6 +582,29 @@ void generate_job_desc_msg(job_desc_msg_t* dmesg, job_trace_t* jobd) {
 		dmesg->group_id      = gidt;
 		dmesg->work_dir      = strdup("/tmp"); /* hardcoded to /tmp for now */
 		dmesg->qos           = strdup(jobd->qosname);
+		// if(!strncmp(jobd->partition, "ESB", strlen("ESB")))
+		// 	dmesg->partition     = strdup(jobd->partition);
+		// else
+		// {
+		// 	if(!strncmp(jobd->partition, "CM", strlen("CM"))) {
+		// 		CM++;
+		// 		// if ((!(CM % 2)) && (CM % 10))
+		// 		// if (!(CM % 3))
+		// 		// if (!(CM % 5))
+		// 		// if (!(CM % 10))
+		// 			dmesg->partition     = strdup("CM,ESB");
+		// 		else
+		// 			dmesg->partition     = strdup(jobd->partition);
+		// 	}
+		// 	else {
+		// 		DAM++;
+		// 		if ((!(DAM % 2)) && (DAM % 10))
+		// 		// if (!(DAM % 10))
+		// 			dmesg->partition     = strdup("DAM,ESB");
+		// 		else
+		// 			dmesg->partition     = strdup(jobd->partition);
+		// 	}
+		// }
 		dmesg->partition     = strdup(jobd->partition);
 		dmesg->account       = strdup(jobd->account);
 		dmesg->reservation   = strdup(jobd->reservation);
@@ -1054,7 +1080,7 @@ open_global_sync_semaphore() {
 
 	return 0;
 }
-/*ANA: Replacing signals with shared vars for slurmd registration ***/
+/*ANA: Replacing signals with shared vars for slurmd registration */
 static int
 open_slurmd_ready_semaphore()
 {
