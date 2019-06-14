@@ -174,7 +174,7 @@ int main (int argc, char **argv) {
 
         file = fopen(argv[1], "r");
 
-	new_job = calloc(1,sizeof(job_trace_t));
+	new_job = (job_trace_t *) calloc(1,sizeof(job_trace_t));
 
         while ((ret_val = read_job(file, new_job)) > 0) {
 		print_record(new_job);
