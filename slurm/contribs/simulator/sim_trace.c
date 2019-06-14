@@ -130,7 +130,7 @@ int read_job_trace_record_ascii(FILE * trace_file_ptr, job_trace_t *job_trace, i
 
 // standard format in ascii (all columns from models)
 	if (trace_format == 2) {
-		ret_val = fscanf(trace_file_ptr, "%d;%ld;%d;%d;%d;%d;%d;%d;%d;%d;%d;%29[^;];%29[^;];%d;%29[^;];%29[^;];%29[^;];%d",
+		ret_val = fscanf(trace_file_ptr, "%d;%ld;%d;%d;%d;%ld;%d;%d;%d;%ld;%d;%29[^;];%29[^;];%ld;%29[^;];%29[^;];%29[^;];%ld",
 		&job_trace->job_id, &job_trace->submit, &job_trace->wait_modular_job_time, 
 		&job_trace->duration, &job_trace->tasks, 
 		&dummy, &job_trace->rreq_memory_per_node, &dummy, &job_trace->wclimit, &dummy, 
