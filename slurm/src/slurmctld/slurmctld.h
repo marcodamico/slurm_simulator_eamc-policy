@@ -831,7 +831,8 @@ struct job_record {
 #define SLURM_DEPEND_EXPAND		6	/* Expand running job */
 #define SLURM_DEPEND_AFTER_CORRESPOND	7	/* After corresponding job array
 						 * elements completes */
-
+#define SLURM_DEPEND_PLUSSINGLETON      8       /* Only one job for this 
+                                                 * user/name, the rest are cancelled *//* new dependency option added by ANA*/
 #define SLURM_FLAGS_OR			1	/* OR job dependencies */
 
 struct	depend_spec {

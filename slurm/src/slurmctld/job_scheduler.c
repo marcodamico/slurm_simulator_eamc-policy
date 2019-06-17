@@ -1899,6 +1899,83 @@ next_task:
 					  unavail_node_str, NULL);
 
 		if (error_code == SLURM_SUCCESS) {
+                        info("sched: after select_node checking plussingleton deps");
+                        //int dpnd = test_job_dependency(job_ptr);
+                        ListIterator depend_iter, job_iterator;
+                        struct depend_spec *dep_ptr;
+                        bool failure = false;
+                        List job_queue = NULL;
+                        bool run_now;
+                        struct job_record *qjob_ptr, *djob_ptr;
+
+                        if ((job_ptr->details == NULL) ||
+                        (job_ptr->details->depend_list == NULL) ||
+                        (list_count(job_ptr->details->depend_list) == 0))
+                             goto nodep;
+
+                        depend_iter = list_iterator_create(job_ptr->details->depend_list);
+                        while ((dep_ptr = list_next(depend_iter))) {
+                             //bool clear_dep = false;
+                             dep_ptr->job_ptr = find_job_array_rec(dep_ptr->job_id,
+                                                      dep_ptr->array_task_id);
+                             djob_ptr = dep_ptr->job_ptr;
+                             if ((dep_ptr->depend_type == SLURM_DEPEND_PLUSSINGLETON) &&
+                             job_ptr->name) {
+                                    job_queue = _build_user_job_list(job_ptr->user_id,
+                                                         job_ptr->name);
+                                    run_now = true;
+                                    job_iterator = list_iterator_create(job_queue);
+                                    while ((qjob_ptr = (struct job_record *)
+                                           list_next(job_iterator))) {
+                                     debug("sched: test_job_dependency: job_id %u about to run, cancel pending job_id %u with the same dependency and job name; the state is %u, isComplete %u, isCancelled %u", job_ptr->job_id, qjob_ptr->job_id, qjob_ptr->job_state, IS_JOB_COMPLETE(qjob_ptr), IS_JOB_CANCELLED(qjob_ptr));
+                                            char jbuf[JBUFSIZ];
+                                            time_t now;
+
+                                            now = time(NULL);
+
+                                            if ((IS_JOB_RUNNING(job_ptr) ||
+                                            IS_JOB_SUSPENDED(job_ptr) || IS_JOB_COMPLETE(job_ptr)) && IS_JOB_PENDING(qjob_ptr) && job_ptr->job_id != qjob_ptr->job_id) {
+
+                                                 info("%s: Job dependency plussingleton, cancelling "
+                                                 "job %s", __func__, jobid2str(qjob_ptr, jbuf, sizeof(jbuf)));
+                                                 qjob_ptr->job_state = JOB_CANCELLED;
+                                                 xfree(qjob_ptr->state_desc);
+                                                 qjob_ptr->start_time = now;
+                                                 qjob_ptr->end_time = now;
+                                                 job_completion_logger(qjob_ptr, false);
+                                                 last_job_update = now;
+                                                 srun_allocate_abort(qjob_ptr);
+#ifdef SLURM_SIMULATOR
+                                                 total_epilog_complete_jobs++;
+#endif
+                                           }
+                                    /*       if((IS_JOB_RUNNING(qjob_ptr) || IS_JOB_SUSPENDED(qjob_ptr) || IS_JOB_COMPLETE(qjob_ptr) || IS_JOB_CANCELLED(qjob_ptr)) && IS_JOB_PENDING(job_ptr) && job_ptr->job_id != qjob_ptr->job_id){
+
+                                                 info("%s: Job dependency plussingleton, cancelling "
+                                                 "job %s", __func__, jobid2str(job_ptr, jbuf, sizeof(jbuf)));
+                                                 job_ptr->job_state = JOB_CANCELLED;
+                                                 xfree(job_ptr->state_desc);
+                                                 job_ptr->start_time = now;
+                                                 job_ptr->end_time = now;
+                                                 job_completion_logger(job_ptr, false);
+                                                 last_job_update = now;
+                                                 srun_allocate_abort(job_ptr);
+
+                                           }*/
+                                   }
+                              list_iterator_destroy(job_iterator);
+                              FREE_NULL_LIST(job_queue);
+                              // job can run now, delete dependency
+                              if (run_now)
+                                 list_delete_item(depend_iter);
+                              else
+                                 failure = true;
+                           }
+                        }
+                        info("sched: after select_node checking deps, %d ", failure);
+nodep:
+
+
 			/* If the following fails because of network
 			 * connectivity, the origin cluster should ask
 			 * when it comes back up if the cluster_lock
@@ -2924,6 +3001,10 @@ extern void print_job_dependency(struct job_record *job_ptr)
 			info("  singleton");
 			continue;
 		}
+                else if (dep_ptr->depend_type == SLURM_DEPEND_PLUSSINGLETON) {
+                        debug("  plussingleton");
+                        continue;
+                }
 
 		if (dep_ptr->depend_flags & SLURM_FLAGS_OR)
 			dep_flags = "OR";
@@ -2982,6 +3063,12 @@ static void _depend_list2str(struct job_record *job_ptr, bool set_or_flag)
 			sep = ",";
 			continue;
 		}
+                else if (dep_ptr->depend_type == SLURM_DEPEND_PLUSSINGLETON) {
+                        xstrfmtcat(job_ptr->details->dependency,
+                                   "%splussingleton", sep);
+                        sep = ",";
+                        continue;
+                }
 
 		if      (dep_ptr->depend_type == SLURM_DEPEND_AFTER)
 			dep_str = "after";
@@ -3073,7 +3160,61 @@ extern int test_job_dependency(struct job_record *job_ptr)
  				list_delete_item(depend_iter);
  			else
 				depends = true;
-		} else if ((djob_ptr == NULL) ||
+		} else if ((dep_ptr->depend_type == SLURM_DEPEND_PLUSSINGLETON) &&
+                           job_ptr->name){ // the same as singleton, only should not start first the lower job_id 
+                              /* get user jobs with the same user and name */
+                        job_queue = _build_user_job_list(job_ptr->user_id,
+                                                         job_ptr->name);
+                        run_now = true;
+                        job_iterator = list_iterator_create(job_queue);
+                        while ((qjob_ptr = (struct job_record *)
+                                           list_next(job_iterator))) {
+                                /* already running/suspended job or previously
+                                 * submitted pending job */
+                                debug("test_job_dependency: job_id %u about to run, test if job_id %u has already running or completed; the state is %u", job_ptr->job_id, qjob_ptr->job_id, qjob_ptr->job_state);
+                                if (IS_JOB_RUNNING(qjob_ptr) ||
+                                    IS_JOB_SUSPENDED(qjob_ptr) ||
+                                    IS_JOB_COMPLETE(qjob_ptr) ||
+                                    IS_JOB_CANCELLED(qjob_ptr)/* ||
+                                    (IS_JOB_PENDING(qjob_ptr) &&
+                                     (qjob_ptr->job_id < job_ptr->job_id))*/ ) {
+                                        run_now = false; // 
+                                        debug("test_job_dependency: job_id %u cancelled, as job_id %u has already running or completed", job_ptr->job_id, qjob_ptr->job_id);
+                                        job_ptr->bit_flags|=KILL_INV_DEP;
+                                        /** This is kill_dependent() function. It should be called by setting KILL_INV_DEP, this is very ugly implementation, but it works. ***/
+  /*                                      char jbuf[JBUFSIZ];
+                                        time_t now;
+
+                                        now = time(NULL);
+
+                                        info("%s: Job dependency can't be satisfied, cancelling "
+                                        "job %s", __func__, jobid2str(job_ptr, jbuf, sizeof(jbuf)));
+                                        job_ptr->job_state = JOB_CANCELLED;
+                                        xfree(job_ptr->state_desc);
+                                        job_ptr->start_time = now;
+                                        job_ptr->end_time = now;
+                                        job_completion_logger(job_ptr, false);
+                                        last_job_update = now;
+                                        srun_allocate_abort(job_ptr);*/
+                                        /**********************************************************************/
+#ifdef SLURM_SIMULATOR
+                                        total_epilog_complete_jobs++; // increment counter used to track if jobs from the log have been finished (either completed or cancelled)
+#endif
+                                        break;
+                                }
+                        }
+                        list_iterator_destroy(job_iterator);
+                        FREE_NULL_LIST(job_queue);
+                        //if(!failure) depends = true;
+                        if (run_now){
+                                //list_delete_item(depend_iter);
+                                //depends = true;
+                        } else{
+                                failure = true; // This job needs to be cancelled immediately, since there is a job in dep list already running or suspended.
+                       }
+
+                } 
+                else if ((djob_ptr == NULL) ||
 			   (djob_ptr->magic != JOB_MAGIC) ||
 			   ((djob_ptr->job_id != dep_ptr->job_id) &&
 			    (djob_ptr->array_job_id != dep_ptr->job_id))) {
@@ -3359,6 +3500,24 @@ extern int update_job_dependency(struct job_record *job_ptr, char *new_depend)
 				rc = ESLURM_DEPENDENCY;
 			break;
  		}
+
+                 if (xstrncasecmp(tok, "plussingleton", 13) == 0){
+                        debug("update_job_dependency: Inside plussingleton option");
+                        depend_type = SLURM_DEPEND_PLUSSINGLETON;
+                        dep_ptr = xmalloc(sizeof(struct depend_spec));
+                        dep_ptr->depend_type = depend_type;
+                        /* dep_ptr->job_id = 0;         set by xmalloc */
+                        /* dep_ptr->job_ptr = NULL;     set by xmalloc */
+                        (void) list_append(new_depend_list, dep_ptr);
+                        if (tok[13] == ',') {
+                                tok += 14;
+                                continue;
+                        }
+                        if (tok[13] != '\0')
+                                rc = ESLURM_DEPENDENCY;
+                        break;
+
+                }
 
 		/* Test for old format, just a job ID */
 		sep_ptr = strchr(tok, ':');
