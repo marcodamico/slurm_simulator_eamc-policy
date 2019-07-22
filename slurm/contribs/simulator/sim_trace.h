@@ -23,6 +23,7 @@ typedef struct job_trace {
     int  tasks;
     char qosname[MAX_QOSNAME];
     char partition[MAX_QOSNAME];
+    char module_list[MAX_QOSNAME];
     char account[MAX_QOSNAME];
     int  cpus_per_task;
     int  tasks_per_node;
@@ -88,6 +89,7 @@ typedef struct job_trace_dummy {
     int  tasks;
     char qosname[MAX_QOSNAME];
     char partition[MAX_QOSNAME];
+    char module_list[MAX_QOSNAME];
     char account[MAX_QOSNAME];
     int  cpus_per_task;
     int  tasks_per_node;
