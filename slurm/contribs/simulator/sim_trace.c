@@ -2,9 +2,17 @@
 #include "sim_trace.h"
 #include <unistd.h>
 #include <string.h>
+#include <math.h>
 //#include "src/common/xmalloc.h" Including xmalloc and using malloc
 #include <stdlib.h>
 
+#ifndef MAX
+#  define MAX(a,b) ((a) > (b) ? (a) : (b))
+#endif
+
+#ifndef MIN
+#  define MIN(a,b) ((a) < (b) ? (a) : (b))
+#endif
 
 char* read_file(char *file_name) {
 	int file;
@@ -130,14 +138,23 @@ int read_job_trace_record_ascii(FILE * trace_file_ptr, job_trace_t *job_trace, i
 
 // standard format in ascii (all columns from models)
 	if (trace_format == 2) {
-		ret_val = fscanf(trace_file_ptr, "%d;%ld;%d;%d;%d;%ld;%d;%d;%d;%ld;%d;%29[^;];%29[^;];%ld;%29[^;];%29[^;];%29[^;];%ld",
+                //3;3;-1;950;8;-1;-1;-1;-1;-1;1;tester;-1;-1;1;esb;-1;-1;esb,dam,cm
+		ret_val = fscanf(trace_file_ptr, "%d;%ld;%d;%d;%d;%ld;%d;%ld;%d;%ld;%d;%29[^;];%29[^;];%ld;%29[^;];%29[^;];%29[^;];%ld;%29[^\n]",
 		&job_trace->job_id, &job_trace->submit, &job_trace->wait_modular_job_time, 
 		&job_trace->duration, &job_trace->tasks, 
 		&dummy, &job_trace->rreq_memory_per_node, &dummy, &job_trace->wclimit, &dummy, 
 		&job_trace->status, job_trace->username, job_trace->account, &dummy,
 		job_trace->qosname,	job_trace->partition,
-		job_trace->dependency, &dummy);
+		job_trace->dependency, &dummy, job_trace->module_list);
 
+                if(job_trace->wclimit == -1)
+                    job_trace->wclimit = MAX(1,ceil((float)(job_trace->duration/60))*2);   // We set wclimit as twice the job duration if SWF does not have wclimit info. TODO Add a model.  
+                job_trace->duration = MAX(1,ceil((float)(job_trace->duration/60)));
+                
+                if(job_trace->tasks == 0){
+                    printf("sim_trace: Trace contains jobs with job_trace->tasks %u\n", job_trace->tasks );
+                    job_trace->tasks = 1;
+                }
 		job_trace->cpus_per_task = 1;
 		job_trace->tasks_per_node = 1;
 
@@ -147,6 +164,10 @@ int read_job_trace_record_ascii(FILE * trace_file_ptr, job_trace_t *job_trace, i
 
 		if(!strcmp(job_trace->dependency, "-1"))
 			job_trace->dependency[0] = '\0';
+
+                if(!strcmp(job_trace->module_list, "-1\0")){
+                        job_trace->module_list[0] = '\0';
+                }
 
 		strcpy(job_trace->manifest_filename, "|\0");
 		if (!ret_val)
