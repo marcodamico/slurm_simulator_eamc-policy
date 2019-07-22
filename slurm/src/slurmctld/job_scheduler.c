@@ -1899,7 +1899,7 @@ next_task:
 					  unavail_node_str, NULL);
 
 		if (error_code == SLURM_SUCCESS) {
-                        info("sched: after select_node checking plussingleton deps");
+                        //info("sched: after select_node checking plussingleton deps");
                         //int dpnd = test_job_dependency(job_ptr);
                         ListIterator depend_iter, job_iterator;
                         struct depend_spec *dep_ptr;
@@ -1927,7 +1927,7 @@ next_task:
                                     job_iterator = list_iterator_create(job_queue);
                                     while ((qjob_ptr = (struct job_record *)
                                            list_next(job_iterator))) {
-                                     debug("sched: test_job_dependency: job_id %u about to run, cancel pending job_id %u with the same dependency and job name; the state is %u, isComplete %u, isCancelled %u", job_ptr->job_id, qjob_ptr->job_id, qjob_ptr->job_state, IS_JOB_COMPLETE(qjob_ptr), IS_JOB_CANCELLED(qjob_ptr));
+                                     //debug("sched: test_job_dependency: job_id %u about to run, cancel pending job_id %u with the same dependency and job name; the state is %u, isComplete %u, isCancelled %u", job_ptr->job_id, qjob_ptr->job_id, qjob_ptr->job_state, IS_JOB_COMPLETE(qjob_ptr), IS_JOB_CANCELLED(qjob_ptr));
                                             char jbuf[JBUFSIZ];
                                             time_t now;
 
@@ -1945,11 +1945,11 @@ next_task:
                                                  job_completion_logger(qjob_ptr, false);
                                                  last_job_update = now;
                                                  srun_allocate_abort(qjob_ptr);
-#ifdef SLURM_SIMULATOR
+/*#ifdef SLURM_SIMULATOR
                                                  total_epilog_complete_jobs++;
-#endif
+#endif*/
                                            }
-                                    /*       if((IS_JOB_RUNNING(qjob_ptr) || IS_JOB_SUSPENDED(qjob_ptr) || IS_JOB_COMPLETE(qjob_ptr) || IS_JOB_CANCELLED(qjob_ptr)) && IS_JOB_PENDING(job_ptr) && job_ptr->job_id != qjob_ptr->job_id){
+                                           if((IS_JOB_RUNNING(qjob_ptr) || IS_JOB_SUSPENDED(qjob_ptr) || IS_JOB_COMPLETE(qjob_ptr) || IS_JOB_CANCELLED(qjob_ptr)) && IS_JOB_PENDING(job_ptr) && job_ptr->job_id != qjob_ptr->job_id){
 
                                                  info("%s: Job dependency plussingleton, cancelling "
                                                  "job %s", __func__, jobid2str(job_ptr, jbuf, sizeof(jbuf)));
@@ -1961,7 +1961,7 @@ next_task:
                                                  last_job_update = now;
                                                  srun_allocate_abort(job_ptr);
 
-                                           }*/
+                                           }
                                    }
                               list_iterator_destroy(job_iterator);
                               FREE_NULL_LIST(job_queue);
@@ -1972,7 +1972,7 @@ next_task:
                                  failure = true;
                            }
                         }
-                        info("sched: after select_node checking deps, %d ", failure);
+                        //info("sched: after select_node checking deps, %d ", failure);
 nodep:
 
 
@@ -3197,9 +3197,9 @@ extern int test_job_dependency(struct job_record *job_ptr)
                                         last_job_update = now;
                                         srun_allocate_abort(job_ptr);*/
                                         /**********************************************************************/
-#ifdef SLURM_SIMULATOR
+/*#ifdef SLURM_SIMULATOR
                                         total_epilog_complete_jobs++; // increment counter used to track if jobs from the log have been finished (either completed or cancelled)
-#endif
+#endif*/
                                         break;
                                 }
                         }
