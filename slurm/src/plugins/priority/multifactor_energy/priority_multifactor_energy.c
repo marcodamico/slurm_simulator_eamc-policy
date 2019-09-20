@@ -658,7 +658,7 @@ static uint32_t _get_priority_internal(time_t start_time,
 		int n_freqs;
 		
 		if (!apps_info_init) {//read info from apps file
-			FILE *apps_fp = fopen("/home/renan/SLURM_SIMULATOR/conf/apps","r"); //from slurm.conf
+			FILE *apps_fp = fopen("/home/marcodamico/PhD/sims/conf/ear/apps","r"); //from slurm.conf
 			int app_i;
 			uint32_t prec_app_id = -1, app_id;
 			char *line = NULL;
@@ -1860,7 +1860,7 @@ int init ( void )
 	initInterface();
 	createProjection();
         //this should be in slurm.conf
-        n_modules = addMachine("/home/renan/SLURM_SIMULATOR/conf/machine2.conf");
+        n_modules = addMachine("/home/marcodamico/PhD/sims/conf/machine.conf");
         debug("Number of modules: %d", n_modules);
 
 	/* This means we aren't running from the controller so skip setup. */

@@ -2398,6 +2398,10 @@ static batch_job_launch_msg_t *_build_launch_job_msg(struct job_record *job_ptr,
 
 	launch_msg_ptr->select_jobinfo = select_g_select_jobinfo_copy(
 					 job_ptr->select_jobinfo);
+	
+#ifdef SLURM_SIMULATOR
+	launch_msg_ptr->duration = job_ptr->duration;
+#endif
 
 	if (job_ptr->account) {
 		launch_msg_ptr->account = xstrdup(job_ptr->account);

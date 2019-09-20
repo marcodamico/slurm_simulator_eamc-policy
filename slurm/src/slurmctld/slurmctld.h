@@ -818,6 +818,9 @@ struct job_record {
 	uint32_t wait4switch; /* Maximum time to wait for minimum switches */
 	bool     best_switch; /* true=min number of switches met           */
 	time_t wait4switch_start; /* Time started waiting for switch       */
+#ifdef SLURM_SIMULATOR
+	uint32_t duration;
+#endif
 };
 
 /* Job dependency specification, used in "depend_list" within job_record */

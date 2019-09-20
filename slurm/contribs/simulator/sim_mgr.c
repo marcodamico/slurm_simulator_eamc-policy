@@ -587,7 +587,10 @@ void generate_job_desc_msg(job_desc_msg_t* dmesg, job_trace_t* jobd) {
 		dmesg->min_cpus      = jobd->tasks * jobd->cpus_per_task; 
 		dmesg->cpus_per_task = jobd->cpus_per_task;
 		dmesg->min_nodes     = jobd->tasks;
-		dmesg->ntasks_per_node = jobd->tasks_per_node;
+		if(jobd->tasks_per_node)
+			dmesg->ntasks_per_node = jobd->tasks_per_node;
+		dmesg->ntasks_per_node = MAX(1,jobd->tasks/dmesg->min_nodes);
+        dmesg->duration		 = jobd->duration;
 
 		int app_id = 1 + rand() % (napps - 1); //8 apps
 	    char appid[100];
@@ -945,7 +948,7 @@ int init_job_trace() {
 		}
 		while((ret_val=read_job_trace_record(trace_file, &new_job))>0) {
 
-			displayJobTraceT(&new_job);
+	//		displayJobTraceT(&new_job);
 
 			init_trace_info(&new_job, 0);
 			total_trace_records++;
@@ -1167,7 +1170,7 @@ main(int argc, char *argv[], char *envp[]) {
         }
 
 	//read apps info - TODO: move this path to slurm.conf and sim.conf
-	FILE *apps_fp = fopen("/home/renan/SLURM_SIMULATOR/conf/apps","r");
+	FILE *apps_fp = fopen("/home/marcodamico/PhD/sims/conf/ear/apps","r");
 	if (!apps_fp) {
 		error("Unable to open apps file");
 		return -1;

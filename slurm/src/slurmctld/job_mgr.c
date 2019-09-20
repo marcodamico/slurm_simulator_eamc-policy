@@ -7916,6 +7916,9 @@ _copy_job_desc_to_job_record(job_desc_msg_t * job_desc,
 	job_ptr->warn_signal = job_desc->warn_signal;
 	job_ptr->warn_time   = job_desc->warn_time;
 	job_ptr->backfilled = 0;
+#ifdef SLURM_SIMULATOR
+	job_ptr->duration = job_desc->duration;
+#endif
 
 	detail_ptr = job_ptr->details;
 	detail_ptr->argc = job_desc->argc;
@@ -17057,7 +17060,9 @@ extern job_desc_msg_t *copy_job_record_to_job_desc(struct job_record *job_ptr)
 		job_desc->fed_siblings_viable =
 			job_ptr->fed_details->siblings_viable;
 	}
-
+#ifdef SLURM_SIMULATOR
+	job_desc->duration			= job_ptr->duration;
+#endif
 	return job_desc;
 }
 

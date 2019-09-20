@@ -3,7 +3,7 @@
 
 AUTOMAKE_OPTIONS = foreign
 
-LIBS = @LIBS@ -lrt
+LIBS = @LIBS@ -lrt -lm
 
 AM_CPPFLAGS = -I$(top_srcdir)
 

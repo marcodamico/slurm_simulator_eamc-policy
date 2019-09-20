@@ -8923,6 +8923,9 @@ _pack_job_desc_msg(job_desc_msg_t * job_desc_ptr, Buf buffer,
 		packstr(job_desc_ptr->x11_magic_cookie, buffer);
 		/* no x11_target_host here, alloc_node is equivalent */
 		pack16(job_desc_ptr->x11_target_port, buffer);
+#ifdef SLURM_SIMULATOR
+		pack32(job_desc_ptr->duration, buffer);
+#endif
 	} else if (protocol_version >= SLURM_17_02_PROTOCOL_VERSION) {
 		char **pelog_env = NULL;
 		packstr(job_desc_ptr->clusters, buffer);
@@ -9449,6 +9452,9 @@ _unpack_job_desc_msg(job_desc_msg_t ** job_desc_buffer_ptr, Buf buffer,
 				       &uint32_tmp, buffer);
 		/* no x11_target_host here, alloc_node is equivalent */
 		safe_unpack16(&job_desc_ptr->x11_target_port, buffer);
+#ifdef SLURM_SIMULATOR
+		safe_unpack32(&job_desc_ptr->duration, buffer);
+#endif
 	} else if (protocol_version >= SLURM_17_02_PROTOCOL_VERSION) {
 		uint8_t uint8_tmp = 0;
 		char **pelog_env = NULL;
@@ -12960,6 +12966,9 @@ _pack_batch_job_launch_msg(batch_job_launch_msg_t * msg, Buf buffer,
 		packstr(msg->qos, buffer);
 		packstr(msg->resv_name, buffer);
 		pack32(msg->profile, buffer);
+#ifdef SLURM_SIMULATOR
+		pack32(msg->duration, buffer);
+#endif
 	} else if (protocol_version >= SLURM_17_02_PROTOCOL_VERSION) {
 		char **pelog_env = NULL, *resv_ports = NULL;
 		pack32(msg->job_id, buffer);
@@ -13197,6 +13206,9 @@ _unpack_batch_job_launch_msg(batch_job_launch_msg_t ** msg, Buf buffer,
 				       &uint32_tmp,
 				       buffer);
 		safe_unpack32(&launch_msg_ptr->profile, buffer);
+#ifdef SLURM_SIMULATOR
+		safe_unpack32(&launch_msg_ptr->duration, buffer);
+#endif
 	} else if (protocol_version >=  SLURM_17_02_PROTOCOL_VERSION) {
 		char **pelog_env = NULL, *resv_ports = NULL;
 		int i, rc;
