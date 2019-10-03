@@ -9117,6 +9117,15 @@ static void _list_delete_job(void *job_entry)
 	xfree(job_ptr->partition);
 	FREE_NULL_LIST(job_ptr->part_ptr_list);
 	xfree(job_ptr->priority_array);
+	xfree(job_ptr->best_freq);
+	xfree(job_ptr->best_energy);
+	xfree(job_ptr->def_energy);
+	xfree(job_ptr->best_time_limit);
+#ifdef SLURM_SIMULATOR
+	xfree(job_ptr->best_duration);
+	xfree(job_ptr->real_best_energy);
+	xfree(job_ptr->real_def_energy);
+#endif
 	slurm_destroy_priority_factors_object(job_ptr->prio_factors);
 	xfree(job_ptr->resp_host);
 	xfree(job_ptr->resv_name);

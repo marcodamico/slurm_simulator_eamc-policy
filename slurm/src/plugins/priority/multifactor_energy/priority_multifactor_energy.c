@@ -174,12 +174,21 @@ typedef struct energy_info {
 	struct part_record * part_ptr;
 	double best_freq;
 	double best_value;
+	double best_energy;
+	double def_energy;
+	uint32_t best_time;
+#ifdef SLURM_SIMULATOR
+	uint32_t best_duration;
+	double real_best_energy;
+	double real_def_energy;
+#endif
 } energy_info_t;
 
-#define P_ENERGY_WEIGHT  70
-#define P_RUNTIME_WEIGHT 30
+#define P_ENERGY_WEIGHT  0
+#define P_RUNTIME_WEIGHT 100
 #define P_POWER_WEIGHT    0
 
+int use_energy_prediction = 1;
 app_info_t **apps_info;
 uint32_t num_apps;
 int apps_info_init = 0;
@@ -529,14 +538,15 @@ int _search_min(double *v, int size)
 	}
 	return min_i;
 }
-/* Order descending  */
+
+/* Order ascending  */
 int _cmp_energy_values(const void * a, const void * b)
 {
-	energy_info_t *A = (energy_info_t *)a;
-	energy_info_t *B = (energy_info_t *)b;
-	return A->best_value - B->best_value;
+	energy_info_t *A = *(energy_info_t **)a;
+	energy_info_t *B = *(energy_info_t **)b;
+	return B->best_value - A->best_value;
 }
-
+/* Order discending */
 int _cmp_app_info(const void * a, const void * b)
 {
 	app_info_t *A = *(app_info_t **)a;
@@ -552,7 +562,138 @@ int find_app_model(app_info_t *app, int model_id) {
         if (model_id == app->module_id[i])
             return i;
     return -1;
-} 
+}
+
+int init_apps()
+{
+	char *apps_file = getenv("LIBEN_APPS");
+	FILE *apps_fp = fopen(apps_file,"r"); //from slurm.conf
+	int app_i, i = -1, j;
+	uint32_t prec_app_id = -1, app_id;
+	char *line = NULL;
+	uint16_t module_id, nparams;
+	size_t linesize = 0; int bytes, offset;
+	
+	if (!apps_fp) {
+		error("Unable to open apps file");
+		return SLURM_ERROR;
+	}
+	
+	fscanf(apps_fp, "%d\n", &num_apps);
+	apps_info = (app_info_t **) xmalloc(sizeof(app_info_t *) * num_apps);
+	
+	while((getline(&line, &linesize, apps_fp)) != -1) {
+		sscanf(line, "%"SCNu32 " %"SCNu16 " %"SCNu16" %n", &app_id, &module_id, &nparams, &bytes);
+		if (app_id != prec_app_id) { //init structure with max number of modules
+			debug3("app not found, creating it");
+			i++;
+			apps_info[i] = (app_info_t *) xmalloc (sizeof(app_info_t));
+			apps_info[i]->module_id = (uint16_t *) xmalloc(sizeof(uint16_t) * n_modules);
+			apps_info[i]->nfields = (uint16_t *) xmalloc(sizeof(uint16_t) * n_modules);
+			apps_info[i]->model = (double **) xmalloc(sizeof(double *) * n_modules);
+			apps_info[i]->nmodules = 0;
+			apps_info[i]->app_id = app_id;
+			prec_app_id = app_id;
+		}
+		debug3("Adding info of app for module %d", module_id);
+		app_i = apps_info[i]->nmodules;
+		apps_info[i]->module_id[app_i] = module_id;
+		apps_info[i]->nfields[app_i] = nparams;
+		apps_info[i]->model[app_i] = (double *) xmalloc(sizeof(double) * apps_info[i]->nfields[app_i]);
+		for(j = 0; j < apps_info[i]->nfields[app_i]; j++) {
+			sscanf(line+bytes,"%lf%n", &apps_info[i]->model[app_i][j], &offset);
+			bytes+=offset;
+		}
+		apps_info[i]->nmodules++;
+	}
+	
+	free(line);
+	qsort(apps_info, num_apps, sizeof(app_info_t *), _cmp_app_info);
+	apps_info_init = 1;
+	fclose(apps_fp);
+
+	return SLURM_SUCCESS;
+}
+
+int get_i_module(char *part_name)
+{
+	int i_module;
+	for(i_module = 0; i_module < n_modules; i_module++) {
+		if (!part_name || !getMachineName(i_module))
+			debug("Non existing partition name!");
+		else {
+			debug("comparing names: %s %s, sizes %d, %d", part_name, getMachineName(i_module),
+											strlen(part_name), strlen(getMachineName(i_module)));
+			if(strncmp(part_name, getMachineName(i_module), sizeof(part_name)) == 0) { //partition name == machine name (module name)
+				debug("Found partition %s, id %d", part_name, i_module);
+				break;
+			}
+		}
+	}
+	return i_module;
+}
+
+
+//WEIGHTS are selected by sysadmin, slurm.conf params
+//I use i_module because model_id = module_id
+//TODO:since APIs give back models in the same order and with ids
+//starting from 0, we can use index as model_id
+int get_best_projection(app_info_t *app, int i_module, energy_info_t *job_energy_info, struct job_record *job_ptr)
+{
+	int f_i, n_freqs;
+	double *trace, *f_range, *e_projections, *r_projections, *p_projections, *job_projections;
+	int app_i_module = find_app_model(app, i_module);
+	if (app_i_module == -1) {
+		debug("app model not found for this machine!");
+		return SLURM_ERROR;
+	}
+	//debug("model index for this app %d, nfields %d", app_i_module, app->nfields[app_i_module]);
+	trace = (double *) malloc(sizeof(double) * app->nfields[app_i_module]);
+	memcpy( trace, app->model[app_i_module], sizeof(double)*app->nfields[app_i_module]); 
+	trace[0] = job_ptr->time_limit * 60;
+	runModel(i_module, app->nfields[app_i_module], trace);
+//	runModel(i_module, app->nfields[app_i_module], app->model[app_i_module]);
+	n_freqs = getMachineFrequencies(i_module);
+	f_range = getMachineFrequenciesRange(i_module);
+	e_projections = energyProjection(i_module);
+	r_projections = timeProjection(i_module);
+	p_projections = powerProjection(i_module);
+	job_projections = (double *) xmalloc (sizeof(double) * n_freqs);
+	for (int k = 0; k < n_freqs; k++) {
+		job_projections[k] = e_projections[k] * P_ENERGY_WEIGHT +
+				     r_projections[k] * P_RUNTIME_WEIGHT +
+				     p_projections[k] * P_POWER_WEIGHT;
+		debug3("Freq %lf, energy %lf, time %lf, power %lf", 
+				f_range[k],e_projections[k],r_projections[k],p_projections[k]);
+	}
+	f_i = _search_min(job_projections, n_freqs);
+	debug3("Optimal freq is %lf", f_range[f_i]);
+	job_energy_info->best_freq = f_range[f_i];
+	job_energy_info->best_value = job_projections[f_i];
+	job_energy_info->best_energy = e_projections[f_i]; //FIXME: best energy is not necessarly the minimum energy
+	job_energy_info->def_energy = e_projections[n_freqs - 1]; //FIXME: DEF frequency is not necessarly the highest
+	job_energy_info->best_time = ceil(r_projections[f_i] / 60.0f);
+
+#ifdef SLURM_SIMULATOR
+	trace[0] = job_ptr->duration;
+	runModel(i_module, app->nfields[app_i_module], trace);
+	free(r_projections);
+	free(e_projections);
+	r_projections = timeProjection(i_module);
+	e_projections = energyProjection(i_module);
+	job_energy_info->best_duration = r_projections[f_i];
+	job_energy_info->real_best_energy = e_projections[f_i];
+	job_energy_info->real_def_energy = e_projections[n_freqs - 1];
+#endif
+	free(trace);
+	free(e_projections);
+	free(r_projections);
+	free(p_projections);
+	free(f_range);
+	xfree(job_projections);
+
+	return SLURM_SUCCESS;
+}
 
 /* Returns the priority after applying the weight factors */
 static uint32_t _get_priority_internal(time_t start_time,
@@ -638,65 +779,81 @@ static uint32_t _get_priority_internal(time_t start_time,
 		priority = (double) tmp_64;
 	}
 
+	if (!job_ptr->part_ptr_list && n_modules) { //single partition, just select frequency
+		int i_module = 0;
+		app_info_t **app_ptr, *app;
+
+		job_ptr->best_freq = xmalloc(sizeof(double));
+		job_ptr->def_energy = xmalloc(sizeof(double));
+		job_ptr->best_energy = xmalloc(sizeof(double));
+		job_ptr->best_time_limit = xmalloc(sizeof(uint32_t));
+#ifdef SLURM_SIMULATOR
+		job_ptr->best_duration = xmalloc(sizeof(uint32_t));
+		job_ptr->real_best_energy = xmalloc(sizeof(double));
+		job_ptr->real_def_energy = xmalloc(sizeof(double));
+#endif
+		energy_info_t *job_energy_info;
+		
+		//find app by using app id
+		app_info_t *app_to_search = xmalloc(sizeof(app_info_t));
+		app_to_search->app_id = strtoul(job_ptr->comment, NULL, 10);
+		debug("Req app id is %"PRIu32, app_to_search->app_id);
+		app_ptr = bsearch(&app_to_search, apps_info, num_apps, sizeof(app_info_t *), _cmp_app_info);
+		app = *app_ptr;	
+		xfree(app_to_search);
+		if (!app_ptr) {
+			debug("invalid app");
+		}
+		else{
+			debug("Job uses app %d", app->app_id);
+			i_module = get_i_module(job_ptr->partition);
+			if (i_module >= n_modules)
+				debug("No energy model associated to this partition");
+			else {
+				job_energy_info = (energy_info_t *) xmalloc(sizeof(energy_info_t));
+				job_energy_info->part_ptr = job_ptr->part_ptr;
+	
+				get_best_projection(app, i_module, job_energy_info, job_ptr);
+				if (use_energy_prediction) {
+					*(job_ptr->best_energy) = job_energy_info->best_energy * job_ptr->details->min_nodes;
+					*(job_ptr->best_freq) = job_energy_info->best_freq;
+	
+					*(job_ptr->best_time_limit) = job_energy_info->best_time;
+#ifdef SLURM_SIMULATOR
+					*(job_ptr->best_duration) = job_energy_info->best_duration;
+					*(job_ptr->real_best_energy) = job_energy_info->real_best_energy;
+					*(job_ptr->real_def_energy) = job_energy_info->real_def_energy;
+#endif
+				}
+				*(job_ptr->def_energy) = job_energy_info->def_energy * job_ptr->details->min_nodes;
+				xfree(job_energy_info);
+			}
+		}
+	}
 	if (job_ptr->part_ptr_list) {
 		struct part_record *part_ptr;
 		double priority_part;
 		ListIterator part_iterator;
-		int i_module = 0, i = 0, j, k, f_i;
+		int i, i_module = 0, j = 0;
 		app_info_t **app_ptr, *app;
 
+		i = list_count(job_ptr->part_ptr_list) + 1;
+		
 		if (!job_ptr->priority_array) {
-			i = list_count(job_ptr->part_ptr_list) + 1;
 			job_ptr->priority_array = xmalloc(sizeof(uint32_t) * i);
 		}
 
-				energy_info_t *job_energy_info = (energy_info_t *) xmalloc(sizeof(energy_info_t) *
-						 (list_count(job_ptr->part_ptr_list) + 1));
-		double *job_projections;
-		double *e_projections, *r_projections, *p_projections;
-		double *f_range; //TODO: this should be different for each module
-		int n_freqs;
+		job_ptr->best_freq = xmalloc(sizeof(double) * i);
+		job_ptr->def_energy = xmalloc(sizeof(double) * i); 
+		job_ptr->best_energy = xmalloc(sizeof(double) * i);
+		job_ptr->best_time_limit = xmalloc(sizeof(uint32_t) * i);
+#ifdef SLURM_SIMULATOR
+		job_ptr->best_duration = xmalloc(sizeof(uint32_t) * i);
+		job_ptr->real_best_energy = xmalloc(sizeof(double) * i);
+		job_ptr->real_def_energy = xmalloc(sizeof(double) * i);
+#endif
+		energy_info_t **job_energy_info = (energy_info_t **) xmalloc(sizeof(energy_info_t*) * i);
 		
-		if (!apps_info_init) {//read info from apps file
-			FILE *apps_fp = fopen("/home/marcodamico/PhD/sims/conf/ear/apps","r"); //from slurm.conf
-			int app_i;
-			uint32_t prec_app_id = -1, app_id;
-			char *line = NULL;
-			uint16_t module_id, nparams;
-			size_t linesize = 0; int bytes, offset;
-			if (!apps_fp)
-				error("Unable to open apps file");
-			fscanf(apps_fp, "%d\n", &num_apps);
-			apps_info = (app_info_t **) xmalloc(sizeof(app_info_t *) * num_apps);
-			while((getline(&line, &linesize, apps_fp)) != -1) {
-				sscanf(line, "%"SCNu32 " %"SCNu16 " %"SCNu16" %n", &app_id, &module_id, &nparams, &bytes);
-				if (app_id != prec_app_id) { //init structure with max number of modules
-					debug3("app not found, creating it");
-					apps_info[i] = (app_info_t *) xmalloc (sizeof(app_info_t));
-					apps_info[i]->module_id = (uint16_t *) xmalloc(sizeof(uint16_t) * n_modules);
-					apps_info[i]->nfields = (uint16_t *) xmalloc(sizeof(uint16_t) * n_modules);
-					apps_info[i]->model = (double **) xmalloc(sizeof(double *) * n_modules);
-					apps_info[i]->nmodules = 0;
-					apps_info[i]->app_id = app_id;
-					prec_app_id = app_id;
-				}
-				debug3("Adding info of app for module %d", module_id);
-				app_i = apps_info[i]->nmodules; 
-				apps_info[i]->module_id[app_i] = module_id;
-				apps_info[i]->nfields[app_i] = nparams;
-				apps_info[i]->model[app_i] = (double *) xmalloc(sizeof(double) * apps_info[i]->nfields[app_i]);
-				for(j = 0; j < apps_info[i]->nfields[app_i]; j++) {
-					sscanf(line+bytes,"%lf%n", &apps_info[i]->model[app_i][j], &offset);
-					bytes+=offset;
-				}
-				apps_info[i++]->nmodules++;
-			}
-
-			free(line);
-			qsort(apps_info, num_apps, sizeof(app_info_t *), _cmp_app_info);
-			apps_info_init = 1;
-			fclose(apps_fp);
-		}
 		//find app by using app id
 		app_info_t *app_to_search = xmalloc(sizeof(app_info_t));
 		app_to_search->app_id = strtoul(job_ptr->comment, NULL, 10);
@@ -704,110 +861,104 @@ static uint32_t _get_priority_internal(time_t start_time,
 		app_ptr = bsearch(&app_to_search, apps_info, num_apps, sizeof(app_info_t *), _cmp_app_info);
 		app = *app_ptr;
 		xfree(app_to_search);
-
-		j = 0;
-		//Marco: get energy, power, runtime predictions		
-
-		part_iterator = list_iterator_create(job_ptr->part_ptr_list);
-		while ((part_ptr = (struct part_record *)
-				list_next(part_iterator))) {
-			for(i_module = 0; i_module < n_modules; i_module++) {
-				if(xstrcmp(part_ptr->name, getMachineName(i_module)) == 0) { //partition name == machine name (module name)
-					job_energy_info[j].part_ptr = part_ptr;
-					debug("Found partition %s, id %d", part_ptr->name, i_module);
-					break;
+		if (!app_ptr) {
+			debug("invalid app");
+		}
+		else {
+			//Marco: get energy, power, runtime predictions
+			part_iterator = list_iterator_create(job_ptr->part_ptr_list);
+			while ((part_ptr = (struct part_record *)
+					list_next(part_iterator))) {
+	
+				i_module = get_i_module(part_ptr->name);
+	
+				if (i_module >= n_modules) {
+					error("No energy model associated to this partition");
+					continue;
 				}
+	
+				job_energy_info[j] = (energy_info_t *) xmalloc(sizeof(energy_info_t));
+				job_energy_info[j]->part_ptr = part_ptr;
+				get_best_projection(app, i_module, job_energy_info[j], job_ptr);
+					
+				j++;
 			}
-			if (i_module == n_modules) {
-				error("No energy model associated to this partition");
-				continue;
+			debug3("Finished with all partitions, found %d", j);
+			/* order partitions based on projections */
+			qsort(job_energy_info, j, sizeof(energy_info_t *), _cmp_energy_values);
+			uint32_t priority_energy;
+			int used_modules = j;
+			int i = 0; //TODO: here index lose association with energy model
+			list_iterator_reset(part_iterator);
+			while ((part_ptr = (struct part_record *)
+					   list_next(part_iterator))) {
+				priority_part = part_ptr->priority_job_factor /
+						(double)part_max_priority *
+						(double)weight_part;
+				priority_energy = 0;
+				//search energy priority for this part_ptr
+				for(j = 0; j < used_modules; j++)
+					if(job_energy_info[j]->part_ptr == part_ptr) {
+						priority_energy = j + 1;
+	
+						debug("Energy priority assigned to partition %s: %"PRIu32, part_ptr->name, priority_energy);
+	
+						break;
+					}
+				if (j == used_modules) { 
+					debug3("Partition %s not in the job list", part_ptr->name);
+				}
+				else {
+					if (use_energy_prediction) {
+						job_ptr->best_energy[i] = job_energy_info[j]->best_energy * job_ptr->details->min_nodes;
+						job_ptr->best_freq[i] = job_energy_info[j]->best_freq;
+						job_ptr->best_time_limit[i] = job_energy_info[j]->best_time;
+#ifdef SLURM_SIMULATOR
+						job_ptr->best_duration[i] = job_energy_info[j]->best_duration;
+						job_ptr->real_best_energy[i] = job_energy_info[j]->real_best_energy;
+						job_ptr->real_def_energy[i] = job_energy_info[j]->real_def_energy;
+#endif
+						priority_part += (uint32_t) priority_energy;
+					}
+					job_ptr->def_energy[i] = job_energy_info[j]->def_energy * job_ptr->details->min_nodes;
+				}
+				priority_part += (uint32_t)
+					 (job_ptr->prio_factors->priority_age
+					 + job_ptr->prio_factors->priority_fs
+					 + job_ptr->prio_factors->priority_js
+					 + job_ptr->prio_factors->priority_qos
+					 + tmp_tres
+					 - (double)
+					   (((uint64_t)job_ptr->prio_factors->nice)
+					    - NICE_OFFSET));
+	
+				/* Priority 0 is reserved for held jobs */
+				if (priority_part < 1)
+					priority_part = 1;
+	
+				tmp_64 = (uint64_t) priority_part;
+				if (tmp_64 > 0xffffffff) {
+					error("Job %u priority exceeds 32 bits",
+					      job_ptr->job_id);
+					tmp_64 = 0xffffffff;
+					priority_part = (double) tmp_64;
+				}
+				if (((flags & PRIORITY_FLAGS_INCR_ONLY) == 0) ||
+				    (job_ptr->priority_array[i] <
+				     (uint32_t) priority_part)) {
+					job_ptr->priority_array[i] =
+						(uint32_t) priority_part;
+				}
+				debug("Job %u has more than one partition (%s)(%u)",
+				      job_ptr->job_id, part_ptr->name,
+				      job_ptr->priority_array[i]);
+				i++;
 			}
-			//weights are selected by sysadmin, slurm.conf params
-			//I use i_module because model_id = module_id
-			//TODO:since APIs give back models in the same order and with ids
-			//starting from 0, we can use index as model_id
-			int app_i_module = find_app_model(app, i_module);
-			if (app_i_module == -1)
-				error("model not found!");
-			debug("model index for this app %d, nfields %d", app_i_module, app->nfields[app_i_module]);
-			runModel(i_module, app->nfields[app_i_module], app->model[app_i_module]);
-			n_freqs = getMachineFrequencies(i_module);
-			f_range = getMachineFrequenciesRange(i_module);
-			e_projections = energyProjection(i_module);
-			r_projections = timeProjection(i_module);
-			p_projections = powerProjection(i_module);
-			job_projections = (double *) xmalloc (sizeof(double) * n_freqs);
-			for (k = 0; k < n_freqs; k++) {
-				job_projections[k] = e_projections[k] * P_ENERGY_WEIGHT +
-						     r_projections[k] * P_RUNTIME_WEIGHT +
-						     p_projections[k] * P_POWER_WEIGHT;
-				debug3("Freq %lf, energy %lf, time %lf, power %lf", 
-						f_range[k],e_projections[k],r_projections[k],p_projections[k]);
-			}
-			f_i = _search_min(job_projections, n_freqs);
-			debug3("Optimal freq is %lf", f_range[f_i]);
-			job_energy_info[j].best_freq = f_range[f_i];
-			job_energy_info[j].best_value = job_projections[f_i];
-			j++;
-			free(e_projections);
-			free(r_projections);
-			free(p_projections);
-			free(f_range);
-			xfree(job_projections);
+			list_iterator_destroy(part_iterator);
+			for(i = 0; i < used_modules; i++)
+				xfree(job_energy_info[i]);
+			xfree(job_energy_info);
 		}
-		debug3("Finished with all partitions, found %d", j);
-		/* order partitions based on projections */
-		qsort(job_energy_info, j, sizeof(job_energy_info), _cmp_energy_values);
-		
-		int priority_energy;
-		i = 0; //TODO: here index lose association with energy model
-		list_iterator_reset(part_iterator);
-		while ((part_ptr = (struct part_record *)
-			list_next(part_iterator))) {
-			priority_part = part_ptr->priority_job_factor /
-				(double)part_max_priority *
-				(double)weight_part;
-			priority_energy = 0;
-			//search energy priority for this part_ptr
-			for(j = 0; j < n_modules; j++)
-				if(job_energy_info[i].part_ptr == part_ptr) {
-					priority_energy = j + 1;
-					break;
-					debug("Energy priority assigned to partition %s: %"PRIu32, part_ptr->name, priority_energy);
-			}
-			priority_part += (uint32_t) priority_energy +
-				 (job_ptr->prio_factors->priority_age
-				 + job_ptr->prio_factors->priority_fs
-				 + job_ptr->prio_factors->priority_js
-				 + job_ptr->prio_factors->priority_qos
-				 + tmp_tres
-				 - (double)
-				   (((uint64_t)job_ptr->prio_factors->nice)
-				    - NICE_OFFSET));
-
-			/* Priority 0 is reserved for held jobs */
-			if (priority_part < 1)
-				priority_part = 1;
-
-			tmp_64 = (uint64_t) priority_part;
-			if (tmp_64 > 0xffffffff) {
-				error("Job %u priority exceeds 32 bits",
-				      job_ptr->job_id);
-				tmp_64 = 0xffffffff;
-				priority_part = (double) tmp_64;
-			}
-			if (((flags & PRIORITY_FLAGS_INCR_ONLY) == 0) ||
-			    (job_ptr->priority_array[i] <
-			     (uint32_t) priority_part)) {
-				job_ptr->priority_array[i] =
-					(uint32_t) priority_part;
-			}
-			debug("Job %u has more than one partition (%s)(%u)",
-			      job_ptr->job_id, part_ptr->name,
-			      job_ptr->priority_array[i]);
-			i++;
-		}
-		list_iterator_destroy(part_iterator);
 	}
 
 	if (priority_debug) {
@@ -1859,10 +2010,16 @@ int init ( void )
 
 	initInterface();
 	createProjection();
-        //this should be in slurm.conf
-        n_modules = addMachine("/home/marcodamico/PhD/sims/conf/machine.conf");
-        debug("Number of modules: %d", n_modules);
-
+    //this should be in slurm.conf
+    char *machines = getenv("LIBEN_MACHINE");
+	if (machines) {
+		n_modules = addMachine(machines);
+	   	debug("Number of modules: %d", n_modules);
+		for (int i=0;i<n_modules;i++)
+			debug("Module %d: %s, size %d",i+1, getMachineName(i), strlen(getMachineName(i)));
+		if (init_apps())
+			debug("Error in init_apps()");
+	}
 	/* This means we aren't running from the controller so skip setup. */
 	if (cluster_cpus == NO_VAL) {
 		damp_factor = (long double)slurm_get_fs_dampening_factor();
