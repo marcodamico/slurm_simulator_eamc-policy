@@ -1927,17 +1927,16 @@ next_task:
                                     job_iterator = list_iterator_create(job_queue);
                                     while ((qjob_ptr = (struct job_record *)
                                            list_next(job_iterator))) {
-                                     //debug("sched: test_job_dependency: job_id %u about to run, cancel pending job_id %u with the same dependency and job name; the state is %u, isComplete %u, isCancelled %u", job_ptr->job_id, qjob_ptr->job_id, qjob_ptr->job_state, IS_JOB_COMPLETE(qjob_ptr), IS_JOB_CANCELLED(qjob_ptr));
+                                     //debug("sched job dependency: job_id %u about to run, cancel pending job_id %u with the same dependency and job name; the state is %u, isRunning %u, isComplete %u, isCancelled %u", job_ptr->job_id, qjob_ptr->job_id, qjob_ptr->job_state, IS_JOB_RUNNING(qjob_ptr), IS_JOB_COMPLETE(qjob_ptr), IS_JOB_CANCELLED(qjob_ptr));
                                             char jbuf[JBUFSIZ];
                                             time_t now;
 
                                             now = time(NULL);
-
                                             if ((IS_JOB_RUNNING(job_ptr) ||
-                                            IS_JOB_SUSPENDED(job_ptr) || IS_JOB_COMPLETE(job_ptr)) && IS_JOB_PENDING(qjob_ptr) && job_ptr->job_id != qjob_ptr->job_id) {
+                                            IS_JOB_SUSPENDED(job_ptr) || IS_JOB_COMPLETE(job_ptr)) && IS_JOB_PENDING(qjob_ptr) && (job_ptr->job_id != qjob_ptr->job_id)) {
 
-                                                 info("%s: Job dependency plussingleton, cancelling "
-                                                 "job %s", __func__, jobid2str(qjob_ptr, jbuf, sizeof(jbuf)));
+                                                 //info("%s 1: Job dependency plussingleton, cancelling "
+                                                 //"job %s", __func__, jobid2str(qjob_ptr, jbuf, sizeof(jbuf)));
                                                  qjob_ptr->job_state = JOB_CANCELLED;
                                                  xfree(qjob_ptr->state_desc);
                                                  qjob_ptr->start_time = now;
@@ -1949,9 +1948,9 @@ next_task:
                                                  total_epilog_complete_jobs++;
 #endif*/
                                            }
-                                           if((IS_JOB_RUNNING(qjob_ptr) || IS_JOB_SUSPENDED(qjob_ptr) || IS_JOB_COMPLETE(qjob_ptr) || IS_JOB_CANCELLED(qjob_ptr)) && IS_JOB_PENDING(job_ptr) && job_ptr->job_id != qjob_ptr->job_id){
+                                         /*  if((IS_JOB_RUNNING(qjob_ptr) || IS_JOB_SUSPENDED(qjob_ptr) || IS_JOB_COMPLETE(qjob_ptr) || IS_JOB_CANCELLED(qjob_ptr)) && IS_JOB_PENDING(job_ptr) && (job_ptr->job_id != qjob_ptr->job_id)){
 
-                                                 info("%s: Job dependency plussingleton, cancelling "
+                                                 info("%s 2: Job dependency plussingleton, cancelling "
                                                  "job %s", __func__, jobid2str(job_ptr, jbuf, sizeof(jbuf)));
                                                  job_ptr->job_state = JOB_CANCELLED;
                                                  xfree(job_ptr->state_desc);
@@ -1960,8 +1959,11 @@ next_task:
                                                  job_completion_logger(job_ptr, false);
                                                  last_job_update = now;
                                                  srun_allocate_abort(job_ptr);
+#ifdef SLURM_SIMULATOR
+                                                 total_epilog_complete_jobs++;
+#endif
 
-                                           }
+                                           }*/
                                    }
                               list_iterator_destroy(job_iterator);
                               FREE_NULL_LIST(job_queue);
@@ -1974,8 +1976,7 @@ next_task:
                         }
                         //info("sched: after select_node checking deps, %d ", failure);
 nodep:
-
-
+                                                             
 			/* If the following fails because of network
 			 * connectivity, the origin cluster should ask
 			 * when it comes back up if the cluster_lock
@@ -2758,11 +2759,6 @@ extern void launch_job(struct job_record *job_ptr)
 	uint16_t protocol_version = NO_VAL16;
 	agent_arg_t *agent_arg_ptr;
 	struct job_record *launch_job_ptr;
-	struct job_record *pack_leader, *pack_job;
-	ListIterator iter;
-
-
-	info("SIM: launch_job: entering function \n");
 
 #ifdef HAVE_FRONT_END
 	front_end_record_t *front_end_ptr;
@@ -2779,13 +2775,12 @@ extern void launch_job(struct job_record *job_ptr)
 	if (!launch_job_ptr)
 		return;
 
-#ifndef SLURM_SIMULATOR
 	launch_msg_ptr = _build_launch_job_msg(launch_job_ptr,protocol_version);
 	if (launch_msg_ptr == NULL)
 		return;
-
 	if (launch_job_ptr->pack_job_id)
 		_set_pack_env(launch_job_ptr, launch_msg_ptr);
+#ifndef SLURM_SIMULATOR
 	agent_arg_ptr = (agent_arg_t *) xmalloc(sizeof(agent_arg_t));
 	agent_arg_ptr->protocol_version = protocol_version;
 	agent_arg_ptr->node_count = 1;
@@ -2798,96 +2793,43 @@ extern void launch_job(struct job_record *job_ptr)
 	/* Launch the RPC via agent */
 	agent_queue_request(agent_arg_ptr);
 #else
-	{
-		pack_leader = find_job_record(job_ptr->pack_job_id);
-		if (!pack_leader) {
-			launch_msg_ptr = _build_launch_job_msg(launch_job_ptr,protocol_version);
-			if (launch_msg_ptr == NULL)
-			return;
 
-			slurm_msg_t msg, resp;
-			slurm_msg_t_init(&msg);
-			msg.msg_type = REQUEST_BATCH_JOB_LAUNCH;
-			msg.data = launch_msg_ptr;
-			info("SIM: sending message type REQUEST_BATCH_JOB_LAUNCH to %s\n", job_ptr->batch_host);
+        {
+                slurm_msg_t msg, resp;
+                slurm_msg_t_init(&msg);
+                msg.msg_type = REQUEST_BATCH_JOB_LAUNCH;
+                msg.data = launch_msg_ptr;
+                info("SIM: sending message type REQUEST_BATCH_JOB_LAUNCH to %s\n", job_ptr->batch_host);
 
-			if(slurm_conf_get_addr(job_ptr->batch_host, &msg.address) == SLURM_ERROR) {
-							error("SIM: "
-								"can't find address for host %s, "
-								"check slurm.conf",
-								job_ptr->batch_host);
-			}
+                if(slurm_conf_get_addr(job_ptr->batch_host, &msg.address) == SLURM_ERROR) {
+                                error("SIM: "
+                                      "can't find address for host %s, "
+                                      "check slurm.conf",
+                                      job_ptr->batch_host);
+                }
 
-			if (slurm_send_recv_node_msg(&msg, &resp, 5000000) != SLURM_SUCCESS) {
-							error("SIM: slurm_send_only_node_msg failed\n");
-			} else {
-					if (resp.data) {
-											xfree(resp.data);
-									}
-									if (resp.auth_cred)
-											g_slurm_auth_destroy(resp.auth_cred);
-			}
+                if (slurm_send_recv_node_msg(&msg, &resp, 5000000) != SLURM_SUCCESS) {
+                                error("SIM: slurm_send_only_node_msg failed\n");
+                } else {
+                        if (resp.data) {
+                                                xfree(resp.data);
+                                        }
+                                        if (resp.auth_cred)
+                                                g_slurm_auth_destroy(resp.auth_cred);
+                }
 
-			/* Let's free memory allocated */
+                /* Let's free memory allocated */
 
-			if(launch_msg_ptr->environment){
-					xfree(launch_msg_ptr->environment[0]);
-					xfree(launch_msg_ptr->environment);
-			}
-			g_slurm_auth_destroy(msg.auth_cred);
-			slurm_free_job_launch_msg(launch_msg_ptr);
-		}
-		else {
+                if(launch_msg_ptr->environment){
+                        xfree(launch_msg_ptr->environment[0]);
+                        xfree(launch_msg_ptr->environment);
+                }
+                g_slurm_auth_destroy(msg.auth_cred);
+                slurm_free_job_launch_msg(launch_msg_ptr);
 
-			if (!pack_leader->pack_job_list) {
-				error("Job pack leader %pJ lacks pack_job_list", job_ptr);
-				return NULL;
-			}
-			iter = list_iterator_create(pack_leader->pack_job_list);
-			while ((pack_job = (struct job_record *) list_next(iter))) {
 
-				info("SIM: while: job_id: %d ptr_addr: %d \n", pack_job->job_id, pack_job);
 
-				launch_msg_ptr = _build_launch_job_msg(pack_job,protocol_version);
-				info("SIM: while: launch_msg_ptr %d \n", launch_msg_ptr);
-				if (launch_msg_ptr == NULL)
-					return;
-
-					slurm_msg_t msg, resp;
-					slurm_msg_t_init(&msg);
-					msg.msg_type = REQUEST_BATCH_JOB_LAUNCH;
-					msg.data = launch_msg_ptr;
-					info("SIM: sending message type REQUEST_BATCH_JOB_LAUNCH to %s\n", job_ptr->batch_host);
-
-					if(slurm_conf_get_addr(job_ptr->batch_host, &msg.address) == SLURM_ERROR) {
-									error("SIM: "
-										"can't find address for host %s, "
-										"check slurm.conf",
-										job_ptr->batch_host);
-					}
-
-					if (slurm_send_recv_node_msg(&msg, &resp, 5000000) != SLURM_SUCCESS) {
-									error("SIM: slurm_send_only_node_msg failed\n");
-					} else {
-							if (resp.data) {
-													xfree(resp.data);
-											}
-											if (resp.auth_cred)
-													g_slurm_auth_destroy(resp.auth_cred);
-					}
-
-					/* Let's free memory allocated */
-
-					if(launch_msg_ptr->environment){
-							xfree(launch_msg_ptr->environment[0]);
-							xfree(launch_msg_ptr->environment);
-					}
-					g_slurm_auth_destroy(msg.auth_cred);
-					slurm_free_job_launch_msg(launch_msg_ptr);
-			}
-			list_iterator_destroy(iter);
-		}
-    }
+        }
 #endif
 }
 
@@ -3160,9 +3102,10 @@ extern int test_job_dependency(struct job_record *job_ptr)
  				list_delete_item(depend_iter);
  			else
 				depends = true;
-		} else if ((dep_ptr->depend_type == SLURM_DEPEND_PLUSSINGLETON) &&
+		}  else if ((dep_ptr->depend_type == SLURM_DEPEND_PLUSSINGLETON) &&
                            job_ptr->name){ // the same as singleton, only should not start first the lower job_id 
                               /* get user jobs with the same user and name */
+                        //debug("test_job_dependency: job_id %u about to run \nd its dependent jobs being checked", job_ptr->job_id);
                         job_queue = _build_user_job_list(job_ptr->user_id,
                                                          job_ptr->name);
                         run_now = true;
@@ -3171,15 +3114,16 @@ extern int test_job_dependency(struct job_record *job_ptr)
                                            list_next(job_iterator))) {
                                 /* already running/suspended job or previously
                                  * submitted pending job */
-                                debug("test_job_dependency: job_id %u about to run, test if job_id %u has already running or completed; the state is %u", job_ptr->job_id, qjob_ptr->job_id, qjob_ptr->job_state);
+                                //debug("test_job_dependency: job_id %u about to run, test if job_id %u has already running or completed; the state is %u", job_ptr->job_id, qjob_ptr->job_id, qjob_ptr->job_state);
                                 if (IS_JOB_RUNNING(qjob_ptr) ||
                                     IS_JOB_SUSPENDED(qjob_ptr) ||
                                     IS_JOB_COMPLETE(qjob_ptr) ||
-                                    IS_JOB_CANCELLED(qjob_ptr)/* ||
-                                    (IS_JOB_PENDING(qjob_ptr) &&
-                                     (qjob_ptr->job_id < job_ptr->job_id))*/ ) {
+                                    IS_JOB_CANCELLED(qjob_ptr) // ||
+                                    /*(IS_JOB_PENDING(qjob_ptr) &&
+                                     (qjob_ptr->job_id != job_ptr->job_id)*/) {
+                                        // Is this necessary at all? Does job ever get to be cancelled here? Consider removing this part.TODO
                                         run_now = false; // 
-                                        debug("test_job_dependency: job_id %u cancelled, as job_id %u has already running or completed", job_ptr->job_id, qjob_ptr->job_id);
+                                        //debug("test_job_dependency: job_id %u cancelled, as job_id %u has already running or completed", job_ptr->job_id, qjob_ptr->job_id);
                                         job_ptr->bit_flags|=KILL_INV_DEP;
                                         /** This is kill_dependent() function. It should be called by setting KILL_INV_DEP, this is very ugly implementation, but it works. ***/
   /*                                      char jbuf[JBUFSIZ];
@@ -3213,8 +3157,7 @@ extern int test_job_dependency(struct job_record *job_ptr)
                                 failure = true; // This job needs to be cancelled immediately, since there is a job in dep list already running or suspended.
                        }
 
-                } 
-                else if ((djob_ptr == NULL) ||
+                }  else if ((djob_ptr == NULL) ||
 			   (djob_ptr->magic != JOB_MAGIC) ||
 			   ((djob_ptr->job_id != dep_ptr->job_id) &&
 			    (djob_ptr->array_job_id != dep_ptr->job_id))) {
@@ -3501,7 +3444,7 @@ extern int update_job_dependency(struct job_record *job_ptr, char *new_depend)
 			break;
  		}
 
-                 if (xstrncasecmp(tok, "plussingleton", 13) == 0){
+                if (xstrncasecmp(tok, "plussingleton", 13) == 0){
                         debug("update_job_dependency: Inside plussingleton option");
                         depend_type = SLURM_DEPEND_PLUSSINGLETON;
                         dep_ptr = xmalloc(sizeof(struct depend_spec));
