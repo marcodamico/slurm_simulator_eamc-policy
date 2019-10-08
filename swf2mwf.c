@@ -23,6 +23,7 @@ typedef struct job_trace {
     int  tasks;
     char qosname[MAX_QOSNAME];
     char partition[MAX_QOSNAME];
+    char module_list[MAX_QOSNAME];
     char account[MAX_QOSNAME];
     int  cpus_per_task;
     int  tasks_per_node;
@@ -83,13 +84,13 @@ int read_job (FILE * trace_file_ptr, job_trace_t * job_trace) {
 	ssize_t ret_val = 0;
 	ssize_t dummy = 0;
 
-	ret_val = fscanf(trace_file_ptr, "%d;%ld;%d;%d;%d;%ld;%d;%ld;%d;%ld;%d;%29[^;];%29[^;];%ld;%29[^;];%29[^;];%29[^;];%ld",
+	ret_val = fscanf(trace_file_ptr, "%d;%ld;%d;%d;%d;%ld;%d;%ld;%d;%ld;%d;%29[^;];%29[^;];%ld;%29[^;];%29[^;];%29[^;];%29[^;];%ld",
 	&job_trace->job_id, &job_trace->submit, &job_trace->wait_modular_job_time, 
 	&job_trace->duration, &job_trace->tasks, 
 	&dummy, &job_trace->rreq_memory_per_node, &dummy, &job_trace->wclimit, &dummy, 
 	&job_trace->status, job_trace->username, job_trace->account, &dummy,
 	job_trace->qosname,	job_trace->partition,
-	job_trace->dependency, &dummy);
+	job_trace->dependency, job_trace->module_list, &dummy);
 
 	job_trace->modular_job_id = job_trace->job_id;
 	job_trace->submit_modular_job_time = job_trace->submit;
