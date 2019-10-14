@@ -1180,7 +1180,6 @@ void *_service_connection(void *arg)
 		error("%s: cannot set my name to %s %m", __func__, "srvcn");
 	}
 #endif
-	debug("In service_connection");
 	slurm_msg_t_init(&msg);
 /*      if (msg->msg_type == MESSAGE_SIM_HELPER_CYCLE)
                 if(open_global_sync_sem() == -1)

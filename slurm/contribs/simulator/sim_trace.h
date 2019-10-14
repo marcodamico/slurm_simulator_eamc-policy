@@ -23,7 +23,6 @@ typedef struct job_trace {
     int  tasks;
     char qosname[MAX_QOSNAME];
     char partition[MAX_QOSNAME];
-    char module_list[MAX_QOSNAME];
     char account[MAX_QOSNAME];
     int  cpus_per_task;
     int  tasks_per_node;
@@ -32,8 +31,9 @@ typedef struct job_trace {
     struct job_trace *next;
     char manifest_filename[MAX_WF_FILENAME_LEN];
     char *manifest;
-     // extra field to support extended modular workload format
-    int modular_job_id;
+	// extra field to support extended modular workload format
+    char module_list[MAX_QOSNAME];
+	int modular_job_id;
     int total_components;
     char modular_jobname[MAX_MWF_STR_LEN];
     int submit_modular_job_time;
@@ -89,7 +89,7 @@ typedef struct job_trace_dummy {
     int  tasks;
     char qosname[MAX_QOSNAME];
     char partition[MAX_QOSNAME];
-    char module_list[MAX_QOSNAME];
+//    char module_list[MAX_QOSNAME];
     char account[MAX_QOSNAME];
     int  cpus_per_task;
     int  tasks_per_node;
