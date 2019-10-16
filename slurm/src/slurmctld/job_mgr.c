@@ -164,7 +164,6 @@ static bitstr_t *requeue_exit_hold = NULL;
 static int	select_serial = -1;
 static uint32_t job_dep_count = 0;
 static char prev_name[7]="";
-
 /* Local functions */
 static void _add_job_hash(struct job_record *job_ptr);
 static void _add_job_array_hash(struct job_record *job_ptr);
@@ -533,7 +532,6 @@ static void _delete_job_details(struct job_record *job_entry)
 	xfree(job_entry->details->extra);
 	FREE_NULL_LIST(job_entry->details->feature_list);
 	xfree(job_entry->details->features);
-	xfree(job_entry->details->hints);
 	xfree(job_entry->details->cluster_features);
 	xfree(job_entry->details->std_in);
 	xfree(job_entry->details->mc_ptr);
@@ -2445,7 +2443,6 @@ void _dump_job_details(struct job_details *detail_ptr, Buf buffer)
 	packstr(detail_ptr->req_nodes,  buffer);
 	packstr(detail_ptr->exc_nodes,  buffer);
 	packstr(detail_ptr->features,   buffer);
-	packstr(detail_ptr->hints,   buffer);
 	packstr(detail_ptr->cluster_features, buffer);
 	packstr(detail_ptr->dependency, buffer);
 	packstr(detail_ptr->orig_dependency, buffer);
@@ -2471,7 +2468,7 @@ static int _load_job_details(struct job_record *job_ptr, Buf buffer,
 	char *features = NULL, *cpu_bind = NULL, *dependency = NULL;
 	char *orig_dependency = NULL, *mem_bind, *cluster_features = NULL;
 	char *err = NULL, *in = NULL, *out = NULL, *work_dir = NULL;
-	char *ckpt_dir = NULL, *restart_dir = NULL, *hints = NULL;
+	char *ckpt_dir = NULL, *restart_dir = NULL;
 	char **argv = (char **) NULL, **env_sup = (char **) NULL;
 	uint32_t min_nodes, max_nodes;
 	uint32_t min_cpus = 1, max_cpus = NO_VAL;
@@ -2532,7 +2529,6 @@ static int _load_job_details(struct job_record *job_ptr, Buf buffer,
 		safe_unpackstr_xmalloc(&req_nodes,  &name_len, buffer);
 		safe_unpackstr_xmalloc(&exc_nodes,  &name_len, buffer);
 		safe_unpackstr_xmalloc(&features,   &name_len, buffer);
-		safe_unpackstr_xmalloc(&hints,   &name_len, buffer);
 		safe_unpackstr_xmalloc(&cluster_features, &name_len, buffer);
 		safe_unpackstr_xmalloc(&dependency, &name_len, buffer);
 		safe_unpackstr_xmalloc(&orig_dependency, &name_len, buffer);
@@ -2589,7 +2585,6 @@ static int _load_job_details(struct job_record *job_ptr, Buf buffer,
 		safe_unpackstr_xmalloc(&req_nodes,  &name_len, buffer);
 		safe_unpackstr_xmalloc(&exc_nodes,  &name_len, buffer);
 		safe_unpackstr_xmalloc(&features,   &name_len, buffer);
-		safe_unpackstr_xmalloc(&hints,   &name_len, buffer);
 		safe_unpackstr_xmalloc(&dependency, &name_len, buffer);
 		safe_unpackstr_xmalloc(&orig_dependency, &name_len, buffer);
 
@@ -2647,7 +2642,6 @@ static int _load_job_details(struct job_record *job_ptr, Buf buffer,
 		safe_unpackstr_xmalloc(&req_nodes,  &name_len, buffer);
 		safe_unpackstr_xmalloc(&exc_nodes,  &name_len, buffer);
 		safe_unpackstr_xmalloc(&features,   &name_len, buffer);
-		safe_unpackstr_xmalloc(&hints,   &name_len, buffer);
 		safe_unpackstr_xmalloc(&dependency, &name_len, buffer);
 		safe_unpackstr_xmalloc(&orig_dependency, &name_len, buffer);
 
@@ -2699,7 +2693,6 @@ static int _load_job_details(struct job_record *job_ptr, Buf buffer,
 	xfree(job_ptr->details->env_sup);
 	xfree(job_ptr->details->exc_nodes);
 	xfree(job_ptr->details->features);
-	xfree(job_ptr->details->hints);
 	xfree(job_ptr->details->cluster_features);
 	xfree(job_ptr->details->std_in);
 	xfree(job_ptr->details->mem_bind);
@@ -2729,7 +2722,6 @@ static int _load_job_details(struct job_record *job_ptr, Buf buffer,
 	job_ptr->details->std_err = err;
 	job_ptr->details->exc_nodes = exc_nodes;
 	job_ptr->details->features = features;
-	job_ptr->details->hints = hints;
 	job_ptr->details->cluster_features = cluster_features;
 	job_ptr->details->std_in = in;
 	job_ptr->details->pn_min_cpus = pn_min_cpus;
@@ -2777,7 +2769,6 @@ unpack_error:
 	xfree(err);
 	xfree(exc_nodes);
 	xfree(features);
-	xfree(hints);
 	xfree(cluster_features);
 	xfree(in);
 	xfree(mem_bind);
@@ -4057,8 +4048,7 @@ void dump_job_desc(job_desc_msg_t * job_specs)
 	       immediate, job_specs->reservation);
 	debug3("   features=%s cluster_features=%s",
 	       job_specs->features, job_specs->cluster_features);
-	debug3("   hints=%s",
-	       job_specs->hints);
+
 	debug3("   req_nodes=%s exc_nodes=%s gres=%s",
 	       job_specs->req_nodes, job_specs->exc_nodes, job_specs->gres);
 
@@ -4445,7 +4435,6 @@ extern struct job_record *job_array_split(struct job_record *job_ptr)
 	details_new->feature_list =
 		feature_list_copy(job_details->feature_list);
 	details_new->features = xstrdup(job_details->features);
-	details_new->hints = xstrdup(job_details->hints);
 	details_new->cluster_features = xstrdup(job_details->cluster_features);
 	if (job_details->mc_ptr) {
 		i = sizeof(multi_core_data_t);
@@ -4791,15 +4780,14 @@ extern int job_allocate(job_desc_msg_t * job_specs, int immediate,
 	 */
 	if (job_ptr->priority == NO_VAL){
 		set_job_prio(job_ptr);
-                /* This part was added to tune priorities of alternative jobs in plussingleton dependecy case TODO
-                  if(job_ptr->details->depend_list){
+                if(job_ptr->details->depend_list){
                    if(!strcmp(job_ptr->name,prev_name)){
                      job_dep_count++;
-                     if(job_dep_count == 2) job_ptr->priority = job_ptr->priority - 14;
-                     else if (job_dep_count == 3) {
-                         job_ptr->priority = job_ptr->priority - 15; // 50 and 100 should be made parameters to control how fast do we want alternative modules to be considered.
+                     if(job_dep_count == 2) job_ptr->priority = job_ptr->priority - 5; // -X
+                     /*else if (job_dep_count == 3) {
+                         job_ptr->priority = job_ptr->priority - 15; // -Y; X and Y should be made parameters to control how fast do we want alternative modules to be considered.
                          //job_dep_count=0;
-                     }
+                     }*/
                      strcpy(prev_name,job_ptr->name);
                      info("JOB_MGR: Setting priority to %u for job %u, order number %u ", job_ptr->priority, job_ptr->job_id, job_dep_count);
                    }
@@ -4808,7 +4796,7 @@ extern int job_allocate(job_desc_msg_t * job_specs, int immediate,
                        strcpy(prev_name,job_ptr->name);
                    }
                 }
-*/
+
         }
 	if (independent &&
 	    (license_job_test(job_ptr, time(NULL), true) != SLURM_SUCCESS))
@@ -7201,7 +7189,6 @@ static int _test_job_desc_fields(job_desc_msg_t * job_desc)
 	    _test_strlen(
 		job_desc->cluster_features, "cluster_features", 1024)   ||
 	    _test_strlen(job_desc->gres, "gres", 1024)			||
-	    _test_strlen(job_desc->features, "hints", 1024)		||
 	    _test_strlen(job_desc->licenses, "licenses", 1024)		||
 	    _test_strlen(job_desc->linuximage, "linuximage", 1024)	||
 	    _test_strlen(job_desc->mail_user, "mail_user", 1024)	||
@@ -7976,8 +7963,6 @@ _copy_job_desc_to_job_record(job_desc_msg_t * job_desc,
 	}
 	if (job_desc->features)
 		detail_ptr->features = xstrdup(job_desc->features);
-	if (job_desc->features)
-		detail_ptr->hints = xstrdup(job_desc->hints);
 	if (job_desc->cluster_features)
 		detail_ptr->cluster_features =
 			xstrdup(job_desc->cluster_features);
@@ -17008,7 +16993,6 @@ extern job_desc_msg_t *copy_job_record_to_job_desc(struct job_record *job_ptr)
 	job_desc->cluster_features  = xstrdup(details->cluster_features);
 	job_desc->gres              = xstrdup(job_ptr->gres);
 	job_desc->group_id          = job_ptr->group_id;
-	job_desc->hints		    = xstrdup(details->hints);
 	job_desc->immediate         = 0; /* nowhere to get this value */
 	job_desc->job_id            = job_ptr->job_id;
 	job_desc->kill_on_node_fail = job_ptr->kill_on_node_fail;

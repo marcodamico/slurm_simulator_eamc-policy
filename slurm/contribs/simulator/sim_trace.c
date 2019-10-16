@@ -156,6 +156,9 @@ int read_job_trace_record_ascii(FILE * trace_file_ptr, job_trace_t *job_trace, i
                     printf("sim_trace: Trace contains jobs with job_trace->tasks %u\n", job_trace->tasks );
                     job_trace->tasks = 1;
                 }
+                if(job_trace->tasks > 1 && job_trace->tasks % 2 == 1){
+                   job_trace->tasks = job_trace->tasks - 1; // Avoiding odd numbers to make it easier for the conversion model. TODO REMOVE this after testing!
+                }
 		job_trace->cpus_per_task = 1;
 		job_trace->tasks_per_node = 1;
 

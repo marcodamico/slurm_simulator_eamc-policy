@@ -369,6 +369,7 @@ int current[2];
 /* the number of seconds from the beginning of the simulation*/
 unsigned long time_from_begin[2]; 
 
+double load_factor = 1;
 
 /*----------------------------------------------------------------------------*/
 /*                      THE MAIN FUNCTION                                     */
@@ -388,14 +389,17 @@ int main(int argc, char *argv[])
   int num_jobs = 0, system_size = 0;
   char partition_name[32];
 
-  if (argc < 4) {
-	printf("use: ./program num_jobs system_size partition_name\n");
+  if (argc < 5) {
+	printf("use: ./program num_jobs system_size partition_name load_factor\n");
 	exit(0);
   }
 
   num_jobs = atoi(argv[1]);
   system_size = atoi(argv[2]);
   strcpy(partition_name, argv[3]);
+  load_factor = atoi(argv[4]);
+  load_factor = load_factor/100;
+  //printf("load_factor: %f\n", load_factor);
 
   seed = (long)time(NULL);
   srand48(seed);
@@ -668,7 +672,8 @@ void calc_next_arrive(int type,double weights[2][BUCKETS] ,double aarr[2],
   while (points[type] > weights[type][bucket]) { /* while have more points    */
     points[type] -= weights[type][bucket];       /* pay points to this bucket */
     bucket = (bucket+1)  % 48;             /*   ... and goto the next bucket  */
-    next_arrive += SECONDS_IN_BUCKET;      /* accumulate time in next_arrive  */
+    next_arrive += SECONDS_IN_BUCKET/load_factor;      /* accumulate time in next_arrive  */
+    //printf("next arrive: %f\n", next_arrive);
   }
   new_reminder = points[type]/weights[type][bucket];
   more_time = SECONDS_IN_BUCKET * ( new_reminder - reminder[type]);
