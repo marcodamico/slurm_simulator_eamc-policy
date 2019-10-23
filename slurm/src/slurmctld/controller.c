@@ -208,7 +208,7 @@ static pthread_cond_t server_thread_cond = PTHREAD_COND_INITIALIZER;
 static pid_t	slurmctld_pid;
 static char *	slurm_conf_filename;
 
-FILE *stats = NULL;
+//FILE *stats = NULL;
 
 #ifdef SLURM_SIMULATOR
 char SEM_NAME[]         = "serversem";
@@ -615,9 +615,9 @@ int main(int argc, char **argv)
 		slurm_thread_create(&slurmctld_config.thread_id_purge_files,
 				    _purge_files_thread, NULL);
 
-		stats = fopen("slurmctld_stats", "w");
-                if (stats == NULL)
-                        error("Cannot open file for reporting statistics!");
+		//stats = fopen("slurmctld_stats", "w");
+        //        if (stats == NULL)
+        //                error("Cannot open file for reporting statistics!");
 
 		/*
 		 * process slurm background activities, could run as pthread
@@ -625,9 +625,9 @@ int main(int argc, char **argv)
 		_slurmctld_background(NULL);
 
 		/* Marco: Report some statistics  */
-                if (stats != NULL) {
-                        fprintf(stats, "Total backfilled jobs: %d\n", slurmctld_diag_stats.backfilled_jobs);
-                }
+        //        if (stats != NULL) {
+        //                fprintf(stats, "Total backfilled jobs: %d\n", slurmctld_diag_stats.backfilled_jobs);
+        //        }
 
 		/* termination of controller */
 		switch_g_save(slurmctld_conf.state_save_location);
@@ -1866,11 +1866,11 @@ static void *_slurmctld_background(void *no_data)
 		now = time(NULL);
 		START_TIMER;
 		
-		int free_nodes = bit_set_count(idle_node_bitmap);
-                if (last_free_nodes_value != free_nodes) {
-                        last_free_nodes_value = free_nodes;
-                        fprintf(stats,"%ld %d\n", now, free_nodes);
-                }
+//		int free_nodes = bit_set_count(idle_node_bitmap);
+//                if (last_free_nodes_value != free_nodes) {
+//                        last_free_nodes_value = free_nodes;
+//                        fprintf(stats,"%ld %d\n", now, free_nodes);
+//                }
 
 		if (slurmctld_conf.slurmctld_debug <= 3)
 			no_resp_msg_interval = 300;
