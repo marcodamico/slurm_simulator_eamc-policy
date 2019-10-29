@@ -172,6 +172,7 @@ typedef struct app_info {
 
 typedef struct energy_info {
 	struct part_record * part_ptr;
+	struct job_record * job_ptr;
 	double best_freq;
 	double best_value;
 	double best_energy;
@@ -787,6 +788,7 @@ static uint32_t _get_priority_internal(time_t start_time,
 		job_ptr->def_energy = xmalloc(sizeof(double));
 		job_ptr->best_energy = xmalloc(sizeof(double));
 		job_ptr->best_time_limit = xmalloc(sizeof(uint32_t));
+		job_ptr->best_value = xmalloc(sizeof(double));
 #ifdef SLURM_SIMULATOR
 		job_ptr->best_duration = xmalloc(sizeof(uint32_t));
 		job_ptr->real_best_energy = xmalloc(sizeof(double));
@@ -819,6 +821,7 @@ static uint32_t _get_priority_internal(time_t start_time,
 					*(job_ptr->best_freq) = job_energy_info->best_freq;
 	
 					*(job_ptr->best_time_limit) = job_energy_info->best_time;
+					*(job_ptr->best_value) = job_energy_info->best_value;
 #ifdef SLURM_SIMULATOR
 					*(job_ptr->best_duration) = job_energy_info->best_duration;
 					*(job_ptr->real_best_energy) = job_energy_info->real_best_energy;
@@ -847,6 +850,7 @@ static uint32_t _get_priority_internal(time_t start_time,
 		job_ptr->def_energy = xmalloc(sizeof(double) * i); 
 		job_ptr->best_energy = xmalloc(sizeof(double) * i);
 		job_ptr->best_time_limit = xmalloc(sizeof(uint32_t) * i);
+		job_ptr->best_value = xmalloc(sizeof(double) * i);
 #ifdef SLURM_SIMULATOR
 		job_ptr->best_duration = xmalloc(sizeof(uint32_t) * i);
 		job_ptr->real_best_energy = xmalloc(sizeof(double) * i);
@@ -913,6 +917,7 @@ static uint32_t _get_priority_internal(time_t start_time,
 						job_ptr->best_energy[i] = job_energy_info[j]->best_energy * job_ptr->details->min_nodes;
 						job_ptr->best_freq[i] = job_energy_info[j]->best_freq;
 						job_ptr->best_time_limit[i] = job_energy_info[j]->best_time;
+						job_ptr->best_value[i] = job_energy_info[j]->best_value;
 #ifdef SLURM_SIMULATOR
 						job_ptr->best_duration[i] = job_energy_info[j]->best_duration;
 						job_ptr->real_best_energy[i] = job_energy_info[j]->real_best_energy;
@@ -960,6 +965,84 @@ static uint32_t _get_priority_internal(time_t start_time,
 			xfree(job_energy_info);
 		}
 	}
+	/* Not compatible with multi partition */
+	/* TODO: when and how priorities are recalculated? This algorithm might not work correctly
+	 * if priorities are recalculated */
+	else if (job_ptr->details->depend_list) {
+		ListIterator depend_iter = list_iterator_create(job_ptr->details->depend_list);
+		ListIterator job_iterator;
+		struct depend_spec *dep_ptr;
+		struct job_record *j_ptr;
+		List j_list = list_create(NULL);
+		energy_info_t **energy_dep;
+		int list_size, i;
+		debug("0");
+		while ((dep_ptr = list_next(depend_iter))) {
+			if (dep_ptr->depend_type == SLURM_DEPEND_PLUSSINGLETON) {
+				debug("0.5");
+				if (!job_list || !list_count(job_list)) {
+					debug("job list is empty");
+					continue;
+				}
+				/* code duplicated from _build_user_job_list in slurmctld/job_scheduler.c  */
+				job_iterator = list_iterator_create(job_list);
+				debug("0.75");
+				while ((j_ptr = (struct job_record *) list_next(job_iterator))) {
+					debug("1");
+					xassert (job_ptr->magic == JOB_MAGIC);
+					if (j_ptr->job_id == job_ptr->job_id)
+						continue;
+					if (j_ptr->user_id != job_ptr->user_id)
+						continue;
+					if (job_ptr->name && j_ptr->name &&
+						xstrcmp(job_ptr->name, j_ptr->name))
+						continue;
+					debug("job %d found", j_ptr->job_id);
+					list_append(j_list, j_ptr);
+				}
+				list_iterator_destroy(job_iterator);
+			}
+		}
+		list_iterator_destroy(depend_iter);
+		list_size = list_count(j_list);
+		if (!list_size) {
+			debug("empty dependency list");
+		}
+		else {
+			debug("list size %d", list_size);
+			job_iterator = list_iterator_create(j_list);
+			energy_dep = (energy_info_t **) xmalloc(sizeof(energy_info_t*) * list_size + 1);
+			i = 0;
+			debug("00");
+			while ((j_ptr = list_next(job_iterator))) {
+				energy_dep[i] = xmalloc(sizeof(energy_info_t));
+				energy_dep[i]->best_value = *(j_ptr->best_value);
+				energy_dep[i]->job_ptr = j_ptr;
+				i++;
+			}
+			debug("11");
+			energy_dep[i] = xmalloc(sizeof(energy_info_t));
+			energy_dep[i]->best_value = *(job_ptr->best_value);
+			energy_dep[i]->job_ptr = job_ptr;
+			list_size++;
+			debug("before sort");
+			qsort(energy_dep, list_size, sizeof(energy_info_t *), _cmp_energy_values);
+			for (i = 0; i < list_size; i++) {
+				if (job_ptr == energy_dep[i]->job_ptr)
+					priority += i + 1;
+				else
+					energy_dep[i]->job_ptr->priority +=  i + 1;
+				debug("Energy priority assigned to job %d: %"PRIu32, energy_dep[i]->job_ptr->job_id, energy_dep[i]->job_ptr->priority);
+			}
+			list_iterator_destroy(job_iterator);
+			list_destroy(j_list);
+			for (i = 0; i < list_size; i++) {
+				xfree(energy_dep[i]);
+			}
+			xfree(energy_dep);
+		}
+	}
+	else debug("No dependency list at all");
 
 	if (priority_debug) {
 		int i;

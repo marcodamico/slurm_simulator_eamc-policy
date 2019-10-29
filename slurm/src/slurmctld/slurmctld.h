@@ -744,6 +744,7 @@ struct job_record {
 	double *best_freq;			/* one per HW partition */
 	double *def_energy;
 	double *best_energy;
+	double *best_value;
 	priority_factors_object_t *prio_factors; /* cached value used
 						  * by sprio command */
 	uint32_t profile;		/* Acct_gather_profile option */
