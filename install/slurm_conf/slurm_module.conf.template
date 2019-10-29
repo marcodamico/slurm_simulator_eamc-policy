@@ -70,10 +70,10 @@ SelectType=select/linear # As close as this simulator env can get to being selec
 #SelectTypeParameters=CR_CPU
 
 PriorityType=priority/multifactor_energy
-PriorityFavorSmall=YES
+#PriorityFavorSmall=YES
 PriorityWeightAge=1000
 PriorityWeightFairshare=10000
-PriorityWeightJobSize=1000
+#PriorityWeightJobSize=1000
 PriorityWeightPartition=1000
 PriorityWeightQOS=0
 #PriorityType=priority/multifactor
@@ -140,6 +140,7 @@ FastSchedule=2
 #PartitionName=ESB Nodes=n[51-200] Default=YES MaxTime=INFINITE State=UP Shared=NO #28CpS
 #PartitionName=DAM Nodes=n[201-225] Default=YES MaxTime=INFINITE State=UP Shared=NO #???
 #PartitionName=normal Nodes=n[226-TOKEN_NNODES] Default=YES MaxTime=INFINITE State=UP Shared=NO
-NodeName=n[1-TOKEN_NNODES_END] Sockets=1 CoresPerSocket=TOKEN_CORES ThreadsPerCore=1
-PartitionName=normal Nodes=n[1-TOKEN_NNODES_P1] Default=YES MaxTime=INFINITE State=UP Shared=NO
-PartitionName=normal2 Nodes=n[TOKEN_NNODES_P2-TOKEN_NNODES_END] Default=NO MaxTime=INFINITE State=UP Shared=NO
+NodeName=n[1-141] Sockets=1 CoresPerSocket=24 ThreadsPerCore=1
+PartitionName=esb Nodes=n[1-75] Default=YES MaxTime=INFINITE MaxCPUsPerNode=8 State=UP Shared=NO
+PartitionName=cm Nodes=n[76-125] Default=YES MaxTime=INFINITE MaxCPUsPerNode=24 State=UP Shared=NO
+PartitionName=dam Nodes=n[126-141] Default=YES MaxTime=INFINITE MaxCPUsPerNode=16 State=UP Shared=NO
