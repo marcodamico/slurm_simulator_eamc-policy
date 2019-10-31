@@ -752,7 +752,7 @@ void intermodule_time_res_convertor(job_desc_msg_t* dmesg, job_desc_msg_t* dmesg
      dmesg1->min_cpus      = dmesg1->min_nodes * jobd->cpus_per_task;
      dmesg2->min_cpus      = dmesg2->min_nodes * jobd->cpus_per_task;*/
      dmesg1->cpus_per_task = dmesg1->min_cpus/dmesg1->num_tasks;
-     dmesg2->cpus_per_task = dmesg2->min_cpus/dmesg2->num_tasks;
+     //dmesg2->cpus_per_task = dmesg2->min_cpus/dmesg2->num_tasks;
 
      // Set temporarily
      /*dmesg->ntasks_per_node=1;
