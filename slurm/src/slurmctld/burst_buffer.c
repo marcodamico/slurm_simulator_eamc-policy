@@ -391,7 +391,9 @@ static bool _pack_check(char *tok)
  * pack_job_offset IN - Zero origin pack job component ID
  * RET script for that job component, call xfree() to release memory
  */
-extern char *bb_g_build_pack_script(char *script, uint32_t pack_job_offset)
+//***************** Zia Edit Begin *******************************
+extern char *bb_g_build_pack_script(char *script, uint32_t pack_job_offset, bool is_delay_change)
+//***************** Zia Edit End *******************************
 {
 	char *result = NULL, *tmp = NULL;
 	char *tok, *save_ptr = NULL;
@@ -418,8 +420,9 @@ extern char *bb_g_build_pack_script(char *script, uint32_t pack_job_offset)
 			break;
 		tok = strtok_r(NULL, "\n", &save_ptr);
 	}
-
-	if (pack_job_offset == 0) {
+//***************** Zia Edit Begin *******************************
+	if (pack_job_offset == 0 || is_delay_change) {
+//***************** Zia Edit End *******************************
 		while (tok) {
 			char *sep = "";
 			if ((tok[0] == '#') &&

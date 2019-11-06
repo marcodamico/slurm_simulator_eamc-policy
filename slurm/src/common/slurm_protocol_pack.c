@@ -8849,7 +8849,9 @@ _pack_job_desc_msg(job_desc_msg_t * job_desc_ptr, Buf buffer,
 		pack_time(job_desc_ptr->begin_time, buffer);
 		pack_time(job_desc_ptr->end_time, buffer);
 		pack_time(job_desc_ptr->deadline, buffer);
-
+//***************** Zia Edit Begin *******************************
+		pack32(job_desc_ptr->delay, buffer);
+//***************** Zia Edit End *******************************
 		packstr(job_desc_ptr->licenses, buffer);
 		pack16(job_desc_ptr->mail_type, buffer);
 		packstr(job_desc_ptr->mail_user, buffer);
@@ -9018,7 +9020,9 @@ _pack_job_desc_msg(job_desc_msg_t * job_desc_ptr, Buf buffer,
 		pack_time(job_desc_ptr->begin_time, buffer);
 		pack_time(job_desc_ptr->end_time, buffer);
 		pack_time(job_desc_ptr->deadline, buffer);
-
+//***************** Zia Edit Begin *******************************
+		pack32(job_desc_ptr->delay, buffer);
+//***************** Zia Edit End *******************************
 		packstr(job_desc_ptr->licenses, buffer);
 		pack16(job_desc_ptr->mail_type, buffer);
 		packstr(job_desc_ptr->mail_user, buffer);
@@ -9185,7 +9189,9 @@ _pack_job_desc_msg(job_desc_msg_t * job_desc_ptr, Buf buffer,
 		pack_time(job_desc_ptr->begin_time, buffer);
 		pack_time(job_desc_ptr->end_time, buffer);
 		pack_time(job_desc_ptr->deadline, buffer);
-
+//***************** Zia Edit Begin *******************************
+		pack32(job_desc_ptr->delay, buffer);
+//***************** Zia Edit End *******************************
 		packstr(job_desc_ptr->licenses, buffer);
 		pack16(job_desc_ptr->mail_type, buffer);
 		packstr(job_desc_ptr->mail_user, buffer);
@@ -9407,7 +9413,9 @@ _unpack_job_desc_msg(job_desc_msg_t ** job_desc_buffer_ptr, Buf buffer,
 		safe_unpack_time(&job_desc_ptr->begin_time, buffer);
 		safe_unpack_time(&job_desc_ptr->end_time, buffer);
 		safe_unpack_time(&job_desc_ptr->deadline, buffer);
-
+//***************** Zia Edit Begin *******************************
+		safe_unpack32(&job_desc_ptr->delay, buffer);
+//***************** Zia Edit End *******************************
 		safe_unpackstr_xmalloc(&job_desc_ptr->licenses,
 				       &uint32_tmp, buffer);
 		safe_unpack16(&job_desc_ptr->mail_type, buffer);
@@ -9580,7 +9588,9 @@ _unpack_job_desc_msg(job_desc_msg_t ** job_desc_buffer_ptr, Buf buffer,
 		safe_unpack_time(&job_desc_ptr->begin_time, buffer);
 		safe_unpack_time(&job_desc_ptr->end_time, buffer);
 		safe_unpack_time(&job_desc_ptr->deadline, buffer);
-
+//***************** Zia Edit Begin *******************************
+		safe_unpack32(&job_desc_ptr->delay, buffer);
+//***************** Zia Edit End *******************************
 		safe_unpackstr_xmalloc(&job_desc_ptr->licenses,
 				       &uint32_tmp, buffer);
 		safe_unpack16(&job_desc_ptr->mail_type, buffer);
@@ -9754,7 +9764,9 @@ _unpack_job_desc_msg(job_desc_msg_t ** job_desc_buffer_ptr, Buf buffer,
 		safe_unpack_time(&job_desc_ptr->begin_time, buffer);
 		safe_unpack_time(&job_desc_ptr->end_time, buffer);
 		safe_unpack_time(&job_desc_ptr->deadline, buffer);
-
+//***************** Zia Edit Begin *******************************
+		safe_unpack32(&job_desc_ptr->delay, buffer);
+//***************** Zia Edit End *******************************
 		safe_unpackstr_xmalloc(&job_desc_ptr->licenses,
 				       &uint32_tmp, buffer);
 		safe_unpack16(&job_desc_ptr->mail_type, buffer);

@@ -208,7 +208,9 @@
 #define LONG_OPT_CLUSTER_CONSTRAINT 0x168
 #define LONG_OPT_QUIT_ON_INTR    0x169
 #define LONG_OPT_X11             0x170
-
+//***************** Zia Edit Begin *******************************
+#define LONG_OPT_DELAY			 0x171
+//***************** Zia Edit End *******************************
 extern char **environ;
 
 /*---- global variables, defined in opt.h ----*/
@@ -291,6 +293,9 @@ struct option long_options[] = {
 	{"cpu-freq",         required_argument, 0, LONG_OPT_CPU_FREQ},
 	{"deadline",         required_argument, 0, LONG_OPT_DEADLINE},
 	{"debugger-test",    no_argument,       0, LONG_OPT_DEBUG_TS},
+//***************** Zia Edit Begin *******************************
+	{"delay",            required_argument, 0, LONG_OPT_DELAY},
+//***************** Zia Edit End *******************************
 	{"delay-boot",       required_argument, 0, LONG_OPT_DELAY_BOOT},
 	{"epilog",           required_argument, 0, LONG_OPT_EPILOG},
 	{"exclusive",        optional_argument, 0, LONG_OPT_EXCLUSIVE},
@@ -741,6 +746,9 @@ static void _opt_default(void)
 		xfree(opt.acctg_freq);
 		sropt.allocate		= false;
 		opt.begin		= (time_t) 0;
+//***************** Zia Edit Begin *******************************
+		opt.delay       = 0;
+//***************** Zia Edit End *******************************
 		xfree(opt.c_constraints);
 		xfree(sropt.ckpt_dir);
 		sropt.ckpt_dir			= slurm_get_checkpoint_dir();
@@ -1956,6 +1964,14 @@ static void _set_options(const int argc, char **argv)
 				exit(error_exit);
 			}
 			break;
+//***************** Zia Edit Begin *******************************
+		case LONG_OPT_DELAY:
+			if (!optarg)
+				break;  /* Fix for Coverity false positive */
+			xfree(opt.delay_str);
+			opt.delay_str = xstrdup(optarg);
+			break;
+//***************** Zia Edit End *******************************
 		case LONG_OPT_MAIL_TYPE:
 			if (!optarg)
 				break;	/* Fix for Coverity false positive */
@@ -2846,6 +2862,16 @@ static bool _opt_verify(void)
 		if (opt.time_limit == 0)
 			opt.time_limit = INFINITE;
 	}
+//***************** Zia Edit Begin *******************************
+	if (opt.delay_str) {
+		opt.delay = time_str2mins(opt.delay_str);
+		xfree(opt.delay_str);
+		if ((opt.delay < 0) && (opt.delay != INFINITE)) {
+			error("Invalid delay specification");
+			exit(error_exit);
+		}
+	}
+//***************** Zia Edit End *******************************
 	if (opt.time_min_str) {
 		opt.time_min = time_str2mins(opt.time_min_str);
 		if ((opt.time_min < 0) && (opt.time_min != INFINITE)) {
@@ -3173,6 +3199,12 @@ static void _opt_list(void)
 		slurm_make_time_str(&opt.begin, time_str, sizeof(time_str));
 		info("begin          : %s", time_str);
 	}
+//***************** Zia Edit Begin *******************************
+	if (opt.delay == INFINITE)
+		info("delay     : INFINITE");
+	else if (opt.delay)
+		info("delay     : %d", opt.delay);
+//***************** Zia Edit End *******************************
 	if (opt.deadline) {
 		char time_str[32];
 		slurm_make_time_str(&opt.deadline, time_str, sizeof(time_str));

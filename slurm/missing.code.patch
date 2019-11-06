@@ -1,0 +1,60 @@
+#DO NOT USE AS A PATH - patch incomplete, the rest of the code in the commit was patched
+From 745c4372281b748d57179f4e112dcc472cd2cf5f Mon Sep 17 00:00:00 2001
+From: Zia Ul Huda <z.huda@fz-juelich.de>
+Date: Wed, 30 Jan 2019 15:49:12 +0100
+Subject: [PATCH] Added --delay for sbatch and communication of this parameter
+ over to slumd. Need to change the environment variables etc. as srun is
+ crashing in workflow setting when --delay is used.
+
+---
+ src/common/slurm_opt.h                            |   3 +-
+ src/common/slurm_protocol_defs.h                  |   4 +
+ src/common/slurm_protocol_pack.c                  |  34 +++-
+ src/plugins/sched/msa-backfill/backfill.c         | 229 ++++++++++++++++++++--
+ src/plugins/sched/msa-backfill/backfill_wrapper.c |   2 +-
+ src/sbatch/opt.c                                  |  37 +++-
+ src/sbatch/sbatch.c                               |   4 +
+ src/slurmctld/job_mgr.c                           |  27 ++-
+ src/slurmctld/job_scheduler.c                     |   9 +-
+ src/slurmctld/proc_req.c                          |  35 +++-
+ src/slurmctld/slurmctld.h                         |   5 +-
+ src/slurmctld/srun_comm.c                         |  24 ++-
+ src/srun/libsrun/allocate.c                       |  29 +++
+ src/srun/libsrun/opt.c                            |  29 +--
+ 14 files changed, 422 insertions(+), 49 deletions(-)
+
+diff --git a/src/slurmctld/srun_comm.c b/src/slurmctld/srun_comm.c
+index 570cbe2..e341f0a 100644
+--- a/src/slurmctld/srun_comm.c
++++ b/src/slurmctld/srun_comm.c
+@@ -161,11 +166,24 @@ extern void srun_allocate (uint32_t job_id)
+ 				      __func__, pack_leader->pack_job_id);
+ 				continue;
+ 			}
+-			msg_arg = build_alloc_msg(pack_job, SLURM_SUCCESS,
+-						  NULL);
++//MARCO: IGNORED CHANGE, DIFFERENT FUNCTION
++//***************** Zia Edit Begin *******************************			
++			if(IS_JOB_PENDING(pack_job)){
++			    if(pack_job->delayed_workflow)
++				error_no = ESLURM_RESERVATION_NOT_USABLE;
++			    else
++				error_no = ESLURM_JOB_SUSPENDED;
++			    
++			    msg_arg = build_alloc_msg(pack_job, error_no,
++						      NULL);
++			}
++			else
++			    msg_arg = build_alloc_msg(pack_job, SLURM_SUCCESS,
++						      NULL);
++			    
+ 			list_append(job_resp_list, msg_arg);
+ 			msg_arg = NULL;
+ 		}
++//***************** Zia Edit End *******************************
+ 		list_iterator_destroy(iter);
+ 		_srun_agent_launch(addr, job_ptr->alloc_node,
+ 				   RESPONSE_JOB_PACK_ALLOCATION, job_resp_list,
+-- 
+2.7.4
+

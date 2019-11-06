@@ -121,7 +121,9 @@ extern int bb_g_job_validate2(struct job_record *job_ptr, char **err_msg);
  * pack_job_offset IN - Zero origin pack job component ID
  * RET script for that job component, call xfree() to release memory
  */
-extern char *bb_g_build_pack_script(char *script, uint32_t pack_job_offset);
+//***************** Zia Edit Begin *******************************
+extern char *bb_g_build_pack_script(char *script, uint32_t pack_job_offset, bool is_delay_change);
+//***************** Zia Edit End *******************************
 
 /*
  * Fill in the tres_cnt (in MB) based off the job record

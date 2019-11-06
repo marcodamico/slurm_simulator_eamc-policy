@@ -173,7 +173,9 @@ extern void srun_allocate (uint32_t job_id)
 	slurm_addr_t *addr;
 	ListIterator iter;
 	List job_resp_list = NULL;
-
+//***************** Zia Edit Begin *******************************
+	int error_no;
+//***************** Zia Edit End *******************************
 	xassert(job_ptr);
 	if (!job_ptr || !job_ptr->alloc_resp_port || !job_ptr->alloc_node ||
 	    !job_ptr->resp_host || !job_ptr->job_resrcs ||
@@ -190,7 +192,9 @@ extern void srun_allocate (uint32_t job_id)
 		_srun_agent_launch(addr, job_ptr->alloc_node,
 				   RESPONSE_RESOURCE_ALLOCATION, msg_arg,
 				   job_ptr->start_protocol_ver);
-	} else if (_pending_pack_jobs(job_ptr)) {
+//***************** Zia Edit Begin *******************************
+	} else if (!job_ptr->delayed_workflow && _pending_pack_jobs(job_ptr)) {
+//***************** Zia Edit End *******************************
 		return;
 	} else if ((pack_leader = find_job_record(job_ptr->pack_job_id))) {
 		addr = xmalloc(sizeof(struct sockaddr_in));

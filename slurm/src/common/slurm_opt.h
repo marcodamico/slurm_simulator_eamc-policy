@@ -276,6 +276,10 @@ typedef struct slurm_options {
 	/*********************/
 
 	time_t begin;			/* --begin			*/
+//***************** Zia Edit Begin *******************************
+	uint32_t delay;			/* --delay in minutes       */
+	char *delay_str;		/* --delay value        */
+//***************** Zia Edit End *******************************
 	char *extra;			/* unused			*/
 	uint16_t mail_type;		/* --mail-type			*/
 	char *mail_user;		/* --mail-user			*/
