@@ -2,8 +2,8 @@
 AuthType=auth/none
 #AuthType=auth/munge
 ###UsePAM=0
-SlurmUser=bsc33882
-SlurmdUser=bsc33882
+SlurmUser=TOKEN_USER
+SlurmdUser=TOKEN_USER
 ControlMachine=TOKEN_CONTROL_MACHINE #ubuntu
 ControlAddr=TOKEN_CONTROL_MACHINE #ubuntu
 SlurmctldTimeout=300
@@ -48,7 +48,7 @@ SlurmctldLogFile=TOKEN_SLURM_USER_PATH/slurm_varios/log/slurmctld.log
 SlurmdDebug=7
 SlurmdLogFile=TOKEN_SLURM_USER_PATH/slurm_varios/log/slurmd.log
 
-DebugFlags=Backfill,HeteroJobs,Protocol
+DebugFlags=Backfill,HeteroJobs,Reservation
 #DebugFlags=Backfill
 
 SlurmdSpoolDir=TOKEN_SLURM_USER_PATH/slurm_varios/var/spool
@@ -120,13 +120,7 @@ FastSchedule=2
 #NodeName=n6 Sockets=2 CoresPerSocket=24 ThreadsPerCore=1 Features=y
 #NodeName=n7 Sockets=2 CoresPerSocket=24 ThreadsPerCore=1 Features=y
 #NodeName=n8 Sockets=2 CoresPerSocket=24 ThreadsPerCore=1 Features=y
-NodeName=n[1-50] Sockets=2 CoresPerSocket=12 ThreadsPerCore=1
-NodeName=n[51-200] Sockets=2 CoresPerSocket=28 ThreadsPerCore=1
-NodeName=n[201-225] Sockets=2 CoresPerSocket=20 ThreadsPerCore=1
-NodeName=n[226-TOKEN_NNODES] Sockets=2 CoresPerSocket=24 ThreadsPerCore=1
+NodeName=n[1-50] Sockets=1 CoresPerSocket=1 ThreadsPerCore=1
 
 
 PartitionName=CM Nodes=n[1-50] Default=YES MaxTime=INFINITE State=UP Shared=NO #12CpS
-PartitionName=ESB Nodes=n[51-200] Default=YES MaxTime=INFINITE State=UP Shared=NO #28CpS
-PartitionName=DAM Nodes=n[201-225] Default=YES MaxTime=INFINITE State=UP Shared=NO #???
-PartitionName=normal Nodes=n[226-TOKEN_NNODES] Default=YES MaxTime=INFINITE State=UP Shared=NO
