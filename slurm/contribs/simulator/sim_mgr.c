@@ -648,6 +648,10 @@ void generate_job_desc_msg(job_desc_msg_t* dmesg, job_trace_t* jobd) {
 		} else if (strlen(jobd->manifest_filename)>1) {
 			dmesg->name=xstrdup(jobd->manifest_filename+1);
 		}
+		if (jobd->wait_component_job_time && jobd->wait_component_job_time != -1) {
+			dmesg->delay = jobd->wait_component_job_time;
+			printf("Delayed jobpack compont by %d\n", dmesg->delay);
+		}
 }
 
 void
