@@ -17,7 +17,6 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/syscall.h> /* SYS_gettid */
-#include <pwd.h>
 #include <ctype.h>
 #include <sim_trace.h>
 #include <sys/mman.h>
@@ -768,16 +767,16 @@ userIdFromName(const char *name, gid_t* gid) {
 	if (name == NULL || *name == '\0')  /* On NULL or empty string    */
 		return -1;                  /* return an error            */
 
-	u = strtol(name, &endptr, 10);      /* As a convenience to caller */
-	if (*endptr == '\0') {              /* allow a numeric string     */
-		pwd = getpwuid(u);
-		if (pwd == NULL)
-			printf("Warning!  Could not find the group id "
-			       "corresponding to the user id: %u\n", u);
-		else
-			*gid = pwd->pw_gid;
-		return u;
-	}
+	//u = strtol(name, &endptr, 10);      /* As a convenience to caller */
+	//if (*endptr == '\0') {              /* allow a numeric string     */
+	//	pwd = getpwuid_r(u);
+	//	if (pwd == NULL)
+	//		printf("Warning!  Could not find the group id "
+	//		       "corresponding to the user id: %u\n", u);
+	//	else
+	//		*gid = pwd->pw_gid;
+	//	return u;
+	//}
 
 	getpwnam_r(name, pwd, NULL, 0, &pwd_ptr);
 	if (pwd == NULL)
