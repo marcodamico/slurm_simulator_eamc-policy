@@ -59,7 +59,7 @@ CheckpointType=checkpoint/none
 SwitchType=switch/none
 MpiDefault=none
 ###FirstJobId=1000
-SchedulerType=sched/backfill
+SchedulerType=sched/msa-backfill
 #SchedulerParameters=bf_interval=30,bf_queue_limit=TOKEN_BF_QUEUE_LIMIT,bf_max_job_test=100,default_queue_depth=50
 SchedulerParameters=bf_interval=30,bf_queue_limit=TOKEN_BF_QUEUE_LIMIT,default_queue_depth=50
 ###PriorityDecayHalfLife=7-0

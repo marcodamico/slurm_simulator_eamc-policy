@@ -23,6 +23,8 @@ slurmctld_f_port=$((($slurmctld_port+12)))
 
 slurmd_port=$((($slurmctld_port+144)))
 
+user=`(whoami)`
+
 openssl genrsa -out $sim_path/slurm_conf/slurm.key 1024
 openssl rsa -in $sim_path/slurm_conf/slurm.key -pubout -out $sim_path/slurm_conf/slurm.cert
 
@@ -33,7 +35,7 @@ sed -e s/{ID_JOB}/$$/ \
 
 chmod +x slurm_varios/trace.sh
 
-sed -e s:TOKEN_USER:$user \
+sed -e s:TOKEN_USER:$user: \
 	-e s:TOKEN_SLURM_USER_PATH:$sim_path: \
     -e s:TOKEN_BF_QUEUE_LIMIT:$2: \
     -e s:TOKEN_CONTROL_MACHINE:$control_host: \
