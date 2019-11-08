@@ -1194,16 +1194,15 @@ main(int argc, char *argv[], char *envp[]) {
                        /*"Exiting...\n"*/);
                 /*return -1;*/
         }
-
 	//read apps info - TODO: move this path to slurm.conf and sim.conf
-	FILE *apps_fp = fopen("/home/renan/SLURM_SIMULATOR/conf/apps","r");
+/*	FILE *apps_fp = fopen("/home/renan/SLURM_SIMULATOR/conf/apps","r");
 	if (!apps_fp) {
 		error("Unable to open apps file");
 		return -1;
 	}
-    fscanf(apps_fp,"%d", &napps);
-    fclose(apps_fp);
-
+	fscanf(apps_fp,"%d", &napps);
+	fclose(apps_fp);
+*/
 	/* Launch the slurmctld and slurmd here */
 	if (launch_daemons) {
 		if(pid[0] == -1) fork_daemons(0);
