@@ -38,14 +38,10 @@ chmod +x slurm_varios/trace.sh
 
 sed -e s:TOKEN_USER:$user: \
 	-e s:TOKEN_SLURM_USER_PATH:$sim_path: \
-    -e s:TOKEN_BF_QUEUE:$2: \
+    -e s:TOKEN_BF_QUEUE_LIMIT:$2: \
     -e s:TOKEN_CONTROL_MACHINE:$control_host: \
-    -e s:TOKEN_NNODES_P1:$slave_nnodes: \
-    -e s:TOKEN_NNODES_P2:$(($slave_nnodes+1)): \
-    -e s:TOKEN_NNODES_END:$(($slave_nnodes*2)): \
     -e s:TOKEN_SLURMCTLD_PORT:$slurmctld_port-$slurmctld_f_port: \
     -e s:TOKEN_SLURMD_PORT:$slurmd_port: \
-    -e s:TOKEN_CORES:$3: \
     $slurm_conf_template > $sim_path/slurm_conf/slurm.conf
 
 #MARCO: enable to enable slurmdbd

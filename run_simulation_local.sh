@@ -24,6 +24,8 @@ slurmctld_f_port=$((($slurmctld_port+12)))
 
 slurmd_port=$((($slurmctld_port+144)))
 
+user=`(whoami)`
+
 openssl genrsa -out $sim_path/slurm_conf/slurm.key 1024
 openssl rsa -in $sim_path/slurm_conf/slurm.key -pubout -out $sim_path/slurm_conf/slurm.cert
 
@@ -36,14 +38,11 @@ chmod +x slurm_varios/trace.sh
 
 sed -e s:TOKEN_USER:$user: \
 	-e s:TOKEN_SLURM_USER_PATH:$sim_path: \
-    -e s:TOKEN_BF_QUEUE:$2: \
+    -e s:TOKEN_BF_QUEUE_LIMIT:$2: \
     -e s:TOKEN_CONTROL_MACHINE:$control_host: \
-    -e s:TOKEN_NNODES_P1:$slave_nnodes: \
-    -e s:TOKEN_NNODES_P2:$(($slave_nnodes+1)): \
-    -e s:TOKEN_NNODES_END:$(($slave_nnodes*2)): \
+	-e s:TOKEN_NNODES:$slave_nnodes: \
     -e s:TOKEN_SLURMCTLD_PORT:$slurmctld_port-$slurmctld_f_port: \
     -e s:TOKEN_SLURMD_PORT:$slurmd_port: \
-    -e s:TOKEN_CORES:$3: \
     $slurm_conf_template > $sim_path/slurm_conf/slurm.conf
 
 #MARCO: enable to enable slurmdbd
@@ -61,13 +60,9 @@ export PATH=$PATH:$sim_path/slurm_programs/bin
 export PATH=$PATH:$sim_path/slurm_programs/sbin
 export SLURM_CONF=$sim_path/slurm_conf/slurm.conf
 export SLURM_SIM_ID=$$
-export LIBEN_MACHINE="/home/marcodamico/PhD/sims/conf/ear2.conf"
-export LIBEN_APPS="/home/marcodamico/PhD/sims/conf/ear2/apps"
-export LD_LIBRARY_PATH="/home/marcodamico/PhD/energy/deepest/DEEPEST-API/lib/":$LD_LIBRARY_PATH
-export LRZ_MODEL="/home/marcodamico/PhD/energy/deepest/DEEPEST-API"
 #valgrind --trace-children=yes --leak-check=yes sim_mgr -f -w $workload
 #slurmdbd #MARCO: enable to enable slurmdbd
-sim_mgr -f -w $workload
+sim_mgr -f -s $workload
 
 #MARCO: dump_db if slurmdbd is enabled
 #mysqldump -u slurm --password=slurm > db.dump

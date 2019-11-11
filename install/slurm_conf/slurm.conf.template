@@ -69,13 +69,13 @@ SchedulerParameters=bf_interval=23,bf_queue_limit=TOKEN_BF_QUEUE_LIMIT #,default
 SelectType=select/linear # As close as this simulator env can get to being select/alps
 #SelectTypeParameters=CR_CPU
 
-PriorityType=priority/multifactor_energy
-PriorityFavorSmall=YES
-PriorityWeightAge=1000
-PriorityWeightFairshare=10000
-PriorityWeightJobSize=1000
-PriorityWeightPartition=1000
-PriorityWeightQOS=0
+#PriorityType=priority/multifactor
+#PriorityFavorSmall=YES
+#PriorityWeightAge=1000
+#PriorityWeightFairshare=10000
+#PriorityWeightJobSize=1000
+#PriorityWeightPartition=1000
+#PriorityWeightQOS=0
 #PriorityCalcPeriod=4
 #PriorityType=priority/multifactor
 #PriorityWeightAge=50000000 ###100
@@ -131,16 +131,16 @@ FastSchedule=2
 #NodeName=n8 Sockets=2 CoresPerSocket=24 ThreadsPerCore=1 Features=y
 #
 #
-#NodeName=n[1-50] Sockets=2 CoresPerSocket=12 ThreadsPerCore=1
-#NodeName=n[51-200] Sockets=2 CoresPerSocket=28 ThreadsPerCore=1
-#NodeName=n[201-225] Sockets=2 CoresPerSocket=20 ThreadsPerCore=1
-#NodeName=n[226-TOKEN_NNODES] Sockets=2 CoresPerSocket=24 ThreadsPerCore=1
+NodeName=n[1-50] Sockets=2 CoresPerSocket=12 ThreadsPerCore=1
+NodeName=n[51-200] Sockets=2 CoresPerSocket=28 ThreadsPerCore=1
+NodeName=n[201-225] Sockets=2 CoresPerSocket=20 ThreadsPerCore=1
+NodeName=n[226-TOKEN_NNODES] Sockets=2 CoresPerSocket=24 ThreadsPerCore=1
 
 
-#PartitionName=CM Nodes=n[1-50] Default=YES MaxTime=INFINITE State=UP Shared=NO #12CpS
-#PartitionName=ESB Nodes=n[51-200] Default=YES MaxTime=INFINITE State=UP Shared=NO #28CpS
-#PartitionName=DAM Nodes=n[201-225] Default=YES MaxTime=INFINITE State=UP Shared=NO #???
+PartitionName=cm Nodes=n[1-50] Default=YES MaxTime=INFINITE State=UP Shared=NO #12CpS
+PartitionName=esb Nodes=n[51-200] Default=YES MaxTime=INFINITE State=UP Shared=NO #28CpS
+PartitionName=dam Nodes=n[201-225] Default=YES MaxTime=INFINITE State=UP Shared=NO #???
 #PartitionName=normal Nodes=n[226-TOKEN_NNODES] Default=YES MaxTime=INFINITE State=UP Shared=NO
-NodeName=n[1-TOKEN_NNODES_END] Sockets=1 CoresPerSocket=TOKEN_CORES ThreadsPerCore=1
-PartitionName=normal Nodes=n[1-TOKEN_NNODES_P1] Default=YES MaxTime=INFINITE State=UP Shared=NO
-PartitionName=normal2 Nodes=n[TOKEN_NNODES_P2-TOKEN_NNODES_END] Default=NO MaxTime=INFINITE State=UP Shared=NO
+#NodeName=n[1-TOKEN_NNODES_END] Sockets=1 CoresPerSocket=TOKEN_CORES ThreadsPerCore=1
+#PartitionName=normal Nodes=n[1-TOKEN_NNODES_P1] Default=YES MaxTime=INFINITE State=UP Shared=NO
+#PartitionName=normal2 Nodes=n[TOKEN_NNODES_P2-TOKEN_NNODES_END] Default=NO MaxTime=INFINITE State=UP Shared=NO
