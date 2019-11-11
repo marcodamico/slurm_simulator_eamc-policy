@@ -1,61 +1,94 @@
 burst_buffer_common.lo: burst_buffer_common.c /usr/include/stdc-predef.h \
  ../../../../config.h /usr/include/fcntl.h /usr/include/features.h \
- /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h \
- /usr/include/gnu/stubs.h /usr/include/gnu/stubs-64.h \
- /usr/include/bits/types.h /usr/include/bits/typesizes.h \
- /usr/include/bits/fcntl.h /usr/include/bits/fcntl-linux.h \
- /usr/include/bits/uio.h /usr/include/sys/types.h /usr/include/time.h \
- /gpfs/apps/MN4/GCC/7.2.0/lib/gcc/x86_64-suse-linux/7.2.0/include/stddef.h \
- /usr/include/endian.h /usr/include/bits/endian.h \
- /usr/include/bits/byteswap.h /usr/include/bits/byteswap-16.h \
- /usr/include/sys/select.h /usr/include/bits/select.h \
- /usr/include/bits/sigset.h /usr/include/bits/time.h \
- /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h \
- /usr/include/bits/stat.h /usr/include/poll.h /usr/include/sys/poll.h \
- /usr/include/bits/poll.h /usr/include/stdlib.h \
- /usr/include/bits/waitflags.h /usr/include/bits/waitstatus.h \
- /usr/include/xlocale.h /usr/include/alloca.h \
- /usr/include/bits/stdlib-bsearch.h /usr/include/bits/stdlib-float.h \
- /usr/include/sys/stat.h /usr/include/unistd.h \
- /usr/include/bits/posix_opt.h /usr/include/bits/environments.h \
- /usr/include/bits/confname.h /usr/include/getopt.h \
- ../../../../slurm/slurm.h ../../../../slurm/slurm_errno.h \
- /usr/include/errno.h /usr/include/bits/errno.h \
- /usr/include/linux/errno.h /usr/include/asm/errno.h \
+ /usr/include/x86_64-linux-gnu/sys/cdefs.h \
+ /usr/include/x86_64-linux-gnu/bits/wordsize.h \
+ /usr/include/x86_64-linux-gnu/gnu/stubs.h \
+ /usr/include/x86_64-linux-gnu/gnu/stubs-64.h \
+ /usr/include/x86_64-linux-gnu/bits/types.h \
+ /usr/include/x86_64-linux-gnu/bits/typesizes.h \
+ /usr/include/x86_64-linux-gnu/bits/fcntl.h \
+ /usr/include/x86_64-linux-gnu/bits/fcntl-linux.h \
+ /usr/include/x86_64-linux-gnu/bits/uio.h \
+ /usr/include/x86_64-linux-gnu/sys/types.h /usr/include/time.h \
+ /usr/lib/gcc/x86_64-linux-gnu/5/include/stddef.h /usr/include/endian.h \
+ /usr/include/x86_64-linux-gnu/bits/endian.h \
+ /usr/include/x86_64-linux-gnu/bits/byteswap.h \
+ /usr/include/x86_64-linux-gnu/bits/byteswap-16.h \
+ /usr/include/x86_64-linux-gnu/sys/select.h \
+ /usr/include/x86_64-linux-gnu/bits/select.h \
+ /usr/include/x86_64-linux-gnu/bits/sigset.h \
+ /usr/include/x86_64-linux-gnu/bits/time.h \
+ /usr/include/x86_64-linux-gnu/bits/select2.h \
+ /usr/include/x86_64-linux-gnu/sys/sysmacros.h \
+ /usr/include/x86_64-linux-gnu/bits/pthreadtypes.h \
+ /usr/include/x86_64-linux-gnu/bits/stat.h \
+ /usr/include/x86_64-linux-gnu/bits/fcntl2.h /usr/include/poll.h \
+ /usr/include/x86_64-linux-gnu/sys/poll.h \
+ /usr/include/x86_64-linux-gnu/bits/poll.h \
+ /usr/include/x86_64-linux-gnu/bits/poll2.h /usr/include/stdlib.h \
+ /usr/include/x86_64-linux-gnu/bits/waitflags.h \
+ /usr/include/x86_64-linux-gnu/bits/waitstatus.h /usr/include/xlocale.h \
+ /usr/include/alloca.h \
+ /usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h \
+ /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
+ /usr/include/x86_64-linux-gnu/bits/stdlib.h \
+ /usr/include/x86_64-linux-gnu/sys/stat.h /usr/include/unistd.h \
+ /usr/include/x86_64-linux-gnu/bits/posix_opt.h \
+ /usr/include/x86_64-linux-gnu/bits/environments.h \
+ /usr/include/x86_64-linux-gnu/bits/confname.h /usr/include/getopt.h \
+ /usr/include/x86_64-linux-gnu/bits/unistd.h ../../../../slurm/slurm.h \
+ ../../../../slurm/slurm_errno.h /usr/include/errno.h \
+ /usr/include/x86_64-linux-gnu/bits/errno.h /usr/include/linux/errno.h \
+ /usr/include/x86_64-linux-gnu/asm/errno.h \
  /usr/include/asm-generic/errno.h /usr/include/asm-generic/errno-base.h \
- /usr/include/inttypes.h \
- /gpfs/apps/MN4/GCC/7.2.0/lib/gcc/x86_64-suse-linux/7.2.0/include/stdint.h \
- /usr/include/stdint.h /usr/include/bits/wchar.h \
- /gpfs/apps/MN4/GCC/7.2.0/lib/gcc/x86_64-suse-linux/7.2.0/include/stdbool.h \
- /usr/include/stdio.h /usr/include/libio.h /usr/include/_G_config.h \
- /usr/include/wchar.h \
- /gpfs/apps/MN4/GCC/7.2.0/lib/gcc/x86_64-suse-linux/7.2.0/include/stdarg.h \
- /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h \
- /usr/include/bits/stdio.h /usr/include/bits/timex.h \
- /usr/include/netinet/in.h /usr/include/sys/socket.h \
- /usr/include/sys/uio.h /usr/include/bits/socket.h \
- /usr/include/bits/socket_type.h /usr/include/bits/sockaddr.h \
- /usr/include/asm/socket.h /usr/include/asm-generic/socket.h \
- /usr/include/asm/sockios.h /usr/include/asm-generic/sockios.h \
- /usr/include/bits/in.h ../../../../slurm/slurmdb.h \
+ /usr/include/inttypes.h /usr/lib/gcc/x86_64-linux-gnu/5/include/stdint.h \
+ /usr/include/stdint.h /usr/include/x86_64-linux-gnu/bits/wchar.h \
+ /usr/lib/gcc/x86_64-linux-gnu/5/include/stdbool.h /usr/include/stdio.h \
+ /usr/include/libio.h /usr/include/_G_config.h /usr/include/wchar.h \
+ /usr/lib/gcc/x86_64-linux-gnu/5/include/stdarg.h \
+ /usr/include/x86_64-linux-gnu/bits/stdio_lim.h \
+ /usr/include/x86_64-linux-gnu/bits/sys_errlist.h \
+ /usr/include/x86_64-linux-gnu/bits/stdio.h \
+ /usr/include/x86_64-linux-gnu/bits/stdio2.h \
+ /usr/include/x86_64-linux-gnu/bits/timex.h /usr/include/netinet/in.h \
+ /usr/include/x86_64-linux-gnu/sys/socket.h \
+ /usr/include/x86_64-linux-gnu/sys/uio.h \
+ /usr/include/x86_64-linux-gnu/bits/socket.h \
+ /usr/include/x86_64-linux-gnu/bits/socket_type.h \
+ /usr/include/x86_64-linux-gnu/bits/sockaddr.h \
+ /usr/include/x86_64-linux-gnu/asm/socket.h \
+ /usr/include/asm-generic/socket.h \
+ /usr/include/x86_64-linux-gnu/asm/sockios.h \
+ /usr/include/asm-generic/sockios.h \
+ /usr/include/x86_64-linux-gnu/bits/socket2.h \
+ /usr/include/x86_64-linux-gnu/bits/in.h ../../../../slurm/slurmdb.h \
  ../../../../src/common/assoc_mgr.h ../../../../src/common/list.h \
  ../../../../src/common/slurm_accounting_storage.h \
  ../../../../src/slurmctld/slurmctld.h /usr/include/pthread.h \
- /usr/include/sched.h /usr/include/bits/sched.h \
- /usr/include/bits/setjmp.h /usr/include/string.h \
- /usr/include/bits/string.h /usr/include/bits/string2.h \
+ /usr/include/sched.h /usr/include/x86_64-linux-gnu/bits/sched.h \
+ /usr/include/x86_64-linux-gnu/bits/setjmp.h /usr/include/string.h \
+ /usr/include/x86_64-linux-gnu/bits/string.h \
+ /usr/include/x86_64-linux-gnu/bits/string2.h \
+ /usr/include/x86_64-linux-gnu/bits/string3.h \
  ../../../../src/common/bitstring.h ../../../../src/common/checkpoint.h \
  ../../../../src/common/macros.h ../../../../src/common/log.h \
- /usr/include/syslog.h /usr/include/sys/syslog.h \
- /usr/include/bits/syslog-path.h ../../../../src/common/cbuf.h \
- ../../../../src/common/strlcpy.h ../../../../src/common/pack.h \
- /usr/include/assert.h ../../../../src/common/slurm_protocol_defs.h \
- /usr/include/sys/wait.h /usr/include/signal.h /usr/include/bits/signum.h \
- /usr/include/bits/siginfo.h /usr/include/bits/sigaction.h \
- /usr/include/bits/sigcontext.h /usr/include/bits/sigstack.h \
- /usr/include/sys/ucontext.h /usr/include/bits/sigthread.h \
+ /usr/include/syslog.h /usr/include/x86_64-linux-gnu/sys/syslog.h \
+ /usr/include/x86_64-linux-gnu/bits/syslog-path.h \
+ /usr/include/x86_64-linux-gnu/bits/syslog.h \
+ ../../../../src/common/cbuf.h ../../../../src/common/strlcpy.h \
+ ../../../../src/common/pack.h /usr/include/assert.h \
+ ../../../../src/common/slurm_protocol_defs.h \
+ /usr/include/x86_64-linux-gnu/sys/wait.h /usr/include/signal.h \
+ /usr/include/x86_64-linux-gnu/bits/signum.h \
+ /usr/include/x86_64-linux-gnu/bits/siginfo.h \
+ /usr/include/x86_64-linux-gnu/bits/sigaction.h \
+ /usr/include/x86_64-linux-gnu/bits/sigcontext.h \
+ /usr/include/x86_64-linux-gnu/bits/sigstack.h \
+ /usr/include/x86_64-linux-gnu/sys/ucontext.h \
+ /usr/include/x86_64-linux-gnu/bits/sigthread.h \
  ../../../../src/common/job_options.h ../../../../src/common/slurm_cred.h \
- ../../../../src/common/slurm_protocol_common.h /usr/include/sys/time.h \
+ ../../../../src/common/slurm_protocol_common.h \
+ /usr/include/x86_64-linux-gnu/sys/time.h \
  ../../../../src/common/slurm_protocol_socket_common.h \
  ../../../../src/common/slurm_persist_conn.h \
  ../../../../src/common/slurm_step_layout.h \
@@ -70,15 +103,20 @@ burst_buffer_common.lo: burst_buffer_common.c /usr/include/stdc-predef.h \
  ../../../../src/common/slurm_protocol_util.h \
  ../../../../src/common/slurm_protocol_pack.h \
  ../../../../src/common/slurm_protocol_interface.h /usr/include/netdb.h \
- /usr/include/rpc/netdb.h /usr/include/bits/netdb.h \
- /usr/include/sys/ioctl.h /usr/include/bits/ioctls.h \
- /usr/include/asm/ioctls.h /usr/include/asm-generic/ioctls.h \
- /usr/include/linux/ioctl.h /usr/include/asm/ioctl.h \
- /usr/include/asm-generic/ioctl.h /usr/include/bits/ioctl-types.h \
- /usr/include/sys/ttydefaults.h ../../../../src/common/switch.h \
+ /usr/include/rpc/netdb.h /usr/include/x86_64-linux-gnu/bits/netdb.h \
+ /usr/include/x86_64-linux-gnu/sys/ioctl.h \
+ /usr/include/x86_64-linux-gnu/bits/ioctls.h \
+ /usr/include/x86_64-linux-gnu/asm/ioctls.h \
+ /usr/include/asm-generic/ioctls.h /usr/include/linux/ioctl.h \
+ /usr/include/x86_64-linux-gnu/asm/ioctl.h \
+ /usr/include/asm-generic/ioctl.h \
+ /usr/include/x86_64-linux-gnu/bits/ioctl-types.h \
+ /usr/include/x86_64-linux-gnu/sys/ttydefaults.h \
+ ../../../../src/common/switch.h \
  ../../../../src/slurmd/slurmstepd/slurmstepd_job.h /usr/include/pwd.h \
  ../../../../src/common/eio.h ../../../../src/common/env.h \
- /usr/include/sys/utsname.h /usr/include/bits/utsname.h \
+ /usr/include/x86_64-linux-gnu/sys/utsname.h \
+ /usr/include/x86_64-linux-gnu/bits/utsname.h \
  ../../../../src/common/io_hdr.h ../../../../src/common/xmalloc.h \
  ../../../../src/common/stepd_api.h ../../../../src/common/timers.h \
  ../../../../src/common/slurmdb_pack.h \
@@ -96,83 +134,93 @@ burst_buffer_common.lo: burst_buffer_common.c /usr/include/stdc-predef.h \
 
 /usr/include/features.h:
 
-/usr/include/sys/cdefs.h:
+/usr/include/x86_64-linux-gnu/sys/cdefs.h:
 
-/usr/include/bits/wordsize.h:
+/usr/include/x86_64-linux-gnu/bits/wordsize.h:
 
-/usr/include/gnu/stubs.h:
+/usr/include/x86_64-linux-gnu/gnu/stubs.h:
 
-/usr/include/gnu/stubs-64.h:
+/usr/include/x86_64-linux-gnu/gnu/stubs-64.h:
 
-/usr/include/bits/types.h:
+/usr/include/x86_64-linux-gnu/bits/types.h:
 
-/usr/include/bits/typesizes.h:
+/usr/include/x86_64-linux-gnu/bits/typesizes.h:
 
-/usr/include/bits/fcntl.h:
+/usr/include/x86_64-linux-gnu/bits/fcntl.h:
 
-/usr/include/bits/fcntl-linux.h:
+/usr/include/x86_64-linux-gnu/bits/fcntl-linux.h:
 
-/usr/include/bits/uio.h:
+/usr/include/x86_64-linux-gnu/bits/uio.h:
 
-/usr/include/sys/types.h:
+/usr/include/x86_64-linux-gnu/sys/types.h:
 
 /usr/include/time.h:
 
-/gpfs/apps/MN4/GCC/7.2.0/lib/gcc/x86_64-suse-linux/7.2.0/include/stddef.h:
+/usr/lib/gcc/x86_64-linux-gnu/5/include/stddef.h:
 
 /usr/include/endian.h:
 
-/usr/include/bits/endian.h:
+/usr/include/x86_64-linux-gnu/bits/endian.h:
 
-/usr/include/bits/byteswap.h:
+/usr/include/x86_64-linux-gnu/bits/byteswap.h:
 
-/usr/include/bits/byteswap-16.h:
+/usr/include/x86_64-linux-gnu/bits/byteswap-16.h:
 
-/usr/include/sys/select.h:
+/usr/include/x86_64-linux-gnu/sys/select.h:
 
-/usr/include/bits/select.h:
+/usr/include/x86_64-linux-gnu/bits/select.h:
 
-/usr/include/bits/sigset.h:
+/usr/include/x86_64-linux-gnu/bits/sigset.h:
 
-/usr/include/bits/time.h:
+/usr/include/x86_64-linux-gnu/bits/time.h:
 
-/usr/include/sys/sysmacros.h:
+/usr/include/x86_64-linux-gnu/bits/select2.h:
 
-/usr/include/bits/pthreadtypes.h:
+/usr/include/x86_64-linux-gnu/sys/sysmacros.h:
 
-/usr/include/bits/stat.h:
+/usr/include/x86_64-linux-gnu/bits/pthreadtypes.h:
+
+/usr/include/x86_64-linux-gnu/bits/stat.h:
+
+/usr/include/x86_64-linux-gnu/bits/fcntl2.h:
 
 /usr/include/poll.h:
 
-/usr/include/sys/poll.h:
+/usr/include/x86_64-linux-gnu/sys/poll.h:
 
-/usr/include/bits/poll.h:
+/usr/include/x86_64-linux-gnu/bits/poll.h:
+
+/usr/include/x86_64-linux-gnu/bits/poll2.h:
 
 /usr/include/stdlib.h:
 
-/usr/include/bits/waitflags.h:
+/usr/include/x86_64-linux-gnu/bits/waitflags.h:
 
-/usr/include/bits/waitstatus.h:
+/usr/include/x86_64-linux-gnu/bits/waitstatus.h:
 
 /usr/include/xlocale.h:
 
 /usr/include/alloca.h:
 
-/usr/include/bits/stdlib-bsearch.h:
+/usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h:
 
-/usr/include/bits/stdlib-float.h:
+/usr/include/x86_64-linux-gnu/bits/stdlib-float.h:
 
-/usr/include/sys/stat.h:
+/usr/include/x86_64-linux-gnu/bits/stdlib.h:
+
+/usr/include/x86_64-linux-gnu/sys/stat.h:
 
 /usr/include/unistd.h:
 
-/usr/include/bits/posix_opt.h:
+/usr/include/x86_64-linux-gnu/bits/posix_opt.h:
 
-/usr/include/bits/environments.h:
+/usr/include/x86_64-linux-gnu/bits/environments.h:
 
-/usr/include/bits/confname.h:
+/usr/include/x86_64-linux-gnu/bits/confname.h:
 
 /usr/include/getopt.h:
+
+/usr/include/x86_64-linux-gnu/bits/unistd.h:
 
 ../../../../slurm/slurm.h:
 
@@ -180,11 +228,11 @@ burst_buffer_common.lo: burst_buffer_common.c /usr/include/stdc-predef.h \
 
 /usr/include/errno.h:
 
-/usr/include/bits/errno.h:
+/usr/include/x86_64-linux-gnu/bits/errno.h:
 
 /usr/include/linux/errno.h:
 
-/usr/include/asm/errno.h:
+/usr/include/x86_64-linux-gnu/asm/errno.h:
 
 /usr/include/asm-generic/errno.h:
 
@@ -192,13 +240,13 @@ burst_buffer_common.lo: burst_buffer_common.c /usr/include/stdc-predef.h \
 
 /usr/include/inttypes.h:
 
-/gpfs/apps/MN4/GCC/7.2.0/lib/gcc/x86_64-suse-linux/7.2.0/include/stdint.h:
+/usr/lib/gcc/x86_64-linux-gnu/5/include/stdint.h:
 
 /usr/include/stdint.h:
 
-/usr/include/bits/wchar.h:
+/usr/include/x86_64-linux-gnu/bits/wchar.h:
 
-/gpfs/apps/MN4/GCC/7.2.0/lib/gcc/x86_64-suse-linux/7.2.0/include/stdbool.h:
+/usr/lib/gcc/x86_64-linux-gnu/5/include/stdbool.h:
 
 /usr/include/stdio.h:
 
@@ -208,37 +256,41 @@ burst_buffer_common.lo: burst_buffer_common.c /usr/include/stdc-predef.h \
 
 /usr/include/wchar.h:
 
-/gpfs/apps/MN4/GCC/7.2.0/lib/gcc/x86_64-suse-linux/7.2.0/include/stdarg.h:
+/usr/lib/gcc/x86_64-linux-gnu/5/include/stdarg.h:
 
-/usr/include/bits/stdio_lim.h:
+/usr/include/x86_64-linux-gnu/bits/stdio_lim.h:
 
-/usr/include/bits/sys_errlist.h:
+/usr/include/x86_64-linux-gnu/bits/sys_errlist.h:
 
-/usr/include/bits/stdio.h:
+/usr/include/x86_64-linux-gnu/bits/stdio.h:
 
-/usr/include/bits/timex.h:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:
+
+/usr/include/x86_64-linux-gnu/bits/timex.h:
 
 /usr/include/netinet/in.h:
 
-/usr/include/sys/socket.h:
+/usr/include/x86_64-linux-gnu/sys/socket.h:
 
-/usr/include/sys/uio.h:
+/usr/include/x86_64-linux-gnu/sys/uio.h:
 
-/usr/include/bits/socket.h:
+/usr/include/x86_64-linux-gnu/bits/socket.h:
 
-/usr/include/bits/socket_type.h:
+/usr/include/x86_64-linux-gnu/bits/socket_type.h:
 
-/usr/include/bits/sockaddr.h:
+/usr/include/x86_64-linux-gnu/bits/sockaddr.h:
 
-/usr/include/asm/socket.h:
+/usr/include/x86_64-linux-gnu/asm/socket.h:
 
 /usr/include/asm-generic/socket.h:
 
-/usr/include/asm/sockios.h:
+/usr/include/x86_64-linux-gnu/asm/sockios.h:
 
 /usr/include/asm-generic/sockios.h:
 
-/usr/include/bits/in.h:
+/usr/include/x86_64-linux-gnu/bits/socket2.h:
+
+/usr/include/x86_64-linux-gnu/bits/in.h:
 
 ../../../../slurm/slurmdb.h:
 
@@ -254,15 +306,17 @@ burst_buffer_common.lo: burst_buffer_common.c /usr/include/stdc-predef.h \
 
 /usr/include/sched.h:
 
-/usr/include/bits/sched.h:
+/usr/include/x86_64-linux-gnu/bits/sched.h:
 
-/usr/include/bits/setjmp.h:
+/usr/include/x86_64-linux-gnu/bits/setjmp.h:
 
 /usr/include/string.h:
 
-/usr/include/bits/string.h:
+/usr/include/x86_64-linux-gnu/bits/string.h:
 
-/usr/include/bits/string2.h:
+/usr/include/x86_64-linux-gnu/bits/string2.h:
+
+/usr/include/x86_64-linux-gnu/bits/string3.h:
 
 ../../../../src/common/bitstring.h:
 
@@ -274,9 +328,11 @@ burst_buffer_common.lo: burst_buffer_common.c /usr/include/stdc-predef.h \
 
 /usr/include/syslog.h:
 
-/usr/include/sys/syslog.h:
+/usr/include/x86_64-linux-gnu/sys/syslog.h:
 
-/usr/include/bits/syslog-path.h:
+/usr/include/x86_64-linux-gnu/bits/syslog-path.h:
+
+/usr/include/x86_64-linux-gnu/bits/syslog.h:
 
 ../../../../src/common/cbuf.h:
 
@@ -288,23 +344,23 @@ burst_buffer_common.lo: burst_buffer_common.c /usr/include/stdc-predef.h \
 
 ../../../../src/common/slurm_protocol_defs.h:
 
-/usr/include/sys/wait.h:
+/usr/include/x86_64-linux-gnu/sys/wait.h:
 
 /usr/include/signal.h:
 
-/usr/include/bits/signum.h:
+/usr/include/x86_64-linux-gnu/bits/signum.h:
 
-/usr/include/bits/siginfo.h:
+/usr/include/x86_64-linux-gnu/bits/siginfo.h:
 
-/usr/include/bits/sigaction.h:
+/usr/include/x86_64-linux-gnu/bits/sigaction.h:
 
-/usr/include/bits/sigcontext.h:
+/usr/include/x86_64-linux-gnu/bits/sigcontext.h:
 
-/usr/include/bits/sigstack.h:
+/usr/include/x86_64-linux-gnu/bits/sigstack.h:
 
-/usr/include/sys/ucontext.h:
+/usr/include/x86_64-linux-gnu/sys/ucontext.h:
 
-/usr/include/bits/sigthread.h:
+/usr/include/x86_64-linux-gnu/bits/sigthread.h:
 
 ../../../../src/common/job_options.h:
 
@@ -312,7 +368,7 @@ burst_buffer_common.lo: burst_buffer_common.c /usr/include/stdc-predef.h \
 
 ../../../../src/common/slurm_protocol_common.h:
 
-/usr/include/sys/time.h:
+/usr/include/x86_64-linux-gnu/sys/time.h:
 
 ../../../../src/common/slurm_protocol_socket_common.h:
 
@@ -352,25 +408,25 @@ burst_buffer_common.lo: burst_buffer_common.c /usr/include/stdc-predef.h \
 
 /usr/include/rpc/netdb.h:
 
-/usr/include/bits/netdb.h:
+/usr/include/x86_64-linux-gnu/bits/netdb.h:
 
-/usr/include/sys/ioctl.h:
+/usr/include/x86_64-linux-gnu/sys/ioctl.h:
 
-/usr/include/bits/ioctls.h:
+/usr/include/x86_64-linux-gnu/bits/ioctls.h:
 
-/usr/include/asm/ioctls.h:
+/usr/include/x86_64-linux-gnu/asm/ioctls.h:
 
 /usr/include/asm-generic/ioctls.h:
 
 /usr/include/linux/ioctl.h:
 
-/usr/include/asm/ioctl.h:
+/usr/include/x86_64-linux-gnu/asm/ioctl.h:
 
 /usr/include/asm-generic/ioctl.h:
 
-/usr/include/bits/ioctl-types.h:
+/usr/include/x86_64-linux-gnu/bits/ioctl-types.h:
 
-/usr/include/sys/ttydefaults.h:
+/usr/include/x86_64-linux-gnu/sys/ttydefaults.h:
 
 ../../../../src/common/switch.h:
 
@@ -382,9 +438,9 @@ burst_buffer_common.lo: burst_buffer_common.c /usr/include/stdc-predef.h \
 
 ../../../../src/common/env.h:
 
-/usr/include/sys/utsname.h:
+/usr/include/x86_64-linux-gnu/sys/utsname.h:
 
-/usr/include/bits/utsname.h:
+/usr/include/x86_64-linux-gnu/bits/utsname.h:
 
 ../../../../src/common/io_hdr.h:
 

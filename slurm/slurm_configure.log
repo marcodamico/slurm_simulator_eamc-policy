@@ -1,5 +1,5 @@
 configure: WARNING: unrecognized options: --enable-simulator
-configure: WARNING: *** mysql_config not found. Evidently no MySQL development libs installed on system.
+configure: WARNING: unable to locate PAM libraries
 configure: WARNING: unable to locate json parser library
 configure: WARNING: unable to locate ofed installation
 configure: WARNING:
@@ -8,13 +8,16 @@ Please specify --with-hdf5=<LOCATION> as the full path to h5cc or h5pcc.
 HDF5 support is being disabled (equivalent to --with-hdf5=no).
 
 configure: WARNING: LZ4 test program build failed.
+configure: WARNING: unable to locate pmix installation
 configure: WARNING: unable to locate freeipmi installation
 configure: WARNING: unable to locate rrdtool installation
 configure: WARNING: unable to locate libssh2 installation
 configure: WARNING: Slurm internal X11 support disabled
+configure: WARNING: cannot build smap without curses or ncurses library
 configure: WARNING: unable to locate DataWarp installation
 configure: WARNING: unable to locate netloc installation
 configure: WARNING: unable to locate lua package
 configure: WARNING: unable to build man page html files without man2html
-configure: WARNING: unable to locate munge installation
+configure: WARNING: configured for readline support, but couldn't find libraries
+configure: WARNING: unable to locate/link against libcurl-devel installation
 configure: WARNING: unrecognized options: --enable-simulator

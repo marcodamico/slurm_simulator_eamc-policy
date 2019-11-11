@@ -78,6 +78,7 @@ int read_job_trace_record(int trace_file, job_trace_t *job_trace) {
 	} else {
 		job_trace->manifest=NULL;
 	}
+	job_trace->module_list[0] = '\0';
 	return ret_val;
 }
 

@@ -529,7 +529,7 @@ int simulator_add_future_event(batch_job_launch_msg_t *req){
         }
         new_event->job_id = req->job_id;
         new_event->type = REQUEST_COMPLETE_BATCH_SCRIPT;
-        new_event->when = now + temp_ptr->duration;
+        new_event->when = now + req->duration;
         new_event->nodelist = strdup(req->nodes);
         new_event->next = NULL;
 
@@ -3558,7 +3558,9 @@ simulator_rpc_terminate_job(slurm_msg_t *rec_msg)
 
         /* Let wait for an answer for simulation syncronization */
         slurm_send_recv_controller_rc_msg(&msg, &rc, working_cluster_rec);
-        waiting_epilog_msgs--;
+        pthread_mutex_lock(&epilogs_mutex);
+		waiting_epilog_msgs--;
+		pthread_mutex_unlock(&epilogs_mutex);
         hostlist_destroy(hl);
         free((void*)event_sim);
 }

@@ -59,9 +59,9 @@ int napps;
 static int CM = 0;
 static int DAM = 0;
 
+sem_t *sim_sem;
+sem_t *slurm_sem;
 
-char SEM_NAME[] = "serversem";
-sem_t* mutexserver;
 /*ANA: Replacing signals with shared vars for slurmd registration */
 char    sig_sem_name[]  = "signalsem";
 sem_t* mutexsignal = SEM_FAILED;
@@ -308,14 +308,18 @@ void
 terminate_simulation(int signum) {
 
 	int i;
-
+	char sim_sem_name[100], slurm_sem_name[100];
+	get_semaphores_names(sim_sem_name, slurm_sem_name);
 	dumping_shared_mem();
 
-	sem_close(mutexserver);
-	sem_unlink(SEM_NAME);
+	sem_close(sim_sem);
+	sem_unlink(sim_sem_name);
+	sem_close(slurm_sem);
+	sem_unlink(slurm_sem_name);
 
 	slurm_shutdown(0); /* 0-shutdown all daemons without a core file */
 
+	sleep(3);
 	if(signum == SIGINT)
 		exit(0);
 
@@ -328,10 +332,10 @@ dumping_shared_mem() {
 	struct timeval t1;
 
 	printf("Let's dump the shared memory contents\n");
-
+#ifdef DEBUG
 	gettimeofday(&t1, NULL);
 	printf("SIM_MGR[%u][%ld][%ld]\n", current_sim[0], t1.tv_sec, t1.tv_usec);
-
+#endif
 	return;
 }
 
@@ -409,12 +413,12 @@ time_mgr(void *arg) {
 		}
 
 		/* First going through threads and leaving a chance to execute code */
-
+#ifdef DEBUG
 		gettimeofday(&t1, NULL);
 
 		sim_mgr_debug(3, "SIM_MGR[%u][%ld][%ld]\n",
 				current_sim[0], t1.tv_sec, t1.tv_usec);
-
+#endif
 #if 1
 		/* Now checking if a new reservation needs to be created */
 		if(rsv_trace_head &&
@@ -534,7 +538,10 @@ time_mgr(void *arg) {
 
 		/* Synchronization with daemons */
 		//info("before unlocking next loop");
-		sem_wait(mutexserver);
+		sem_post(slurm_sem);
+		sem_wait(sim_sem);
+
+/*		sem_wait(mutexserver);
 		//info("unlocking next loop");
 		*global_sync_flag = 1;
 		sem_post(mutexserver);
@@ -547,6 +554,7 @@ time_mgr(void *arg) {
 			sem_post(mutexserver);
                 	usleep(sync_loop_wait_time);
 		}
+*/
 		/*
 		 * Time throttling added but currently unstable; for now, run
 		 * with only 1 second intervals
@@ -562,10 +570,10 @@ time_mgr(void *arg) {
 				1000000.0;
 		//printf("sim_mgr loop iteration time %lu, SU: %f, sim_inc: %d, sim_time: %d\n",
 		//		i_loop.tv_usec, speed_up, time_incr, *(current_sim));
-//#ifdef DEBUG
+#ifdef DEBUG
 		info("[%d] time_mgr--current simulated time: %lu\n",
 					__LINE__, *current_sim);
-//#endif
+#endif
 	}
 
 	return 0;
@@ -746,6 +754,18 @@ void intermodule_time_res_convertor(job_desc_msg_t* dmesg, job_desc_msg_t* dmesg
           dmesg2->ntasks_per_node=1;*/
           
 
+     //info("End filling in desc msgs 1 and 2 priority, timelimit, etc.");
+     /*dmesg1->num_tasks     = dmesg1->min_nodes;
+     dmesg2->num_tasks     = dmesg2->min_nodes;
+     dmesg1->min_cpus      = dmesg1->min_nodes * jobd->cpus_per_task;
+     dmesg2->min_cpus      = dmesg2->min_nodes * jobd->cpus_per_task;*/
+     dmesg1->cpus_per_task = dmesg1->min_cpus/dmesg1->num_tasks;
+     //dmesg2->cpus_per_task = dmesg2->min_cpus/dmesg2->num_tasks;
+
+     // Set temporarily
+     /*dmesg->ntasks_per_node=1;
+     dmesg1->ntasks_per_node=1;
+     dmesg2->ntasks_per_node=1;*/
 }
 
 void generate_job_desc_msg(job_desc_msg_t* dmesg, job_trace_t* jobd) {
@@ -791,20 +811,25 @@ void generate_job_desc_msg(job_desc_msg_t* dmesg, job_trace_t* jobd) {
 		dmesg->dependency    = re_write_dependencies(jobd);
 		dmesg->num_tasks     = jobd->tasks;
  
- 
-                if(!strcmp(dmesg->partition,"cm")){ dmesg->min_nodes     = MAX(1,jobd->tasks); }
-                else if(!strcmp(dmesg->partition,"esb")){ dmesg->min_nodes     = MAX(1,jobd->tasks);}
-                else if(!strcmp(dmesg->partition,"dam")){ dmesg->min_nodes     = MAX(1,jobd->tasks);}
+		if(!strcmp(dmesg->partition,"cm"))		{ dmesg->min_nodes     = MAX(1,jobd->tasks);}
+		else if(!strcmp(dmesg->partition,"esb")){ dmesg->min_nodes     = MAX(1,jobd->tasks);}
+		else if(!strcmp(dmesg->partition,"dam")){ dmesg->min_nodes     = MAX(1,jobd->tasks);}
 
 		dmesg->min_cpus      = jobd->tasks * jobd->cpus_per_task; 
 		dmesg->cpus_per_task = jobd->cpus_per_task;
+		dmesg->min_nodes     = jobd->tasks;
+		if(jobd->tasks_per_node)
+			dmesg->ntasks_per_node = jobd->tasks_per_node;
 		dmesg->ntasks_per_node = MAX(1,jobd->tasks/dmesg->min_nodes);
-                
+        dmesg->duration		 = jobd->duration;
 
-		int app_id = 1 + rand() % (napps - 1); //8 apps
-	        char appid[100];
-	        sprintf(appid,"%d", app_id);
-	        dmesg->comment       = strdup(appid);
+		/*TODO: implement this in the trace file */
+		if (napps) {
+			int app_id = 1 + rand() % (napps - 1);
+			char appid[100];
+			sprintf(appid,"%d", app_id);
+			dmesg->comment       = strdup(appid);
+		}
 
 		if (trace_format > 2) {	
 			if (strcmp(jobd->rreq_constraint,"-1"))
@@ -1010,8 +1035,8 @@ generateJob(job_trace_t* jobd, List *job_req_list, int modular_jobid, int * dura
 		}
 
 		printf("\nResponse from job submission\n\terror_code: %u\n\t"
-			"job_id: %u\n\tstep_id: %u\n",
-			rptr->error_code, rptr->job_id, rptr->step_id);
+			   "job_id: %u\n\tstep_id: %u\n",
+			   rptr->error_code, rptr->job_id, rptr->step_id);
 		printf("\n");
 
 		/*
@@ -1265,7 +1290,7 @@ int init_job_trace() {
 		}
 		while((ret_val=read_job_trace_record(trace_file, &new_job))>0) {
 
-			displayJobTraceT(&new_job);
+	//		displayJobTraceT(&new_job);
 
 			init_trace_info(&new_job, 0);
 			total_trace_records++;
@@ -1365,10 +1390,18 @@ printf("Reading filename %s for execution at %ld\n",
 
 int
 open_global_sync_semaphore() {
-	mutexserver = sem_open(SEM_NAME, O_CREAT, 0644, 1);
-	if(mutexserver == SEM_FAILED) {
-		perror("unable to create server semaphore");
-		sem_unlink(SEM_NAME);
+	char sim_sem_name[100], slurm_sem_name[100];
+	get_semaphores_names(sim_sem_name, slurm_sem_name);
+	sim_sem = sem_open(sim_sem_name, O_CREAT, 0644, 0);
+	if(sim_sem == SEM_FAILED) {
+		perror("unable to create simulation semaphore");
+		sem_unlink(sim_sem_name);
+		return -1;
+	}
+	slurm_sem = sem_open(slurm_sem_name, O_CREAT, 0644, 0);
+	if(slurm_sem == SEM_FAILED) {
+		perror("unable to create slurm semaphore");
+		sem_unlink(slurm_sem_name);
 		return -1;
 	}
 
@@ -1487,13 +1520,20 @@ main(int argc, char *argv[], char *envp[]) {
         }
 
 	//read apps info - TODO: move this path to slurm.conf and sim.conf
-	FILE *apps_fp = fopen("/home/bsc33/bsc33882/SIMULATOR_SLURM_V17/conf/apps","r");
-	if (!apps_fp) {
-		error("Unable to open apps file");
-		return -1;
+	char *apps_file = getenv("LIBEN_APPS");
+	if (!apps_file) {
+		debug("Apps file not specified");
+		napps = 0;
 	}
-    fscanf(apps_fp,"%d", &napps);
-    fclose(apps_fp);
+	else {
+		FILE *apps_fp = fopen(apps_file,"r");
+		if (!apps_fp) {
+			error("Unable to open apps file");
+			return -1;
+		}
+		fscanf(apps_fp,"%d", &napps);
+		fclose(apps_fp);
+	}
 
 	/* Launch the slurmctld and slurmd here */
 	if (launch_daemons) {

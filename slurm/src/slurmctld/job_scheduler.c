@@ -1615,6 +1615,31 @@ next_part:			part_ptr = (struct part_record *)
 			job_ptr  = job_queue_rec->job_ptr;
 			part_ptr = job_queue_rec->part_ptr;
 			job_ptr->priority = job_queue_rec->priority;
+			/* Get right time limit for this partition and frequency */
+			char *prio_type = slurm_get_priority_type();
+			if (!xstrcmp(prio_type, "priority/multifactor_energy")) {
+				int ipart = -1;
+				if (job_ptr->part_ptr_list) { 
+					ListIterator part_iterator;
+					part_iterator = list_iterator_create(
+							job_ptr->part_ptr_list);
+					while ((part_ptr = (struct part_record *)
+								list_next(part_iterator))) {
+						ipart++;
+						if (job_queue_rec->part_ptr == part_ptr)
+							break;
+					}
+					list_iterator_destroy(part_iterator);
+				}
+				else ipart = 0;
+				if (job_ptr->best_time_limit[ipart])
+					job_ptr->time_limit = job_ptr->best_time_limit[ipart];
+#ifdef SLURM_SIMULATOR
+				if(job_ptr->best_duration[ipart])
+					job_ptr->duration = job_ptr->best_duration[ipart];
+#endif
+			}
+			xfree(prio_type);
 			xfree(job_queue_rec);
 			if (!avail_front_end(job_ptr)) {
 				job_ptr->state_reason = WAIT_FRONT_END;
@@ -2476,6 +2501,10 @@ static batch_job_launch_msg_t *_build_launch_job_msg(struct job_record *job_ptr,
 
 	launch_msg_ptr->select_jobinfo = select_g_select_jobinfo_copy(
 					 job_ptr->select_jobinfo);
+	
+#ifdef SLURM_SIMULATOR
+	launch_msg_ptr->duration = job_ptr->duration;
+#endif
 
 	if (job_ptr->account) {
 		launch_msg_ptr->account = xstrdup(job_ptr->account);

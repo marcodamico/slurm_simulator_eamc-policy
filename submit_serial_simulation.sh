@@ -2,7 +2,7 @@
 #SBATCH -J slurm-simulator-into-slurm
 #SBATCH -o OUTPUTS/test1_%j.out
 #SBATCH -e OUTPUTS/test1_%j.err
-#SBATCH -c 48
+#SBATCH -c 4
 #SBATCH --nodes=1
 #SBATCH -t 01:00:00
 #SBATCH --qos=debug
@@ -25,7 +25,7 @@ slave_nnodes=3456
 slurm_conf_template="$sim_path/slurm_conf/slurm.conf.template"
 
 slurmctld_port=$((($SLURM_JOBID%65535))) #12 is the max number of jobs that can enter mn4 node
-#not working, i will assume the risk instead of die trying 
+#not working, i will assume the risk instead of die trying
 #ok="0";
 #while [ $ok -eq 0 ]
 #do
@@ -81,4 +81,4 @@ source env.sh
 #./reset_user.sh
 #slurmdbd
 export SLURM_CONF=$(pwd)/slurm_conf/slurm.conf
-sim_mgr $1 -f -w $2
+sim_mgr 0 -f -w $1

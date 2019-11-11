@@ -4,6 +4,8 @@
 #ifdef SLURM_SIMULATOR
 
 #define SLURM_SIM_SHM "/tester_slurm_sim.shm"
+#define SLURM_SEM_NAME "slurmsem"
+#define SIM_SEM_NAME "simsem"
 
 /* Offsets */
 #define SIM_SECONDS_OFFSET           0
@@ -22,9 +24,6 @@ int          * slurmd_pid;
 char         * global_sync_flag;
 int          * trace_recs_end_sim;
 int          * slurmd_registered; /*ANA: Replacing signals with shared vars for slurmd registration ***/
-
-extern char           SEM_NAME[];
-extern sem_t*         mutexserver;
 
 /*ANA: Replacing signals with shared vars for slurmd registration ***/
 extern char    sig_sem_name[];

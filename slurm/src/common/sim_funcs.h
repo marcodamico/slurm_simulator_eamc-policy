@@ -27,5 +27,6 @@
 
 int (*real_gettimeofday)(struct timeval *,struct timezone *);
 int attaching_shared_memory();
+void get_semaphores_names(char *sim_sem, char *slurm_sem);
 #endif
 #endif  /*__SLURM_SIM_FUNCS_H__*/

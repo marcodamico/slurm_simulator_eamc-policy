@@ -220,6 +220,7 @@ extern int    slurmctld_running_job_count;
 extern time_t slurmctld_running_job_count_ts;
 #ifdef SLURM_SIMULATOR
 extern int backfill_interval;
+extern uint32_t multifactor_interval;
 #endif
 /* Buffer size use to print the jobid2str()
  * jobid, taskid and state.
@@ -741,6 +742,10 @@ struct job_record {
 	uint32_t priority;		/* relative priority of the job,
 					 * zero == held (don't initiate) */
 	uint32_t *priority_array;	/* partition based priority */
+	double *best_freq;			/* one per HW partition */
+	double *def_energy;
+	double *best_energy;
+	double *best_value;
 	priority_factors_object_t *prio_factors; /* cached value used
 						  * by sprio command */
 	uint32_t profile;		/* Acct_gather_profile option */
@@ -783,6 +788,7 @@ struct job_record {
 	time_t time_last_active;	/* time of last job activity */
 	uint32_t time_limit;		/* time_limit minutes or INFINITE,
 					 * NO_VAL implies partition max_time */
+	uint32_t *best_time_limit;
 	uint32_t time_min;		/* minimum time_limit minutes or
 					 * INFINITE,
 					 * zero implies same as time_limit */
@@ -818,6 +824,12 @@ struct job_record {
 	uint32_t wait4switch; /* Maximum time to wait for minimum switches */
 	bool     best_switch; /* true=min number of switches met           */
 	time_t wait4switch_start; /* Time started waiting for switch       */
+#ifdef SLURM_SIMULATOR
+	uint32_t duration;
+	uint32_t *best_duration;
+	double *real_best_energy;
+	double *real_def_energy;
+#endif
 };
 
 /* Job dependency specification, used in "depend_list" within job_record */

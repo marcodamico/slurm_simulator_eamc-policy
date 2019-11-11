@@ -2,8 +2,8 @@
 AuthType=auth/none
 #AuthType=auth/munge
 ###UsePAM=0
-SlurmUser=bsc33882
-SlurmdUser=bsc33882
+SlurmUser=TOKEN_USER
+SlurmdUser=TOKEN_USER
 ControlMachine=TOKEN_CONTROL_MACHINE #ubuntu
 ControlAddr=TOKEN_CONTROL_MACHINE #ubuntu
 SlurmctldTimeout=300
@@ -29,7 +29,7 @@ ProctrackType=proctrack/linuxproc
 KillWait=60
 WaitTime=120
 ###MaxJobCount=8000
-MaxJobCount=20000
+MaxJobCount=2000000
 MinJobAge=300
 #MinJobAge=10
 OverTimeLimit=1
@@ -48,7 +48,8 @@ SlurmctldLogFile=TOKEN_SLURM_USER_PATH/slurm_varios/log/slurmctld.log
 SlurmdDebug=7
 SlurmdLogFile=TOKEN_SLURM_USER_PATH/slurm_varios/log/slurmd.log
 
-DebugFlags=Backfill,HeteroJobs,Protocol
+DebugFlags=SelectType,Backfill,Reservation,Priority
+#DebugFlags=Backfill,HeteroJobs #,Protocol
 #DebugFlags=Backfill
 
 SlurmdSpoolDir=TOKEN_SLURM_USER_PATH/slurm_varios/var/spool
@@ -61,13 +62,21 @@ MpiDefault=none
 ###FirstJobId=1000
 SchedulerType=sched/backfill
 #SchedulerParameters=bf_interval=30,bf_queue_limit=TOKEN_BF_QUEUE_LIMIT,bf_max_job_test=100,default_queue_depth=50
-SchedulerParameters=bf_interval=30,bf_queue_limit=TOKEN_BF_QUEUE_LIMIT,default_queue_depth=50
+SchedulerParameters=bf_interval=23,bf_queue_limit=TOKEN_BF_QUEUE_LIMIT #,default_queue_depth=50
 ###PriorityDecayHalfLife=7-0
 #PriorityDecayHalfLife=14-00:00:00
-SelectType=select/bsc_cons_res
-#SelectType=select/linear # As close as this simulator env can get to being select/alps
-SelectTypeParameters=CR_CPU
+#SelectType=select/bsc_cons_res
+SelectType=select/linear # As close as this simulator env can get to being select/alps
+#SelectTypeParameters=CR_CPU
 
+#PriorityType=priority/multifactor
+#PriorityFavorSmall=YES
+#PriorityWeightAge=1000
+#PriorityWeightFairshare=10000
+#PriorityWeightJobSize=1000
+#PriorityWeightPartition=1000
+#PriorityWeightQOS=0
+#PriorityCalcPeriod=4
 #PriorityType=priority/multifactor
 #PriorityWeightAge=50000000 ###100
 #PriorityWeightFairShare=0
@@ -80,7 +89,7 @@ SelectTypeParameters=CR_CPU
 #AccountingStorageHost=localhost
 ###AccountingStorageEnforce=limits,qos
 ################################################################################################################AccountingStorageEnforce=limits
-ClusterName=perfdevel_mall
+ClusterName=perfdevel
 
 ###NodeName=DEFAULT RealMemory=3168 Procs=12 Sockets=2 CoresPerSocket=6 ThreadsPerCore=1
 ###NodeName=n[1-126] NodeAddr=bre NodeHostName=bre Procs=12 Sockets=2 CoresPerSocket=6 ThreadsPerCore=1
@@ -120,13 +129,18 @@ FastSchedule=2
 #NodeName=n6 Sockets=2 CoresPerSocket=24 ThreadsPerCore=1 Features=y
 #NodeName=n7 Sockets=2 CoresPerSocket=24 ThreadsPerCore=1 Features=y
 #NodeName=n8 Sockets=2 CoresPerSocket=24 ThreadsPerCore=1 Features=y
+#
+#
 NodeName=n[1-50] Sockets=2 CoresPerSocket=12 ThreadsPerCore=1
 NodeName=n[51-200] Sockets=2 CoresPerSocket=28 ThreadsPerCore=1
 NodeName=n[201-225] Sockets=2 CoresPerSocket=20 ThreadsPerCore=1
 NodeName=n[226-TOKEN_NNODES] Sockets=2 CoresPerSocket=24 ThreadsPerCore=1
 
 
-PartitionName=CM Nodes=n[1-50] Default=YES MaxTime=INFINITE State=UP Shared=NO #12CpS
-PartitionName=ESB Nodes=n[51-200] Default=YES MaxTime=INFINITE State=UP Shared=NO #28CpS
-PartitionName=DAM Nodes=n[201-225] Default=YES MaxTime=INFINITE State=UP Shared=NO #???
-PartitionName=normal Nodes=n[226-TOKEN_NNODES] Default=YES MaxTime=INFINITE State=UP Shared=NO
+PartitionName=cm Nodes=n[1-50] Default=YES MaxTime=INFINITE State=UP Shared=NO #12CpS
+PartitionName=esb Nodes=n[51-200] Default=YES MaxTime=INFINITE State=UP Shared=NO #28CpS
+PartitionName=dam Nodes=n[201-225] Default=YES MaxTime=INFINITE State=UP Shared=NO #???
+#PartitionName=normal Nodes=n[226-TOKEN_NNODES] Default=YES MaxTime=INFINITE State=UP Shared=NO
+#NodeName=n[1-TOKEN_NNODES_END] Sockets=1 CoresPerSocket=TOKEN_CORES ThreadsPerCore=1
+#PartitionName=normal Nodes=n[1-TOKEN_NNODES_P1] Default=YES MaxTime=INFINITE State=UP Shared=NO
+#PartitionName=normal2 Nodes=n[TOKEN_NNODES_P2-TOKEN_NNODES_END] Default=NO MaxTime=INFINITE State=UP Shared=NO

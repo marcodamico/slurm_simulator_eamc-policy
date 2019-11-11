@@ -1603,6 +1603,9 @@ typedef struct job_descriptor {	/* For submit, allocate, and update requests */
 	char *x11_magic_cookie;	/* automatically stolen from submit node */
 				/* no x11_target_host, alloc_node is the same */
 	uint16_t x11_target_port; /* target tcp port, 6000 + the display number */
+#ifdef SLURM_SIMULATOR	
+	uint32_t duration;
+#endif
 } job_desc_msg_t;
 
 typedef struct job_info {

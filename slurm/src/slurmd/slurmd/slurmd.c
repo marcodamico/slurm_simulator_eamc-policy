@@ -125,6 +125,7 @@
 #ifdef SLURM_SIMULATOR
 #include "sim_events.h"
 #include "src/common/slurm_sim.h"
+#include "src/common/sim_funcs.h"
 #endif
 
 #define GETOPT_ARGS	"bcCd:Df:hL:Mn:N:vV"
@@ -141,6 +142,7 @@
 /* global, copied to STDERR_FILENO in tasks before the exec */
 int devnull = -1;
 int waiting_epilog_msgs = 0;
+pthread_mutex_t epilogs_mutex = PTHREAD_MUTEX_INITIALIZER;
 slurmd_conf_t * conf = NULL;
 int fini_job_cnt = 0;
 uint32_t *fini_job_id = NULL;
@@ -164,8 +166,8 @@ typedef struct connection {
 volatile simulator_event_t *head_simulator_event;
 volatile simulator_event_t *head_sim_completed_jobs;
 int    total_sim_events = 0;
-char   SEM_NAME[]       = "serversem";
-sem_t* mutexserver      = SEM_FAILED;
+sem_t *sim_sem         = SEM_FAILED;
+sem_t *slurm_sem       = SEM_FAILED;
 /*** ANA: Replacing signals for slurmd registration ****/
 char sig_sem_name[] = "signalsem";
 sem_t* mutexsignal = SEM_FAILED;
@@ -255,43 +257,31 @@ static void      _wait_for_all_threads(int secs);
 #ifdef SLURM_SIMULATOR
 int
 open_global_sync_sem() {
-        int iter = 0;
-        while(mutexserver == SEM_FAILED && iter < 10) {
-                mutexserver = sem_open(SEM_NAME,0,0644,0);
-                if(mutexserver == SEM_FAILED) sleep(1);
-                ++iter;
-        }
+	int iter = 0;
+	char sim_sem_name[100], slurm_sem_name[100];
+	get_semaphores_names(sim_sem_name, slurm_sem_name);
+	while(sim_sem == SEM_FAILED && iter < 10) {
+		sim_sem = sem_open(sim_sem_name,0,0644,0);
+		if(sim_sem == SEM_FAILED) sleep(1);
+			++iter;
+	}
+		iter = 0;
+		while(slurm_sem == SEM_FAILED && iter < 10) {
+			slurm_sem = sem_open(slurm_sem_name,0,0644,0);
+			if(slurm_sem == SEM_FAILED) sleep(1);
+			++iter;
+		}
 
-        if(mutexserver == SEM_FAILED)
-                return -1;
-        else
-                return 0;
-}
-
-void
-perform_global_sync() {
-        while(1) {
-                sem_wait(mutexserver);
-                if (*global_sync_flag == 1) {
-                        sem_post(mutexserver);
-                        break;
-                }
-                sem_post(mutexserver);
-                usleep(1000);
-        }
-	debug("Global sync done, slurmd helper iteration starts.");
-}
-void perform_global_sync_end()
-{
-        sem_wait(mutexserver);
-        debug3("Finished iteration of slurmd");
-        *global_sync_flag += 1;
-        sem_post(mutexserver);
+	if(sim_sem == SEM_FAILED || slurm_sem == SEM_FAILED)
+		return -1;
+	else
+		return 0;
 }
 
 void
 close_global_sync_sem() {
-        if(mutexserver != SEM_FAILED) sem_close(mutexserver);
+	if(sim_sem != SEM_FAILED)		sem_close(sim_sem);
+	if (slurm_sem != SEM_FAILED)	sem_close(slurm_sem);
 }
 #endif
 
@@ -307,7 +297,6 @@ main (int argc, char **argv)
 	uint32_t curr_uid = 0;
 	char time_stamp[256];
 	log_options_t lopts = LOG_OPTS_INITIALIZER;
-	slurm_msg_t     req_msg;
 
 	/* NOTE: logfile is NULL at this point */
 	log_init(argv[0], lopts, LOG_DAEMON, NULL);
@@ -549,24 +538,24 @@ _registration_engine(void *arg)
 
 #ifdef SLURM_SIMULATOR
 /*** ANA: Replacing signals for slurmd registration ****/
-notify_sim_mgr()
+int notify_sim_mgr()
 {
-        int sem_opened = 0;
+	int sem_opened = 0;
 
-        sem_opened = sim_open_sem(sig_sem_name, &mutexsignal, 0);
+	sem_opened = sim_open_sem(sig_sem_name, &mutexsignal, 0);
 	info("SIM: mutexsignal semaphore openning sem_opened %d\n", sem_opened);
-        while (sem_opened) {
-                usleep(100000);
-                sem_opened = sim_open_sem(sig_sem_name, &mutexsignal, 0);
-        }
+	while (sem_opened) {
+		usleep(100000);
+		sem_opened = sim_open_sem(sig_sem_name, &mutexsignal, 0);
+	}
 
-        // Increment the counter
-        sim_perform_slurmd_register(sig_sem_name, &mutexsignal);
+	// Increment the counter
+	sim_perform_slurmd_register(sig_sem_name, &mutexsignal);
 
-        // Now close semaphore
-        sim_close_sem(&mutexsignal);
+	// Now close semaphore
+	sim_close_sem(&mutexsignal);
 
-        return 0;
+	return 0;
 }
 /********************************************************************/
 /* send signal to sim_mgr to continue */
@@ -673,73 +662,77 @@ _send_sim_helper_cycle_msg(uint32_t jobs_count)
 void *
 _simulator_helper(void *arg)
 {
-        time_t now, last;
-        int jobs_ended;
+	time_t now, last;
+	int jobs_ended;
 
-        _increment_thd_count();
+	_increment_thd_count();
 
-        //open_global_sync_sem();
+	last = 0;
+	now = 0;
+	info("SIM: Simulator Helper starting...\n");
+	while (!_shutdown) {
+		sem_wait(slurm_sem);
+		jobs_ended = 0;
+		now = time(NULL);
+		info("now: %ld last: %ld diff: %ld", now, last, now - last);
+		pthread_mutex_lock(&simulator_mutex);
+		if(head_simulator_event)
+			info("Simulator Helper cycle: %ld, Next event at %ld, total_sim_events: %d\n", now, head_simulator_event->when, total_sim_events);
+		else
+			info("Simulator Helper cycle: %ld, No events!!!\n", now);
 
-        last = 0;
-        now = 0;
-        info("SIM: Simulator Helper starting...\n");
-        while (!_shutdown) {
-                perform_global_sync();
-                jobs_ended = 0;
-                now = time(NULL);
-                info("now: %ld last: %ld diff: %ld", now, last, now - last);
-                pthread_mutex_lock(&simulator_mutex);
-                if(head_simulator_event)
-                        info("Simulator Helper cycle: %ld, Next event at %ld, total_sim_events: %d\n", now, head_simulator_event->when, total_sim_events);
-                else
-                        info("Simulator Helper cycle: %ld, No events!!!\n", now);
-
-                while((head_simulator_event) && (now >= head_simulator_event->when)){
-                        volatile simulator_event_t *aux;
-                        int event_jid;
-                        event_jid = head_simulator_event->job_id;
-                        aux = head_simulator_event;
-                        head_simulator_event = head_simulator_event->next;
-                        aux->next = head_sim_completed_jobs;
-                        head_sim_completed_jobs = aux;
-                        total_sim_events--;
-                        info("SIM: Sending JOB_COMPLETE_BATCH_SCRIPT for job %d", event_jid);
-                        pthread_mutex_unlock(&simulator_mutex);
-                        if(_send_complete_batch_script_msg(event_jid, SLURM_SUCCESS, 0) == SLURM_SUCCESS) { 
+		while((head_simulator_event) && (now >= head_simulator_event->when)){
+			volatile simulator_event_t *aux;
+			int event_jid;
+			event_jid = head_simulator_event->job_id;
+			aux = head_simulator_event;
+			head_simulator_event = head_simulator_event->next;
+			aux->next = head_sim_completed_jobs;
+			head_sim_completed_jobs = aux;
+			total_sim_events--;
+			info("SIM: Sending JOB_COMPLETE_BATCH_SCRIPT for job %d", event_jid);
+			pthread_mutex_unlock(&simulator_mutex);
+			if(_send_complete_batch_script_msg(event_jid, SLURM_SUCCESS, 0) == SLURM_SUCCESS) { 
 				pthread_mutex_lock(&simulator_mutex);
-                        	waiting_epilog_msgs++;
-                        	info("SIM: JOB_COMPLETE_BATCH_SCRIPT for job %d SENT", event_jid);
-                        	jobs_ended++;
+				pthread_mutex_lock(&epilogs_mutex); //we are in the same thread here
+				waiting_epilog_msgs++;
+				pthread_mutex_unlock(&epilogs_mutex);
+				info("SIM: JOB_COMPLETE_BATCH_SCRIPT for job %d SENT", event_jid);
+				jobs_ended++;
 			} else {
 				error("SIM: JOB_COMPLETE_BATCH_SCRIPT for job %d NOT SENT", event_jid);
 				pthread_exit(0);
-        			_decrement_thd_count();
-        			return NULL;
+				_decrement_thd_count();
+				return NULL;
 			} 
-                }
-                pthread_mutex_unlock(&simulator_mutex);
-                last = now;
-                if(jobs_ended){
-                        /* Let's give some time to EPILOG_MESSAGE process to terminate  */
-                        /* TODO: It should be done better with a counter of EPILOG messages processed */
+		}
+		pthread_mutex_unlock(&simulator_mutex);
+		last = now;
+		if(jobs_ended){
+			/* Let's give some time to EPILOG_MESSAGE process to terminate  */
+			/* TODO: It should be done better with a counter of EPILOG messages processed */
 
-                        while (waiting_epilog_msgs > 0) {
-                                debug3("Waiting epilog to finish");
-                                usleep(100);
-                        }
-                        _send_sim_helper_cycle_msg(jobs_ended);
-                } else {
-                        _send_sim_helper_cycle_msg(0);
-                }
+			while (1) {
+				pthread_mutex_lock(&epilogs_mutex);
+				if (waiting_epilog_msgs == 0) {
+					pthread_mutex_unlock(&epilogs_mutex);
+					break;
+				}
+				pthread_mutex_unlock(&epilogs_mutex);
+				debug3("Waiting epilog to finish");
+				usleep(100);
+			}
+			_send_sim_helper_cycle_msg(jobs_ended);
+		} else {
+			_send_sim_helper_cycle_msg(0);
+		}
+		sem_post(sim_sem);
+	}
+	info("SIM: Simulator Helper finishing...");
 
-                perform_global_sync_end();
-
-        }
-        info("SIM: Simulator Helper finishing...");
-
-        pthread_exit(0);
-        _decrement_thd_count();
-        return NULL;
+	pthread_exit(0);
+	_decrement_thd_count();
+	return NULL;
 }
 #endif
 
