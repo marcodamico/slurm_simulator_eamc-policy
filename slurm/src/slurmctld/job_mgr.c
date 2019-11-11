@@ -8074,8 +8074,9 @@ _copy_job_desc_to_job_record(job_desc_msg_t * job_desc,
 	if (job_desc->begin_time > time(NULL))
 		detail_ptr->begin_time = job_desc->begin_time;
 //***************** Zia Edit Begin *******************************
-	if (job_desc->delay > NO_VAL)
+	if (job_desc->delay != NO_VAL) {
 		detail_ptr->delay = job_desc->delay;
+	}
 //***************** Zia Edit End *******************************
 	job_ptr->select_jobinfo =
 		select_g_select_jobinfo_copy(job_desc->select_jobinfo);
