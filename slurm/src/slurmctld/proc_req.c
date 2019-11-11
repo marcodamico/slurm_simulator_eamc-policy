@@ -1190,7 +1190,7 @@ static bool _sched_backfill(void)
 
 	if (backfill == -1) {
 		char *sched_type = slurm_get_sched_type();
-		if (!xstrcmp(sched_type, "sched/backfill") || !xstrcmp(sched_type, "sched/msa-backfill"))
+		if (!xstrcmp(sched_type, "sched/backfill") || !xstrcmp(sched_type, "sched/msa_backfill"))
 			backfill = 1;
 		else
 			backfill = 0;
@@ -7196,7 +7196,6 @@ static time_t last_helper_backfill_time=0;
 
 
 static void do_backfill() {
-        int value;
         sem_post(mutex_bf);
         sem_wait(mutex_bf_done);
 }
