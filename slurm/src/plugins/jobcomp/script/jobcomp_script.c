@@ -140,7 +140,7 @@ static pthread_mutex_t thread_flag_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t comp_list_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t comp_list_cond = PTHREAD_COND_INITIALIZER;
 static int agent_exit = 0;
-
+static int energy = 0;
 /*
  *  Local plugin errno
  */
@@ -323,9 +323,11 @@ static struct jobcomp_info * _jobcomp_info_create (struct job_record *job)
 		}
 		list_iterator_destroy(iter);
 	}
-	j->best_freq = job->best_freq[i];
-	j->best_energy = job->best_energy[i];
-	j->def_energy = job->def_energy[i];
+	if (energy) {
+		j->best_freq = job->best_freq[i];
+		j->best_energy = job->best_energy[i];
+		j->def_energy = job->def_energy[i];
+	}
 
 	return (j);
 }
@@ -516,10 +518,11 @@ static char ** _create_environment (struct jobcomp_info *job)
 #else
 	_env_append (&env, "PATH", "/bin:/usr/bin");
 #endif
-	_env_append_fmt (&env, "FREQ", "%lf", job->best_freq);
-	_env_append_fmt (&env, "ENERGY", "%lf", job->best_energy);
-	_env_append_fmt (&env, "DEF_ENERGY", "%lf", job->def_energy);
-
+	if (energy) {
+		_env_append_fmt (&env, "FREQ", "%lf", job->best_freq);
+		_env_append_fmt (&env, "ENERGY", "%lf", job->best_energy);
+		_env_append_fmt (&env, "DEF_ENERGY", "%lf", job->def_energy);
+	}
 	return (env);
 }
 
@@ -660,6 +663,11 @@ extern int init(void)
 	comp_list = list_create(_jobcomp_info_destroy);
 
 	slurm_thread_create(&script_thread, _script_agent, NULL);
+
+	char *prio_type = slurm_get_priority_type();
+	if (!xstrcmp(prio_type, "priority/multifactor_energy"))
+		energy = 1;
+	xfree(prio_type);
 
 	slurm_mutex_unlock(&thread_flag_mutex);
 

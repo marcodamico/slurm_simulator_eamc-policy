@@ -571,7 +571,12 @@ int main(int argc, char **argv)
 
 		if (slurm_priority_init() != SLURM_SUCCESS)
 			fatal("failed to initialize priority plugin");
-#ifndef SLURM_SIMULATOR
+#ifdef SLURM_SIMULATOR
+		char *prio_type = slurm_get_priority_type();
+		if (xstrcmp(prio_type, "priority/multifactor") && 
+			xstrcmp(prio_type, "priority/multifactor_energy"))
+			multifactor_interval = 0;
+#else
 		if (slurm_sched_init() != SLURM_SUCCESS)
 			fatal("failed to initialize scheduling plugin");
 #endif
