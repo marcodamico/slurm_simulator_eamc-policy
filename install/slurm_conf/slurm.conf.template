@@ -2,8 +2,8 @@
 AuthType=auth/none
 #AuthType=auth/munge
 ###UsePAM=0
-SlurmUser=marcodamico
-SlurmdUser=marcodamico
+SlurmUser=TOKEN_USER
+SlurmdUser=TOKEN_USER
 ControlMachine=TOKEN_CONTROL_MACHINE #ubuntu
 ControlAddr=TOKEN_CONTROL_MACHINE #ubuntu
 SlurmctldTimeout=300
@@ -76,6 +76,7 @@ PriorityWeightFairshare=10000
 PriorityWeightJobSize=1000
 PriorityWeightPartition=1000
 PriorityWeightQOS=0
+#PriorityCalcPeriod=4
 #PriorityType=priority/multifactor
 #PriorityWeightAge=50000000 ###100
 #PriorityWeightFairShare=0
@@ -88,7 +89,7 @@ PriorityWeightQOS=0
 #AccountingStorageHost=localhost
 ###AccountingStorageEnforce=limits,qos
 ################################################################################################################AccountingStorageEnforce=limits
-ClusterName=perfdevel_mall
+ClusterName=perfdevel
 
 ###NodeName=DEFAULT RealMemory=3168 Procs=12 Sockets=2 CoresPerSocket=6 ThreadsPerCore=1
 ###NodeName=n[1-126] NodeAddr=bre NodeHostName=bre Procs=12 Sockets=2 CoresPerSocket=6 ThreadsPerCore=1

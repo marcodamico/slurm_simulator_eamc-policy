@@ -815,10 +815,13 @@ void generate_job_desc_msg(job_desc_msg_t* dmesg, job_trace_t* jobd) {
 		dmesg->ntasks_per_node = MAX(1,jobd->tasks/dmesg->min_nodes);
         dmesg->duration		 = jobd->duration;
 
-		int app_id = 1 + rand() % (napps - 1); //8 apps
-	        char appid[100];
-	        sprintf(appid,"%d", app_id);
-	        dmesg->comment       = strdup(appid);
+		/*TODO: implement this in the trace file */
+		if (napps) {
+			int app_id = 1 + rand() % (napps - 1);
+			char appid[100];
+			sprintf(appid,"%d", app_id);
+			dmesg->comment       = strdup(appid);
+		}
 
 		if (trace_format > 2) {	
 			if (strcmp(jobd->rreq_constraint,"-1"))
@@ -1503,16 +1506,18 @@ main(int argc, char *argv[], char *envp[]) {
 	//read apps info - TODO: move this path to slurm.conf and sim.conf
 	char *apps_file = getenv("LIBEN_APPS");
 	if (!apps_file) {
-		error("Apps file not specified");
-		return -1;
+		debug("Apps file not specified");
+		napps = 0;
 	}
-	FILE *apps_fp = fopen(apps_file,"r");
-	if (!apps_fp) {
-		error("Unable to open apps file");
-		return -1;
+	else {
+		FILE *apps_fp = fopen(apps_file,"r");
+		if (!apps_fp) {
+			error("Unable to open apps file");
+			return -1;
+		}
+		fscanf(apps_fp,"%d", &napps);
+		fclose(apps_fp);
 	}
-    fscanf(apps_fp,"%d", &napps);
-    fclose(apps_fp);
 
 	/* Launch the slurmctld and slurmd here */
 	if (launch_daemons) {

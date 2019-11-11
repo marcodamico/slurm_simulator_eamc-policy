@@ -2,8 +2,8 @@
 AuthType=auth/none
 #AuthType=auth/munge
 ###UsePAM=0
-SlurmUser=marcodamico
-SlurmdUser=marcodamico
+SlurmUser=TOKEN_USER
+SlurmdUser=TOKEN_USER
 ControlMachine=TOKEN_CONTROL_MACHINE #ubuntu
 ControlAddr=TOKEN_CONTROL_MACHINE #ubuntu
 SlurmctldTimeout=300
@@ -76,6 +76,7 @@ PriorityWeightFairshare=10000
 #PriorityWeightJobSize=1000
 PriorityWeightPartition=1000
 PriorityWeightQOS=0
+#PriorityCalcPeriod=4
 #PriorityType=priority/multifactor
 #PriorityWeightAge=50000000 ###100
 #PriorityWeightFairShare=0
@@ -83,12 +84,13 @@ PriorityWeightQOS=0
 #PriorityWeightPartition=0 ###0
 #PriorityWeightJobSize=600000000 ###0
 #AccountingStorageType=accounting_storage/filetxt
+#MARCO: enable to enable slurmdbd
 #AccountingStorageLoc=TOKEN_SLURM_USER_PATH/slurm_varios/job_accounting
 #AccountingStorageType=accounting_storage/slurmdbd
-#AccountingStorageHost=localhost
+#AccountingStorageHost=TOKEN_CONTROL_MACHINE
 ###AccountingStorageEnforce=limits,qos
 ################################################################################################################AccountingStorageEnforce=limits
-ClusterName=perfdevel_mall
+ClusterName=perfdevel
 
 ###NodeName=DEFAULT RealMemory=3168 Procs=12 Sockets=2 CoresPerSocket=6 ThreadsPerCore=1
 ###NodeName=n[1-126] NodeAddr=bre NodeHostName=bre Procs=12 Sockets=2 CoresPerSocket=6 ThreadsPerCore=1
@@ -97,11 +99,11 @@ ClusterName=perfdevel_mall
 ###PartitionName=debug Nodes=n[123-126] Default=NO MaxTime=20:00 State=UP
 FrontendName=TOKEN_CONTROL_MACHINE #ubuntu
 
+#MARCO: enable to enable slurmdbd
 #DefaultStorageType=slurmdbd
 
 SlurmctldPidFile=TOKEN_SLURM_USER_PATH/slurm_varios/slurmctld.pid
 SlurmdPidFile=TOKEN_SLURM_USER_PATH/slurm_varios/slurmd.pid
-
 #PriorityFavorSmall=YES
 #PriorityUsageResetPeriod=QUARTERLY    # CSCS policy
 #PriorityFlags=SMALL_RELATIVE_TO_TIME
