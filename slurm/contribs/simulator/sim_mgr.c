@@ -573,7 +573,7 @@ void generate_job_desc_msg(job_desc_msg_t* dmesg, job_trace_t* jobd) {
 		gid_t gidt;
 
 		/* First, set up and call Slurm C-API for actual job submission. */
-		dmesg->time_limit    = jobd->wclimit;
+		dmesg->time_limit    = ceil(jobd->wclimit / 60); //In minutes
 		dmesg->job_id        = NO_VAL;
 		dmesg->name	    = "sim_job";
 		uidt = userIdFromName(jobd->username, &gidt);
@@ -648,8 +648,8 @@ void generate_job_desc_msg(job_desc_msg_t* dmesg, job_trace_t* jobd) {
 			dmesg->name=xstrdup(jobd->manifest_filename+1);
 		}
 		if (jobd->wait_component_job_time && jobd->wait_component_job_time != -1) {
-			dmesg->delay = jobd->wait_component_job_time;
-			printf("Delayed jobpack compont by %d\n", dmesg->delay);
+			dmesg->delay = ceil(jobd->wait_component_job_time / 60); //In minutes
+			printf("Delayed jobpack compont %d by %d\n", jobd->component_job_id, dmesg->delay);
 		}
 }
 
@@ -871,6 +871,7 @@ void displayJobTraceT(job_trace_t* rptr) {
 			" %11ld"
 			" %9d"
 			" %9d"
+			" %9d"
 			" %7d"
 			" %11s"
 			" %11s"
@@ -888,6 +889,7 @@ void displayJobTraceT(job_trace_t* rptr) {
 			rptr->submit,
 			rptr->duration,
 			rptr->wclimit,
+			rptr->wait_component_job_time,
 			rptr->tasks,
 			SAFE_PRINT(rptr->qosname),
 			SAFE_PRINT(rptr->partition),
@@ -943,7 +945,7 @@ int init_job_trace() {
 
 	if (trace_format > 2)
 		printf("%8s %9s %11s %9s %9s %7s %11s %11s %11s %14s %16s %11s %11s %6s %6s\n",
-		"job_id:", "username:", "submit:", "duration:", "wclimit:",
+		"job_id:", "username:", "submit:", "duration:", "wclimit:", "delay",
 		"tasks:", "qosname:", "partition: ", "account:", "cpus_per_task:",
 		"tasks_per_node:", "reservation:", "dependency:", "features:", "hints:", "power:");
 	else 
