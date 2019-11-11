@@ -67,7 +67,10 @@
 
 #include "src/slurmctld/licenses.h"
 #include "src/slurmctld/read_config.h"
-
+#ifdef SLURM_SIMULATOR
+//#include "src/slurmctld/slurmctld.h"
+#include <semaphore.h>
+#endif
 #include "fair_tree.h"
 
 //#include "src/unittests_lib/tools.h"
@@ -194,7 +197,40 @@ app_info_t **apps_info;
 uint32_t num_apps;
 int apps_info_init = 0;
 uint16_t n_modules = 0;
+#ifdef SLURM_SIMULATOR
 
+char MF_SEM_NAME[] = "mf_sem";
+char MF_DONE_SEM_NAME[] = "mf_done_sem";
+sem_t* mutex_mf_pg=NULL;
+sem_t* mutex_mf_done_pg=NULL;
+
+int open_MF_sync_semaphore_pg()
+{
+	mutex_mf_pg = sem_open(MF_SEM_NAME, O_CREAT, 0644, 0);
+	if(mutex_mf_pg == SEM_FAILED) {
+		error("unable to create multifactor semaphore");
+		sem_unlink(MF_SEM_NAME);
+		return -1;
+	}
+
+	mutex_mf_done_pg = sem_open(MF_DONE_SEM_NAME, O_CREAT, 0644, 0);
+	if(mutex_mf_done_pg == SEM_FAILED) {
+		error("unable to create multifactor done semaphore");
+		sem_unlink(MF_DONE_SEM_NAME);
+		return -1;
+	}
+	return 0;
+}
+
+void close_MF_sync_semaphore()
+{
+	if(mutex_mf_pg != SEM_FAILED) sem_close(mutex_mf_pg);
+	if(mutex_mf_done_pg != SEM_FAILED) sem_close(mutex_mf_done_pg);
+	debug("multifactor: Closing MF sync sempahore");
+}
+
+
+#endif
 /*
  * apply decay factor to all associations usage_raw
  * IN: real_decay - decay to be applied to each associations' used
@@ -623,10 +659,8 @@ int get_i_module(char *part_name)
 		if (!part_name || !getMachineName(i_module))
 			debug("Non existing partition name!");
 		else {
-			debug("comparing names: %s %s, sizes %d, %d", part_name, getMachineName(i_module),
-											strlen(part_name), strlen(getMachineName(i_module)));
-			if(strncmp(part_name, getMachineName(i_module), sizeof(part_name)) == 0) { //partition name == machine name (module name)
-				debug("Found partition %s, id %d", part_name, i_module);
+			if(!strcmp(part_name, getMachineName(i_module))) { //partition name == machine name (module name)
+				debug3("Found partition %s, id %d", part_name, i_module);
 				break;
 			}
 		}
@@ -903,7 +937,7 @@ static uint32_t _get_priority_internal(time_t start_time,
 				//search energy priority for this part_ptr
 				for(j = 0; j < used_modules; j++)
 					if(job_energy_info[j]->part_ptr == part_ptr) {
-						priority_energy = j + 1;
+						priority_energy = j;
 	
 						debug("Energy priority assigned to partition %s: %"PRIu32, part_ptr->name, priority_energy);
 	
@@ -966,73 +1000,62 @@ static uint32_t _get_priority_internal(time_t start_time,
 		}
 	}
 	/* Not compatible with multi partition */
-	/* TODO: when and how priorities are recalculated? This algorithm might not work correctly
-	 * if priorities are recalculated */
 	else if (job_ptr->details->depend_list) {
 		ListIterator depend_iter = list_iterator_create(job_ptr->details->depend_list);
 		ListIterator job_iterator;
 		struct depend_spec *dep_ptr;
-		struct job_record *j_ptr;
+		struct job_record *j_ptr, *last_insert = NULL;
 		List j_list = list_create(NULL);
 		energy_info_t **energy_dep;
 		int list_size, i;
-		debug("0");
 		while ((dep_ptr = list_next(depend_iter))) {
 			if (dep_ptr->depend_type == SLURM_DEPEND_PLUSSINGLETON) {
-				debug("0.5");
-				if (!job_list || !list_count(job_list)) {
-					debug("job list is empty");
-					continue;
-				}
 				/* code duplicated from _build_user_job_list in slurmctld/job_scheduler.c  */
 				job_iterator = list_iterator_create(job_list);
-				debug("0.75");
 				while ((j_ptr = (struct job_record *) list_next(job_iterator))) {
-					debug("1");
 					xassert (job_ptr->magic == JOB_MAGIC);
-					if (j_ptr->job_id == job_ptr->job_id)
-						continue;
 					if (j_ptr->user_id != job_ptr->user_id)
 						continue;
 					if (job_ptr->name && j_ptr->name &&
 						xstrcmp(job_ptr->name, j_ptr->name))
 						continue;
-					debug("job %d found", j_ptr->job_id);
+					debug3("job %d found", j_ptr->job_id);
 					list_append(j_list, j_ptr);
+					last_insert = j_ptr;
 				}
 				list_iterator_destroy(job_iterator);
 			}
 		}
 		list_iterator_destroy(depend_iter);
 		list_size = list_count(j_list);
-		if (!list_size) {
-			debug("empty dependency list");
-		}
+		if (!list_size || list_size == 1)
+			debug3("empty dependency list");
+		/* calculate only when analyzing last job */
+		else if (job_ptr != last_insert)
+			debug3("Not last job of the plussingleton dependency, skip calculation");
 		else {
-			debug("list size %d", list_size);
+			debug3("list size %d", list_size);
 			job_iterator = list_iterator_create(j_list);
-			energy_dep = (energy_info_t **) xmalloc(sizeof(energy_info_t*) * list_size + 1);
+			energy_dep = (energy_info_t **) xmalloc(sizeof(energy_info_t*) * list_size);
 			i = 0;
-			debug("00");
 			while ((j_ptr = list_next(job_iterator))) {
 				energy_dep[i] = xmalloc(sizeof(energy_info_t));
 				energy_dep[i]->best_value = *(j_ptr->best_value);
-				energy_dep[i]->job_ptr = j_ptr;
-				i++;
+				energy_dep[i++]->job_ptr = j_ptr;
 			}
-			debug("11");
-			energy_dep[i] = xmalloc(sizeof(energy_info_t));
-			energy_dep[i]->best_value = *(job_ptr->best_value);
-			energy_dep[i]->job_ptr = job_ptr;
-			list_size++;
-			debug("before sort");
+			/* job_ptr is always last entry */
 			qsort(energy_dep, list_size, sizeof(energy_info_t *), _cmp_energy_values);
 			for (i = 0; i < list_size; i++) {
-				if (job_ptr == energy_dep[i]->job_ptr)
-					priority += i + 1;
-				else
-					energy_dep[i]->job_ptr->priority +=  i + 1;
-				debug("Energy priority assigned to job %d: %"PRIu32, energy_dep[i]->job_ptr->job_id, energy_dep[i]->job_ptr->priority);
+				if (job_ptr == energy_dep[i]->job_ptr) {
+					priority += i;
+					debug("Energy priority assigned to job %"PRIu32": %f",
+							energy_dep[i]->job_ptr->job_id, priority);
+				}
+				else {
+					energy_dep[i]->job_ptr->priority +=  i;
+					debug("Energy priority assigned to job %d: %"PRIu32,
+							energy_dep[i]->job_ptr->job_id, energy_dep[i]->job_ptr->priority);
+				}
 			}
 			list_iterator_destroy(job_iterator);
 			list_destroy(j_list);
@@ -1042,7 +1065,7 @@ static uint32_t _get_priority_internal(time_t start_time,
 			xfree(energy_dep);
 		}
 	}
-	else debug("No dependency list at all");
+	else debug3("No dependency list at all");
 
 	if (priority_debug) {
 		int i;
@@ -1634,7 +1657,12 @@ static void *_decay_thread(void *no_data)
 
 	_init_grp_used_cpu_run_secs(g_last_ran);
 
+#ifdef SLURM_SIMULATOR
+	open_MF_sync_semaphore_pg();
+#endif
+
 	while (1) {
+		debug("Recalculating priorities");
 		now = start_time;
 
 		slurm_mutex_lock(&decay_lock);
@@ -1742,14 +1770,19 @@ static void *_decay_thread(void *no_data)
 
 		running_decay = 0;
 		slurm_mutex_unlock(&decay_lock);
-
+#ifdef SLURM_SIMULATOR
+		sem_post(mutex_mf_done_pg);
+		sem_wait(mutex_mf_pg);
+#endif
 		/* Sleep until the next time. */
 		now = time(NULL);
+#ifndef SLURM_SIMULATOR
 		elapsed = difftime(now, start_time);
 		if (elapsed < calc_period) {
 			_my_sleep_prio(calc_period - elapsed);
 			start_time = time(NULL);
 		} else
+#endif
 			start_time = now;
 		/* repeat ;) */
 	}
@@ -1768,8 +1801,11 @@ static void _my_sleep_prio(int secs)
         if (secs==0)
                 return;
         time_t target_time=time(NULL)+secs;
-        while (time(NULL)<target_time)
-                usleep(10);
+        while (time(NULL)<target_time) {
+			//debug("Recalc period: %d %d", time(NULL), target_time);
+        	usleep(1000);
+		}
+		debug("End wait time for recalc period: %ld %ld", time(NULL), target_time);
 
 #endif
 }
@@ -2087,6 +2123,7 @@ static void _set_usage_efctv(slurmdb_assoc_rec_t *assoc)
 int init ( void )
 {
 	char *temp = NULL;
+	int i;
 	/* Write lock on jobs, read lock on nodes and partitions */
 	slurmctld_lock_t job_write_lock =
 		{ NO_LOCK, WRITE_LOCK, READ_LOCK, READ_LOCK, NO_LOCK };
@@ -2098,11 +2135,14 @@ int init ( void )
 	if (machines) {
 		n_modules = addMachine(machines);
 	   	debug("Number of modules: %d", n_modules);
-		for (int i=0;i<n_modules;i++)
-			debug("Module %d: %s, size %d",i+1, getMachineName(i), strlen(getMachineName(i)));
+		for (i = 0; i < n_modules; i++)
+			debug("Module %d: %s, size %lu",i+1, getMachineName(i), strlen(getMachineName(i)));
 		if (init_apps())
 			debug("Error in init_apps()");
 	}
+#ifdef SLURM_SIMULATOR
+	multifactor_interval = slurm_get_priority_calc_period();
+#endif
 	/* This means we aren't running from the controller so skip setup. */
 	if (cluster_cpus == NO_VAL) {
 		damp_factor = (long double)slurm_get_fs_dampening_factor();
@@ -2134,6 +2174,9 @@ int init ( void )
 			(ListForF) _decay_apply_new_usage_and_weighted_factors,
 			&start_time);
 		unlock_slurmctld(job_write_lock);
+#ifdef SLURM_SIMULATOR
+		multifactor_interval = 0;
+#endif
 	} else if (assoc_mgr_root_assoc) {
 		if (!cluster_cpus)
 			fatal("We need to have a cluster cpu count "
@@ -2162,6 +2205,10 @@ int init ( void )
 		 * we have to create another thread to do it. */
 		slurm_thread_create(&cleanup_handler_thread,
 				    _cleanup_thread, NULL);
+#ifdef SLURM_SIMULATOR
+		/* Eat first post of the decay thread */
+		sem_wait(mutex_mf_done_pg);
+#endif
 	} else {
 		if (weight_fs) {
 			fatal("It appears you don't have any association "
@@ -2169,6 +2216,9 @@ int init ( void )
 			      "The priority/multifactor plugin requires "
 			      "this information to run correctly.  Please "
 			      "check your database connection and try again.");
+#ifdef SLURM_SIMULATOR
+			multifactor_interval = 0;
+#endif
 		}
 		calc_fairshare = 0;
 	}

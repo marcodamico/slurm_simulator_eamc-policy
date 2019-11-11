@@ -1,0 +1,13 @@
+DbdHost=TOKEN_CONTROL_MACHINE
+AuthType=auth/none
+#AuthType=auth/munge
+DebugLevel=8
+LogFile=TOKEN_SLURM_USER_PATH/slurm_varios/log/slurmdbd.log
+PluginDir=TOKEN_SLURM_USER_PATH/slurm_varios/lib/slurm
+PidFile=TOKEN_SLURM_USER_PATH/slurm_varios/slurmdbd.pid
+StorageHost=TOKEN_CONTROL_MACHINE
+StorageType=accounting_storage/mysql
+StorageUser=slurm
+StoragePass=slurm
+SlurmUser=TOKEN_USER
+PrivateData=accounts,jobs,reservations,usage,users

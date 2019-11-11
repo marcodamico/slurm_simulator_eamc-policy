@@ -213,6 +213,7 @@ static char *	slurm_conf_filename;
 #ifdef SLURM_SIMULATOR
 int total_log_jobs=0;
 int backfill_interval=30; //initialize here global variable backfill interval to the default value
+uint32_t multifactor_interval=300;
 #endif
 
 

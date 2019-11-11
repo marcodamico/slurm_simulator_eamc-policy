@@ -220,6 +220,7 @@ extern int    slurmctld_running_job_count;
 extern time_t slurmctld_running_job_count_ts;
 #ifdef SLURM_SIMULATOR
 extern int backfill_interval;
+extern uint32_t multifactor_interval;
 #endif
 /* Buffer size use to print the jobid2str()
  * jobid, taskid and state.
