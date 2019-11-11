@@ -119,6 +119,9 @@ static uint64_t *rpc_user_time = NULL;
 static pthread_mutex_t throttle_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t throttle_cond = PTHREAD_COND_INITIALIZER;
 
+pthread_mutex_t lock_finishing_jobs = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t lock_remaining_epilogs = PTHREAD_MUTEX_INITIALIZER;
+
 static void         _fill_ctld_conf(slurm_ctl_conf_t * build_ptr);
 static void         _kill_job_on_msg_fail(uint32_t job_id);
 static int          _is_prolog_finished(uint32_t job_id);
@@ -2253,13 +2256,15 @@ static void  _slurm_rpc_epilog_complete(slurm_msg_t *msg,
 #endif
 	}
 #ifdef SLURM_SIMULATOR
-        info("SIM: Processing RPC: MESSAGE_EPILOG_COMPLETE for jobid %d", epilog_msg->job_id);
-        slurm_send_rc_msg(msg, SLURM_SUCCESS);
-        arrived_jobs_epilogs++;
-        /* ANA: keep track of the jobs that have finished in its entirety. */
-        total_epilog_complete_jobs++;
+		info("SIM: Processing RPC: MESSAGE_EPILOG_COMPLETE for jobid %d", epilog_msg->job_id);
+		slurm_send_rc_msg(msg, SLURM_SUCCESS);
+		pthread_mutex_lock(&lock_remaining_epilogs);
+		arrived_jobs_epilogs+=1;
+		pthread_mutex_unlock(&lock_remaining_epilogs);
+		/* ANA: keep track of the jobs that have finished in its entirety. */
+		total_epilog_complete_jobs++;
 
-#endif
+ #endif
 	/* NOTE: RPC has no response */
 }
 
@@ -2412,7 +2417,9 @@ static void _slurm_rpc_complete_batch_script(slurm_msg_t *msg,
 #endif
 	/* init */
 	START_TIMER;
+	pthread_mutex_lock(&lock_finishing_jobs);
 	total_finished_jobs+=1;
+	pthread_mutex_unlock(&lock_finishing_jobs);
 	debug2("Processing RPC: REQUEST_COMPLETE_BATCH_SCRIPT from "
 	       "uid=%u JobId=%u",
 	       uid, comp_msg->job_id);
@@ -7122,85 +7129,149 @@ inline static void  _slurm_rpc_set_fs_dampening_factor(slurm_msg_t *msg)
 #ifdef SLURM_SIMULATOR
 char BF_SEM_NAME[] = "bf_sem";
 char BF_DONE_SEM_NAME[] = "bf_done_sem";
+char MF_SEM_NAME[] = "mf_sem";
+char MF_DONE_SEM_NAME[] = "bf_done_sem";
+
 sem_t* mutex_bf=NULL;
 sem_t* mutex_bf_done=NULL;
+sem_t* mutex_mf=NULL;
+sem_t* mutex_mf_done=NULL;
 
-int open_BF_sync_semaphore() {
-        mutex_bf = sem_open(BF_SEM_NAME, O_CREAT, 0644, 0);
-        if(mutex_bf == SEM_FAILED) {
-                error("unable to create backfill semaphore");
-                sem_unlink(BF_SEM_NAME);
-                return -1;
-        }
+int open_BF_sync_semaphore()
+{
+	mutex_bf = sem_open(BF_SEM_NAME, O_CREAT, 0644, 0);
+	if(mutex_bf == SEM_FAILED) {
+		error("unable to create backfill semaphore");
+		sem_unlink(BF_SEM_NAME);
+		return -1;
+	}
 
-        mutex_bf_done = sem_open(BF_DONE_SEM_NAME, O_CREAT, 0644, 0);
-        if(mutex_bf_done == SEM_FAILED) {
-                error("unable to create backfill done semaphore");
-                sem_unlink(BF_DONE_SEM_NAME);
-                return -1;
-        }
-
-        return 0;
+	mutex_bf_done = sem_open(BF_DONE_SEM_NAME, O_CREAT, 0644, 0);
+	if(mutex_bf_done == SEM_FAILED) {
+		error("unable to create backfill done semaphore");
+		sem_unlink(BF_DONE_SEM_NAME);
+		return -1;
+	}
+	return 0;
 }
 
-void close_BF_sync_semaphore() {
-        if(mutex_bf != SEM_FAILED) sem_close(mutex_bf);
-        if(mutex_bf_done != SEM_FAILED) sem_close(mutex_bf_done);
+
+int open_MF_sync_semaphore()
+{
+	mutex_mf = sem_open(MF_SEM_NAME, O_CREAT, 0644, 0);
+	if(mutex_mf == SEM_FAILED) {
+		error("unable to create multifactor semaphore");
+		sem_unlink(MF_SEM_NAME);
+		return -1;
+	}
+
+	mutex_mf_done = sem_open(MF_DONE_SEM_NAME, O_CREAT, 0644, 0);
+	if(mutex_mf_done == SEM_FAILED) {
+		error("unable to create multifactor done semaphore");
+		sem_unlink(MF_DONE_SEM_NAME);
+		return -1;
+	}
+	return 0;
+}
+
+void close_BF_sync_semaphore()
+{
+	if(mutex_bf != SEM_FAILED) sem_close(mutex_bf);
+	if(mutex_bf_done != SEM_FAILED) sem_close(mutex_bf_done);
+}
+
+void close_MF_sync_semaphore()
+{
+	if(mutex_mf != SEM_FAILED) sem_close(mutex_mf);
+	if(mutex_mf_done != SEM_FAILED) sem_close(mutex_mf_done);
 }
 
 static time_t last_helper_schedule_time=0;
 static time_t last_helper_backfill_time=0;
+static time_t last_helper_multifactor_time=0;
 #define HELPER_SCHEDULE_PERIOD_S 11
 #define HELPER_BACKFILL_PERIOD_S 23
 
 
 
 static void do_backfill() {
-        int value;
-        sem_post(mutex_bf);
-        sem_wait(mutex_bf_done);
+	sem_post(mutex_bf);
+	sem_wait(mutex_bf_done);
+}
+
+static void unlock_mf_decay_th() {
+	sem_post(mutex_mf);
+	sem_wait(mutex_mf_done);
 }
 
 static void _slurm_rpc_sim_helper_cycle(slurm_msg_t * msg)
 {
-        if (mutex_bf==NULL) {
-                if(open_BF_sync_semaphore()==-1) {
-                        error("Opening backfill semaphore! this may affect backfill"
-                                "operations");
-                }
-        }
-        sim_helper_msg_t *helper_msg =
-                (sim_helper_msg_t *) msg->data;
+	debug4("Into helper cycle");
+	if (mutex_bf==NULL) {
+		if(open_BF_sync_semaphore()==-1) {
+			error("Opening backfill semaphore! this may affect backfill"
+					"operations");
+			}
+		}
+	if (mutex_mf == NULL) {
+		if(open_MF_sync_semaphore() == -1) {
+			error("Opening multifactor semaphore! this may affect multifactor"
+					"operations");
+		}
+	}
+	sim_helper_msg_t *helper_msg =
+		(sim_helper_msg_t *) msg->data;
+	debug3("Ended jobs %d", helper_msg->total_jobs_ended);
+	while (1) {
+		pthread_mutex_lock(&lock_finishing_jobs);
+		if (total_finished_jobs == helper_msg->total_jobs_ended) {
+			total_finished_jobs = 0;
+			pthread_mutex_unlock(&lock_finishing_jobs);
+			break;
+		}
+		pthread_mutex_unlock(&lock_finishing_jobs);
+		debug3("Waiting complete jobs to arrive");
+		usleep(100);
+	}
 
-        while (total_finished_jobs < helper_msg->total_jobs_ended) {
-                debug3("Waiting complete job to arrive");
-                usleep(1000);
-        }
-        total_finished_jobs = 0;
-        while (arrived_jobs_epilogs < helper_msg->total_jobs_ended) {
-                debug3("Waiting epilog to finish");
-                usleep(1000);
-        }
-		 arrived_jobs_epilogs = 0;
+	while (1) {
+		pthread_mutex_lock(&lock_remaining_epilogs);
+		if (arrived_jobs_epilogs == helper_msg->total_jobs_ended) {
+			arrived_jobs_epilogs = 0;
+			pthread_mutex_unlock(&lock_remaining_epilogs);
+			break;
+		}
+		pthread_mutex_unlock(&lock_remaining_epilogs);
+		debug3("Waiting epilogs to finish");
+		usleep(100);
+	}
 
-        debug3("Processing RPC: MESSAGE_SIM_HELPER_CYCLE for %d jobs",
-                        helper_msg->total_jobs_ended);
-        time_t current_time=time(NULL);
-          if (get_scheduler_cnt() > 0) {
-                reset_scheduler_cnt();
-//        if (last_helper_schedule_time==0 ||
-//           (current_time-last_helper_schedule_time)>HELPER_SCHEDULE_PERIOD_S) {
-                schedule(0);
-                last_helper_schedule_time=current_time;
-        }
-        if (last_helper_backfill_time==0 ||
-                /*(current_time-last_helper_backfill_time)>HELPER_BACKFILL_PERIOD_S) {*/
-                (current_time-last_helper_backfill_time)>backfill_interval) {
-                info("unlocking backfill, backfill_interval %d", backfill_interval);
-                do_backfill();
-                last_helper_backfill_time=current_time;
-        }
+	debug3("Processing RPC: MESSAGE_SIM_HELPER_CYCLE for %d jobs",
+			helper_msg->total_jobs_ended);
+	time_t current_time=time(NULL);
 
-        slurm_send_rc_msg(msg, SLURM_SUCCESS);
+	/* Unlock priority multifactor plugin decay thread */
+	if (multifactor_interval && (current_time-last_helper_multifactor_time) > multifactor_interval) {
+		unlock_mf_decay_th();
+		last_helper_multifactor_time = current_time;
+	}
+
+	if (get_scheduler_cnt() > 0) {
+		reset_scheduler_cnt();
+		//TODO: fix periodic scheduling call
+//		if (last_helper_schedule_time==0 ||
+//			(current_time-last_helper_schedule_time)>HELPER_SCHEDULE_PERIOD_S) {
+		schedule(0);
+		last_helper_schedule_time=current_time;
+	}
+	if (last_helper_backfill_time==0 ||
+		/*(current_time-last_helper_backfill_time)>HELPER_BACKFILL_PERIOD_S) {*/
+		(current_time-last_helper_backfill_time)>backfill_interval) {
+		info("unlocking backfill, backfill_interval %d", backfill_interval);
+		do_backfill();
+		last_helper_backfill_time=current_time;
+	}
+
+	slurm_send_rc_msg(msg, SLURM_SUCCESS);
 }
 #endif

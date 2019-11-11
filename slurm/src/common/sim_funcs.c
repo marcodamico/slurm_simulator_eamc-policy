@@ -73,6 +73,16 @@ int gettimeofday(struct timeval *tv, struct timezone *tz){
 	return 0;
 }
 
+void get_semaphores_names(char *sim_sem, char *slurm_sem) {
+	char *sim_id = NULL;
+	strcpy(sim_sem, SIM_SEM_NAME);
+	strcpy(slurm_sem, SLURM_SEM_NAME);
+	if (sim_id = getenv("SLURM_SIM_ID")) {
+		strcat(sim_sem, sim_id);
+		strcat(slurm_sem, sim_id);
+	}
+}
+
 static int build_shared_memory() {
 	int fd;
 

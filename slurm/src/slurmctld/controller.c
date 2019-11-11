@@ -211,8 +211,6 @@ static char *	slurm_conf_filename;
 //FILE *stats = NULL;
 
 #ifdef SLURM_SIMULATOR
-char SEM_NAME[]         = "serversem";
-sem_t* mutexserver      = SEM_FAILED;
 int total_log_jobs=0;
 int backfill_interval=30; //initialize here global variable backfill interval to the default value
 #endif
@@ -973,48 +971,6 @@ static void _sig_handler(int signal)
 {
 }
 
-/* st on 20151020 */
-#ifdef SLURM_SIMULATOR
-int
-open_global_sync_sem() {
-        int iter = 0;
-        while (mutexserver == SEM_FAILED && iter < 10) {
-                mutexserver = sem_open(SEM_NAME, 0, 0644, 0);
-                if(mutexserver == SEM_FAILED) sleep(1);
-                ++iter;
-        }
-
-        if(mutexserver == SEM_FAILED)
-                return -1;
-        else
-                return 0;
-}
-
-void
-perform_global_sync() {
-/*        while(1) {
-                sem_wait(mutexserver);
-                if (*global_sync_flag == 3) {
-                        sem_post(mutexserver);  
-                        break;
-                }
-                sem_post(mutexserver);
-                debug("global_sync_flag: %d", *global_sync_flag);
-                usleep(100000);
-        }
-*/
-        sem_wait(mutexserver);
-        debug3("Finished with slurmctld");
-        *global_sync_flag += 1;
-        sem_post(mutexserver);
-}
-void
-close_global_sync_sem() {
-        if(mutexserver != SEM_FAILED) sem_close(mutexserver);
-}
-#endif
-
-
 /* _slurmctld_rpc_mgr - Read incoming RPCs and create pthread for each */
 void *_slurmctld_rpc_mgr(void *no_data)
 {
@@ -1093,8 +1049,6 @@ void *_slurmctld_rpc_mgr(void *no_data)
 	/*
 	 * Process incoming RPCs until told to shutdown
 	 */
-	if(open_global_sync_sem() == -1)
-                debug("Error opening mutexserver");
 	while (_wait_for_server_thread()) {
 		int max_fd = -1;
 		FD_ZERO(&rfds);
@@ -1151,7 +1105,6 @@ void *_slurmctld_rpc_mgr(void *no_data)
 						     conn_arg);
 		}
 	}
-        close_global_sync_sem();
 	debug3("_slurmctld_rpc_mgr shutting down");
 	for (i=0; i<nports; i++)
 		(void) slurm_shutdown_msg_engine(sockfd[i]);
@@ -1173,7 +1126,6 @@ void *_service_connection(void *arg)
 	void *return_code = NULL;
 	//slurm_msg_t msg;
 	slurm_msg_t msg;
-	int do_sync_flag=0;
 	
 #if HAVE_SYS_PRCTL_H
 	if (prctl(PR_SET_NAME, "srvcn", NULL, NULL, NULL) < 0) {
@@ -1181,10 +1133,6 @@ void *_service_connection(void *arg)
 	}
 #endif
 	slurm_msg_t_init(&msg);
-/*      if (msg->msg_type == MESSAGE_SIM_HELPER_CYCLE)
-                if(open_global_sync_sem() == -1)
-                        debug("Error opening mutexserver");
-*/
 	msg.flags |= SLURM_MSG_KEEP_BUFFER;
 	/*
 	 * slurm_receive_msg sets msg connection fd to accepted fd. This allows
@@ -1213,16 +1161,11 @@ void *_service_connection(void *arg)
 		error ("close(%d): %m",  conn->newsockfd);
 
 cleanup:
-	if (msg.msg_type == MESSAGE_SIM_HELPER_CYCLE){
-                do_sync_flag=1;
-        }
 	slurm_free_msg_members(&msg);
 	xfree(arg);
 	server_thread_decr();
-	if (do_sync_flag){
-                perform_global_sync(); /* st on 20151020 */
 		//slurm_free_sim_helper_msg(msg);
-	} //else{
+	//} else{
 	//usleep(1000);
 	//slurm_free_msg_members(&msg);
 	//}
