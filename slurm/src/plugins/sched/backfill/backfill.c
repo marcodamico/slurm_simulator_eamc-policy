@@ -105,7 +105,9 @@
 #endif
 
 #define BACKFILL_INTERVAL	30
+#ifdef SLURM_SIMULATOR
 #define BACKFILL_QUEUE_LIMIT    50
+#endif
 #define BACKFILL_RESOLUTION	60
 #define BACKFILL_WINDOW		(24 * 60 * 60)
 #define BF_MAX_USERS		5000
@@ -161,11 +163,13 @@ typedef struct deadlock_part_struct {
 /* Diagnostic  statistics */
 extern diag_stats_t slurmctld_diag_stats;
 uint32_t bf_sleep_usec = 0;
+#ifdef SLURM_SIMULATOR
 static long long bf_sched_total_time = 0;
 static long bf_sched_counter = 0;
 static long bf_sched_checked = 0;
 static long bf_sched_queue_len = 0;
 static long bf_sched_backfilled = 0;
+#endif
 
 /*********************** local variables *********************/
 static bool stop_backfill = false;
@@ -177,9 +181,10 @@ static bool config_flag = false;
 static uint64_t debug_flags = 0;
 #ifndef SLURM_SIMULATOR
 static int backfill_interval = BACKFILL_INTERVAL; // if it is simulator backfill interval will be a global variable
+#else
+static int backfill_queue_limit = BACKFILL_QUEUE_LIMIT;
 #endif
 static int bf_max_time = BACKFILL_INTERVAL;
-static int backfill_queue_limit = BACKFILL_QUEUE_LIMIT;
 static int backfill_resolution = BACKFILL_RESOLUTION;
 static int backfill_window = BACKFILL_WINDOW;
 static int bf_job_part_count_reserve = 0;
@@ -200,10 +205,6 @@ static int sched_timeout = SCHED_TIMEOUT;
 static int yield_sleep   = YIELD_SLEEP;
 static List pack_job_list = NULL;
 
-#ifdef SLURM_SIMULATOR
-char SEM_NAME[]         = "serversem";
-sem_t* mutexserver      = SEM_FAILED;
-#endif
 /*********************** local functions *********************/
 static void _add_reservation(uint32_t start_time, uint32_t end_reserve,
 			     bitstr_t *res_bitmap,
@@ -309,11 +310,13 @@ static void _set_job_time_limit(struct job_record *job_ptr, uint32_t new_limit)
  */
 static bool _many_pending_rpcs(void)
 {
-	/* Marco: Simulator: time should be not passing here so no rpc should arrive */
-	//info("thread_count = %u", slurmctld_config.server_thread_count);
-	//if ((defer_rpc_cnt > 0) &&
-	  //  (slurmctld_config.server_thread_count >= defer_rpc_cnt))
-	//	return true;
+	/* Marco: Simulator: time should not be passing here so no rpc should arrive */
+#ifndef SLURM_SIMULATOR
+	info("thread_count = %u", slurmctld_config.server_thread_count);
+	if ((defer_rpc_cnt > 0) &&
+	    (slurmctld_config.server_thread_count >= defer_rpc_cnt))
+		return true;
+#endif
 	return false;
 }
 
@@ -608,7 +611,7 @@ static void _load_config(void)
 	} else {
 		bf_max_time = backfill_interval;
 	}
-        
+#ifdef SLURM_SIMULATOR 
         /*ANA: Adding new bf parameter for limiting job queue depth, i.e., number of jobs in the queue considered to be backfilled */
         if (sched_params && (tmp_ptr=strstr(sched_params, "bf_queue_limit=")))
                 backfill_queue_limit = atoi(tmp_ptr + 15);
@@ -618,7 +621,7 @@ static void _load_config(void)
                 backfill_queue_limit = BACKFILL_QUEUE_LIMIT;
         }
         /**********************************************************************/
-
+#endif
 	if (sched_params && (tmp_ptr = strstr(sched_params, "bf_window="))) {
 		backfill_window = atoi(tmp_ptr + 10) * 60;  /* mins to secs */
 		if (backfill_window < 1) {
@@ -867,13 +870,17 @@ static void _do_diag_stats(struct timeval *tv1, struct timeval *tv2)
 	delta_t  = (tv2->tv_sec - tv1->tv_sec) * 1000000;
 	delta_t +=  tv2->tv_usec;
 	delta_t -=  tv1->tv_usec;
-	//real_time = delta_t - bf_sleep_usec;
-        real_time = delta_t; /* ANA: Check if this is correct, should we substract bf_sleep_usec */
-
+#ifndef SLURM_SIMULATOR
+	real_time = delta_t - bf_sleep_usec;
+#else
+	real_time = delta_t; /* ANA: Check if this is correct, should we substract bf_sleep_usec */
+#endif
 	slurmctld_diag_stats.bf_cycle_counter++;
 	slurmctld_diag_stats.bf_cycle_sum += real_time;
 	slurmctld_diag_stats.bf_cycle_last = real_time;
+#ifdef SLURM_SIMULATOR
 	bf_sched_total_time += real_time; /* ANA: Can any existing variable be used for this? */
+#endif
 
 	slurmctld_diag_stats.bf_depth_sum += slurmctld_diag_stats.bf_last_depth;
 	slurmctld_diag_stats.bf_depth_try_sum +=
@@ -885,14 +892,16 @@ static void _do_diag_stats(struct timeval *tv1, struct timeval *tv2)
 	}
 
 	slurmctld_diag_stats.bf_active = 0;
-        /* ANA: New stats variables; check if any existing can be used for this. Printing stats with debug creates huge logs, find better way. */
+#ifdef SLURM_SIMULATOR
+	/* ANA: New stats variables; check if any existing can be used for this. Printing stats with debug creates huge logs, find better way. */
 	bf_sched_counter++;
-        bf_sched_queue_len = slurmctld_diag_stats.bf_last_depth;
-        bf_sched_checked = slurmctld_diag_stats.bf_last_depth_try;
-        bf_sched_backfilled = slurmctld_diag_stats.backfilled_jobs;
+	bf_sched_queue_len = slurmctld_diag_stats.bf_last_depth;
+	bf_sched_checked = slurmctld_diag_stats.bf_last_depth_try;
+	bf_sched_backfilled = slurmctld_diag_stats.backfilled_jobs;
 
-        debug("stats: bf total time %lld, counter %ld, number of jobs: tried %ld, in queue %ld, backfilled %ld", bf_sched_total_time, bf_sched_counter, bf_sched_checked, bf_sched_queue_len, bf_sched_backfilled);
+	debug("stats: bf total time %lld, counter %ld, number of jobs: tried %ld, in queue %ld, backfilled %ld", bf_sched_total_time, bf_sched_counter, bf_sched_checked, bf_sched_queue_len, bf_sched_backfilled);
         /***********************************************************************************************************************************************************************************************************/
+#endif
 }
 
 #ifdef SLURM_SIMULATOR
@@ -902,31 +911,31 @@ char BF_DONE_SEM_NAME[] = "bf_done_sem";
 sem_t* mutex_bf_pg=NULL;
 sem_t* mutex_bf_done_pg=NULL;
 
-int open_BF_sync_semaphore_pg() {
-        mutex_bf_pg = sem_open(BF_SEM_NAME, O_CREAT, 0644, 0);
-        if(mutex_bf_pg == SEM_FAILED) {
-                error("unable to create backfill semaphore");
-                sem_unlink(BF_SEM_NAME);
-                return -1;
-        }
+int open_BF_sync_semaphore_pg()
+{
+	mutex_bf_pg = sem_open(BF_SEM_NAME, O_CREAT, 0644, 0);
+	if(mutex_bf_pg == SEM_FAILED) {
+		error("unable to create backfill semaphore");
+		sem_unlink(BF_SEM_NAME);
+		return -1;
+	}
 
-        mutex_bf_done_pg = sem_open(BF_DONE_SEM_NAME, O_CREAT, 0644, 0);
-        if(mutex_bf_done_pg == SEM_FAILED) {
-                error("unable to create backfill done semaphore");
-                sem_unlink(BF_DONE_SEM_NAME);
-                return -1;
-        }
-
-        return 0;
+	mutex_bf_done_pg = sem_open(BF_DONE_SEM_NAME, O_CREAT, 0644, 0);
+	if(mutex_bf_done_pg == SEM_FAILED) {
+		error("unable to create backfill done semaphore");
+		sem_unlink(BF_DONE_SEM_NAME);
+		return -1;
+	}
+	return 0;
 }
 
-void close_BF_sync_semaphore() {
-        if(mutex_bf_pg != SEM_FAILED) sem_close(mutex_bf_pg);
-        if(mutex_bf_done_pg != SEM_FAILED) sem_close(mutex_bf_done_pg);
+void close_BF_sync_semaphore()
+{
+	if(mutex_bf_pg != SEM_FAILED) sem_close(mutex_bf_pg);
+	if(mutex_bf_done_pg != SEM_FAILED) sem_close(mutex_bf_done_pg);
 	debug("backfill_agent: Closing BF sync sempahore");
 }
 #endif
-
 
 static int _list_find_all(void *x, void *key)
 {
@@ -956,17 +965,14 @@ extern void *backfill_agent(void *args)
 	_load_config();
 #ifndef SLURM_SIMULATOR
 	last_backfill_time = time(NULL);
-#endif
-#ifdef SLURM_SIMULATOR
-        open_BF_sync_semaphore_pg();
-        //backfill_interval=2;
+#else    
+	open_BF_sync_semaphore_pg();
 #endif
 	pack_job_list = list_create(_pack_map_del);
 	while (!stop_backfill) {
 #ifdef SLURM_SIMULATOR
-                sem_wait(mutex_bf_pg);
-#endif
-#ifndef SLURM_SIMULATOR
+		sem_wait(mutex_bf_pg);
+#else
 		if (short_sleep)
 			_my_sleep(1000000);
 		else
@@ -1005,13 +1011,11 @@ extern void *backfill_agent(void *args)
 #endif
 
 #ifdef SLURM_SIMULATOR
-                //debug("backfill: now %ld, last_backfill_time %ld, wait_time %ld, backfill_interval %d, job_is_completing %d, many_pending_rpcs %d, !avail_front_end %d, !more_work %d", now, last_backfill_time, wait_time, backfill_interval, _job_is_completing(), _many_pending_rpcs(), !avail_front_end(NULL), !_more_work(last_backfill_time));
-                debug("backfill: now %ld, last_backfill_time %ld, wait_time %lf, backfill_interval %d ", now, last_backfill_time, wait_time, backfill_interval);
-                if (!((wait_time < backfill_interval) ||
-                    job_is_completing(NULL) || _many_pending_rpcs() ||
-                    !avail_front_end(NULL) || !_more_work(last_backfill_time))) {
-		/*if (!(job_is_completing(NULL) || _many_pending_rpcs() ||
-                    !avail_front_end(NULL) || !_more_work(last_backfill_time))) {*/
+		debug("backfill: now %ld, last_backfill_time %ld, wait_time %lf, backfill_interval %d ", now, last_backfill_time, wait_time, backfill_interval);
+		if (!((wait_time < backfill_interval) ||
+			  job_is_completing(NULL) || _many_pending_rpcs() ||
+			  !avail_front_end(NULL) || !_more_work(last_backfill_time))) {
+#endif
 			lock_slurmctld(all_locks);
 			if ((backfill_cnt++ % 2) == 0)
 				_pack_start_clear();
@@ -1021,12 +1025,13 @@ extern void *backfill_agent(void *args)
 			unlock_slurmctld(all_locks);
 			short_sleep = false; /* ANA: Does this have any purpose here? */
 		}
+#ifdef SLURM_SIMULATOR
 		sem_post(mutex_bf_done_pg);
 #endif
 	}
 	FREE_NULL_LIST(pack_job_list);
 #ifdef SLURM_SIMULATOR
-        close_BF_sync_semaphore();
+    close_BF_sync_semaphore();
 #endif
 	return NULL;
 }
@@ -1313,14 +1318,15 @@ static int _attempt_backfill(void)
 				info("backfill: reached end of job queue");
 			break;
 		}
+#ifdef SLURM_SIMULATOR
 		/* ANA: checking if job limit has been reached*/
-                if (job_test_count >= backfill_queue_limit) {
-                        if (debug_flags & DEBUG_FLAG_BACKFILL)
-                                info("backfill: reached test job limit");
-                        break;
-                }
-                /**********************************************************/
-
+		if (job_test_count >= backfill_queue_limit) {
+        	if (debug_flags & DEBUG_FLAG_BACKFILL)
+            	info("backfill: reached test job limit");
+            break;
+        }
+        /**********************************************************/
+#endif
 		job_ptr          = job_queue_rec->job_ptr;
 		part_ptr         = job_queue_rec->part_ptr;
 		bf_job_id        = job_queue_rec->job_id;
@@ -1829,13 +1835,11 @@ next_task:
 			break;
 		}
 		test_time_count++;
+//Marco: I think we can avoid this part until backfill takes only one simulated second
 #ifndef SLURM_SIMULATOR
 		if (((defer_rpc_cnt > 0) &&
 		     (slurmctld_config.server_thread_count >= defer_rpc_cnt)) ||
 		    (slurm_delta_tv(&start_tv) >= sched_timeout)) {
-#else
-                if (local_loops == 20) {
-#endif
 			uint32_t save_job_id = job_ptr->job_id;
 			uint32_t save_time_limit = job_ptr->time_limit;
 			_set_job_time_limit(job_ptr, orig_time_limit);
@@ -1859,9 +1863,6 @@ next_task:
 				rc = 1;
 				break;
 			}
-#ifdef SLURM_SIMULATOR
-                       local_loops = 0;
-#endif
 			if (stop_backfill)
 				break;
 
@@ -1891,8 +1892,6 @@ next_task:
 			job_ptr->time_limit = save_time_limit;
 			job_ptr->part_ptr = part_ptr;
 		}
-#ifdef SLURM_SIMULATOR
-               local_loops++;
 #endif
 		FREE_NULL_BITMAP(avail_bitmap);
 		FREE_NULL_BITMAP(exc_core_bitmap);
@@ -1956,12 +1955,12 @@ next_task:
 		     (!bit_super_set(job_ptr->details->req_node_bitmap,
 				     avail_bitmap))) ||
 		    (job_req_node_filter(job_ptr, avail_bitmap, true))) {
-#ifndef SLURM_SIMULATOR
+//#ifndef SLURM_SIMULATOR
 			if (later_start) {
 				job_ptr->start_time = 0;
 				goto TRY_LATER;
 			}
-#endif
+//#endif
 			/* Job can not start until too far in the future */
 			_set_job_time_limit(job_ptr, orig_time_limit);
 			job_ptr->start_time = 0;
@@ -2292,7 +2291,7 @@ skip_start:
 			}
 			continue;
 		}
-#ifndef SLURM_SIMULATOR
+//#ifndef SLURM_SIMULATOR
 		if (later_start && (job_ptr->start_time > later_start)) {
 			/* Try later when some nodes currently reserved for
 			 * pending jobs are free */
@@ -2303,7 +2302,7 @@ skip_start:
 			job_ptr->start_time = 0;
 			goto TRY_LATER;
 		}
-#endif
+//#endif
 		start_time  = job_ptr->start_time;
 		end_reserve = job_ptr->start_time + boot_time +
 			      (time_limit * 60);
@@ -2351,7 +2350,7 @@ skip_start:
 			}
 			break;
 		}
-#ifndef SLURM_SIMULATOR
+//#ifndef SLURM_SIMULATOR
 		if ((job_ptr->start_time > now) &&
 		    (job_ptr->state_reason != WAIT_BURST_BUFFER_RESOURCE) &&
 		    (job_ptr->state_reason != WAIT_BURST_BUFFER_STAGING) &&
@@ -2372,7 +2371,7 @@ skip_start:
 			}
 			goto TRY_LATER;
 		}
-#endif
+//#endif
 		if (_job_pack_deadlock_test(job_ptr))
 			continue;
 
