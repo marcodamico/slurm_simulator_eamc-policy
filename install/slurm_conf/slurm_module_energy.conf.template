@@ -69,7 +69,7 @@ SchedulerParameters=bf_interval=23,bf_queue_limit=TOKEN_BF_QUEUE_LIMIT #,default
 SelectType=select/linear # As close as this simulator env can get to being select/alps
 #SelectTypeParameters=CR_CPU
 
-PriorityType=priority/multifactor
+PriorityType=priority/multifactor_energy
 #PriorityFavorSmall=YES
 PriorityWeightAge=1000
 PriorityWeightFairshare=10000

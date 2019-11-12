@@ -1,6 +1,6 @@
 #!/bin/bash -xe
 workload_name=$(basename $1)
-sim_path="/home/marcodamico/PhD/sims/s_"$$$workload_name"bfq"$2
+sim_path="/Users/anajokanovic/SIM_V17_JUELICH/SLURM_SIMULATOR/s_"$$$workload_name"bfq"$2
 rm -rf $sim_path
 
 mkdir -p $sim_path
@@ -38,8 +38,9 @@ chmod +x slurm_varios/trace.sh
 
 sed -e s:TOKEN_USER:$user: \
 	-e s:TOKEN_SLURM_USER_PATH:$sim_path: \
-    -e s:TOKEN_BF_QUEUE_LIMIT:$2: \
+    -e s:TOKEN_BF_QUEUE_LIMIT:1000: \
     -e s:TOKEN_CONTROL_MACHINE:$control_host: \
+	-e s:TOKEN_NNODES:$slave_nnodes: \
     -e s:TOKEN_SLURMCTLD_PORT:$slurmctld_port-$slurmctld_f_port: \
     -e s:TOKEN_SLURMD_PORT:$slurmd_port: \
     $slurm_conf_template > $sim_path/slurm_conf/slurm.conf
@@ -59,10 +60,6 @@ export PATH=$PATH:$sim_path/slurm_programs/bin
 export PATH=$PATH:$sim_path/slurm_programs/sbin
 export SLURM_CONF=$sim_path/slurm_conf/slurm.conf
 export SLURM_SIM_ID=$$
-export LIBEN_MACHINE="/home/marcodamico/PhD/sims/conf/ear_modules.conf"
-export LIBEN_APPS="/home/marcodamico/PhD/sims/conf/ear_modules/apps"
-export LD_LIBRARY_PATH="/home/marcodamico/PhD/energy/deepest/DEEPEST-API/lib/":$LD_LIBRARY_PATH
-export LRZ_MODEL="/home/marcodamico/PhD/energy/deepest/DEEPEST-API"
 #valgrind --trace-children=yes --leak-check=yes sim_mgr -f -w $workload
 #slurmdbd #MARCO: enable to enable slurmdbd
 sim_mgr -f -s $workload
