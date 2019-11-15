@@ -1,5 +1,6 @@
 #!/bin/bash -xe
 workload_name=$(basename $1)
+#change this path
 sim_path="/Users/anajokanovic/SIM_V17_JUELICH/SLURM_SIMULATOR/s_"$$$workload_name"bfq"$2
 rm -rf $sim_path
 
@@ -62,7 +63,7 @@ export SLURM_CONF=$sim_path/slurm_conf/slurm.conf
 export SLURM_SIM_ID=$$
 #valgrind --trace-children=yes --leak-check=yes sim_mgr -f -w $workload
 #slurmdbd #MARCO: enable to enable slurmdbd
-sim_mgr -f -s $workload
+sim_mgr -f -m $workload
 
 #MARCO: dump_db if slurmdbd is enabled
 #mysqldump -u slurm --password=slurm > db.dump
