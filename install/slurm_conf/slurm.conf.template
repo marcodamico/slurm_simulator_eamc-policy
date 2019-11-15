@@ -11,9 +11,6 @@ SlurmdTimeout=300
 MessageTimeout=60
 ReturnToService=1
 
-#SlurmctldPort=68256
-#SlurmdPort=6827
-#SlurmdPort=68189
 SlurmctldPort=TOKEN_SLURMCTLD_PORT
 SlurmdPort=TOKEN_SLURMD_PORT
 CryptoType=crypto/openssl
@@ -28,10 +25,8 @@ PropagateResourceLimitsExcept=CPU
 ProctrackType=proctrack/linuxproc
 KillWait=60
 WaitTime=120
-###MaxJobCount=8000
 MaxJobCount=2000000
 MinJobAge=300
-#MinJobAge=10
 OverTimeLimit=1
 InactiveLimit=1800
 
@@ -48,26 +43,26 @@ SlurmctldLogFile=TOKEN_SLURM_USER_PATH/slurm_varios/log/slurmctld.log
 SlurmdDebug=7
 SlurmdLogFile=TOKEN_SLURM_USER_PATH/slurm_varios/log/slurmd.log
 
-DebugFlags=SelectType,Backfill,Reservation,Priority
-#DebugFlags=Backfill,HeteroJobs #,Protocol
-#DebugFlags=Backfill
+DebugFlags=SelectType,Backfill,Reservation,Priority,HeteroJobs,Reservation
 
 SlurmdSpoolDir=TOKEN_SLURM_USER_PATH/slurm_varios/var/spool
 StateSaveLocation=TOKEN_SLURM_USER_PATH/slurm_varios/var/state
 CacheGroups=0
-###FastSchedule=1
 CheckpointType=checkpoint/none
 SwitchType=switch/none
 MpiDefault=none
-###FirstJobId=1000
+#FirstJobId=1000
+
 SchedulerType=sched/backfill
+
+#Enable to test msa-backfill
+#SchedulerType=sched/msa_backfill
+
 #SchedulerParameters=bf_interval=30,bf_queue_limit=TOKEN_BF_QUEUE_LIMIT,bf_max_job_test=100,default_queue_depth=50
 SchedulerParameters=bf_interval=23,bf_queue_limit=TOKEN_BF_QUEUE_LIMIT #,default_queue_depth=50
-###PriorityDecayHalfLife=7-0
-#PriorityDecayHalfLife=14-00:00:00
 #SelectType=select/bsc_cons_res
-SelectType=select/linear # As close as this simulator env can get to being select/alps
 #SelectTypeParameters=CR_CPU
+SelectType=select/linear
 
 #PriorityType=priority/multifactor
 #PriorityFavorSmall=YES
@@ -77,18 +72,13 @@ SelectType=select/linear # As close as this simulator env can get to being selec
 #PriorityWeightPartition=1000
 #PriorityWeightQOS=0
 #PriorityCalcPeriod=4
-#PriorityType=priority/multifactor
-#PriorityWeightAge=50000000 ###100
-#PriorityWeightFairShare=0
-#PriorityWeightQOS=0 ###1000000000
-#PriorityWeightPartition=0 ###0
-#PriorityWeightJobSize=600000000 ###0
+#PriorityDecayHalfLife=14-00:00:00
+
 #AccountingStorageType=accounting_storage/filetxt
 #AccountingStorageLoc=TOKEN_SLURM_USER_PATH/slurm_varios/job_accounting
 #AccountingStorageType=accounting_storage/slurmdbd
 #AccountingStorageHost=localhost
-###AccountingStorageEnforce=limits,qos
-################################################################################################################AccountingStorageEnforce=limits
+#AccountingStorageEnforce=limits,qos
 ClusterName=perfdevel
 
 ###NodeName=DEFAULT RealMemory=3168 Procs=12 Sockets=2 CoresPerSocket=6 ThreadsPerCore=1
@@ -129,8 +119,7 @@ FastSchedule=2
 #NodeName=n6 Sockets=2 CoresPerSocket=24 ThreadsPerCore=1 Features=y
 #NodeName=n7 Sockets=2 CoresPerSocket=24 ThreadsPerCore=1 Features=y
 #NodeName=n8 Sockets=2 CoresPerSocket=24 ThreadsPerCore=1 Features=y
-#
-#
+
 NodeName=n[1-50] Sockets=2 CoresPerSocket=12 ThreadsPerCore=1
 NodeName=n[51-200] Sockets=2 CoresPerSocket=28 ThreadsPerCore=1
 NodeName=n[201-225] Sockets=2 CoresPerSocket=20 ThreadsPerCore=1
@@ -140,7 +129,13 @@ NodeName=n[226-TOKEN_NNODES] Sockets=2 CoresPerSocket=24 ThreadsPerCore=1
 PartitionName=cm Nodes=n[1-50] Default=YES MaxTime=INFINITE State=UP Shared=NO #12CpS
 PartitionName=esb Nodes=n[51-200] Default=YES MaxTime=INFINITE State=UP Shared=NO #28CpS
 PartitionName=dam Nodes=n[201-225] Default=YES MaxTime=INFINITE State=UP Shared=NO #???
+#Single partition
 #PartitionName=normal Nodes=n[226-TOKEN_NNODES] Default=YES MaxTime=INFINITE State=UP Shared=NO
+#Two partitions
 #NodeName=n[1-TOKEN_NNODES_END] Sockets=1 CoresPerSocket=TOKEN_CORES ThreadsPerCore=1
 #PartitionName=normal Nodes=n[1-TOKEN_NNODES_P1] Default=YES MaxTime=INFINITE State=UP Shared=NO
 #PartitionName=normal2 Nodes=n[TOKEN_NNODES_P2-TOKEN_NNODES_END] Default=NO MaxTime=INFINITE State=UP Shared=NO
+
+#Heterogeneous jobs test
+#NodeName=n[1-50] Sockets=1 CoresPerSocket=1 ThreadsPerCore=1
+#PartitionName=CM Nodes=n[1-50] Default=YES MaxTime=INFINITE State=UP Shared=NO #12CpS

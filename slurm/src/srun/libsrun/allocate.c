@@ -727,7 +727,10 @@ List allocate_pack_nodes(bool handle_signals)
 		/*
 		 * Allocation granted!
 		 */
-
+//***************** Zia Edit Begin *******************************
+		int error_code;
+		reserve_info_msg_t *res_info_ptr = NULL;  //for delayed workflows
+//***************** Zia Edit End *******************************
 		opt_iter  = list_iterator_create(opt_list);
 		resp_iter = list_iterator_create(job_resp_list);
 		while ((opt_local = list_next(opt_iter))) {
@@ -748,7 +751,28 @@ List allocate_pack_nodes(bool handle_signals)
 					goto relinquish;
 				}
 			}
-
+//***************** Zia Edit Begin *******************************
+			if(opt_local->delay && resp->resv_name) //This job will start in a future reservation due to delay
+			{
+				if(!res_info_ptr){
+					error_code = slurm_load_reservations((time_t) NULL,
+								&res_info_ptr);
+					if(error_code != SLURM_SUCCESS)
+						goto relinquish;
+				}
+				reserve_info_t *res_ptr = res_info_ptr->reservation_array;
+				int i;
+				for (i = 0; i < res_info_ptr->record_count; i++) {
+				      if (xstrcmp (resp->resv_name, res_ptr[i].name) != 0)
+					    continue;
+				      resp->node_cnt = res_ptr[i].node_cnt;
+				      if(!resp->node_list)
+					    resp->node_list = xstrdup(res_ptr[i].node_list);
+				      if(!resp->partition)
+					    resp->partition = xstrdup(res_ptr[i].partition);
+				}
+			}
+//***************** Zia Edit End *******************************
 			/*
 			 * These values could be changed while the job was
 			 * pending so overwrite the request with what was
@@ -1025,6 +1049,10 @@ static job_desc_msg_t *_job_desc_msg_create_from_opts(slurm_opt_t *opt_local)
 		j->burst_buffer = srun_opt->burst_buffer;
 	if (opt_local->begin)
 		j->begin_time = opt_local->begin;
+//***************** Zia Edit Begin *******************************
+	if (opt_local->delay)
+		j->delay = opt_local->delay;
+//***************** Zia Edit End *******************************
 	if (opt_local->deadline)
 		j->deadline = opt_local->deadline;
 	if (opt_local->licenses)

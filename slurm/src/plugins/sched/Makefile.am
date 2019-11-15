@@ -1,3 +1,3 @@
 # Makefile for scheduler plugins
 
-SUBDIRS = backfill builtin hold
+SUBDIRS = backfill msa-backfill builtin hold

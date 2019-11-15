@@ -594,6 +594,10 @@ static int _fill_job_desc_from_opts(job_desc_msg_t *desc)
 		desc->mail_user = xstrdup(opt.mail_user);
 	if (opt.begin)
 		desc->begin_time = opt.begin;
+//***************** Zia Edit Begin *******************************
+	if (opt.delay)
+		desc->delay = opt.delay;
+//***************** Zia Edit End *******************************
 	if (opt.deadline)
 		desc->deadline = opt.deadline;
 	if (opt.delay_boot != NO_VAL)

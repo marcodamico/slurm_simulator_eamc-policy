@@ -17,7 +17,6 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/syscall.h> /* SYS_gettid */
-#include <pwd.h>
 #include <ctype.h>
 #include <sim_trace.h>
 #include <sys/mman.h>
@@ -774,7 +773,7 @@ void generate_job_desc_msg(job_desc_msg_t* dmesg, job_trace_t* jobd) {
 		gid_t gidt;
 
 		/* First, set up and call Slurm C-API for actual job submission. */
-		dmesg->time_limit    = jobd->wclimit;
+		dmesg->time_limit    = ceil(jobd->wclimit / 60); //In minutes
 		dmesg->job_id        = NO_VAL;
 		dmesg->name	    = "sim_job"; //jobd->job_id;   // job_id from the swf trace will be used for job_name, which is still used for plussingleton dependency. TODO Use comment field instead of name field for plussingleton. 
 		uidt = userIdFromName(jobd->username, &gidt);
@@ -858,6 +857,10 @@ void generate_job_desc_msg(job_desc_msg_t* dmesg, job_trace_t* jobd) {
 			workflow_count+=1;
 		} else if (strlen(jobd->manifest_filename)>1) {
 			//dmesg->name=xstrdup(jobd->manifest_filename+1);
+		}
+		if (jobd->wait_component_job_time && jobd->wait_component_job_time != -1) {
+			dmesg->delay = ceil(jobd->wait_component_job_time / 60); //In minutes
+			printf("Delayed jobpack compont %d by %d\n", jobd->component_job_id, dmesg->delay);
 		}
 }
 
@@ -1081,16 +1084,16 @@ userIdFromName(const char *name, gid_t* gid) {
 	if (name == NULL || *name == '\0')  /* On NULL or empty string    */
 		return -1;                  /* return an error            */
 
-	u = strtol(name, &endptr, 10);      /* As a convenience to caller */
-	if (*endptr == '\0') {              /* allow a numeric string     */
-		pwd = getpwuid(u);
-		if (pwd == NULL)
-			printf("Warning!  Could not find the group id "
-			       "corresponding to the user id: %u\n", u);
-		else
-			*gid = pwd->pw_gid;
-		return u;
-	}
+	//u = strtol(name, &endptr, 10);      /* As a convenience to caller */
+	//if (*endptr == '\0') {              /* allow a numeric string     */
+	//	pwd = getpwuid_r(u);
+	//	if (pwd == NULL)
+	//		printf("Warning!  Could not find the group id "
+	//		       "corresponding to the user id: %u\n", u);
+	//	else
+	//		*gid = pwd->pw_gid;
+	//	return u;
+	//}
 
 	getpwnam_r(name, pwd, NULL, 0, &pwd_ptr);
 	if (pwd == NULL)
@@ -1185,6 +1188,7 @@ void displayJobTraceT(job_trace_t* rptr) {
 			" %11ld"
 			" %9d"
 			" %9d"
+			" %9d"
 			" %7d"
 			" %11s"
 			" %11s"
@@ -1202,6 +1206,7 @@ void displayJobTraceT(job_trace_t* rptr) {
 			rptr->submit,
 			rptr->duration,
 			rptr->wclimit,
+			rptr->wait_component_job_time,
 			rptr->tasks,
 			SAFE_PRINT(rptr->qosname),
 			SAFE_PRINT(rptr->partition),
@@ -1259,7 +1264,7 @@ int init_job_trace() {
 
 	if (trace_format > 2)
 		printf("%8s %9s %11s %9s %9s %7s %11s %11s %11s %14s %16s %11s %11s %6s %6s\n",
-		"job_id:", "username:", "submit:", "duration:", "wclimit:",
+		"job_id:", "username:", "submit:", "duration:", "wclimit:", "delay",
 		"tasks:", "qosname:", "partition: ", "account:", "cpus_per_task:",
 		"tasks_per_node:", "reservation:", "dependency:", "features:", "hints:", "power:");
 	else 
@@ -1518,7 +1523,6 @@ main(int argc, char *argv[], char *envp[]) {
                        /*"Exiting...\n"*/);
                 /*return -1;*/
         }
-
 	//read apps info - TODO: move this path to slurm.conf and sim.conf
 	char *apps_file = getenv("LIBEN_APPS");
 	if (!apps_file) {

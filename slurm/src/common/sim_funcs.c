@@ -11,9 +11,10 @@
 
 
 typedef struct sim_user_info{
-    uid_t sim_uid;
-    char *sim_name;
-    struct sim_user_info *next;
+	uid_t sim_uid;
+	gid_t sim_gid;
+	char *sim_name;
+	struct sim_user_info *next;
 }sim_user_info_t;
 
 /* Function Pointers */
@@ -211,6 +212,8 @@ char *sim_getname(uid_t uid) {
 	sim_user_info_t *aux;
 	char *user_name;
 
+	if (!sim_users_list) getting_simulation_users();
+
 	aux = sim_users_list;
 
 	while (aux) {
@@ -226,6 +229,23 @@ char *sim_getname(uid_t uid) {
 	return NULL;
 }
 
+gid_t sim_getgid(uid_t uid) {
+	sim_user_info_t *aux;
+
+	if (!sim_users_list) getting_simulation_users();
+
+	aux = sim_users_list;
+
+	while (aux) {
+		if (aux->sim_uid == uid) {
+			return aux->sim_gid;
+		}
+		aux = aux->next;
+	}
+
+	return -1;
+}
+
 int getpwnam_r(const char *name, struct passwd *pwd, 
 		char *buf, size_t buflen, struct passwd **result) {
 
@@ -236,6 +256,7 @@ int getpwnam_r(const char *name, struct passwd *pwd,
 		return ENOENT;
 	}
 	pwd->pw_name = strdup(name);
+	pwd->pw_gid = sim_getgid(pwd->pw_uid);
 	debug("Found uid %u for name %s", pwd->pw_uid, pwd->pw_name);
 
 	*result = pwd;
@@ -254,7 +275,7 @@ int getpwuid_r(uid_t uid, struct passwd *pwd,
 		return ENOENT;
 	}
 	pwd->pw_uid = uid;
-	pwd->pw_gid = 100;  /* users group. Is this portable? */
+	pwd->pw_gid = sim_getgid(uid);
 	debug("Found name %s for uid %u", pwd->pw_name, pwd->pw_uid);
 
 	*result = pwd;
@@ -289,8 +310,8 @@ void determine_users_sim_path() {
 static int getting_simulation_users() {
 	char              username[100], users_sim_file_name[1024];
 	char              uid_string[10];
+	char			  gid_string[10];
 	sim_user_info_t * new_sim_user;
-	uid_t             sim_uid;
 	int               fich, pos;
 	char              c;
 
@@ -337,7 +358,7 @@ static int getting_simulation_users() {
 
 		while (read(fich, &c, 1) > 0) {
 			uid_string[pos] = c;
-			if (uid_string[pos] == '\n') {
+			if (uid_string[pos] == ':') {
 				uid_string[pos] = '\0';
 				break;
 			}
@@ -346,6 +367,21 @@ static int getting_simulation_users() {
 		debug("Reading uid %s", uid_string);
 
 		new_sim_user->sim_uid = (uid_t)atoi(uid_string);
+
+		pos = 0;
+		memset(&gid_string, '\0', 10);
+
+		while (read(fich, &c, 1) > 0) {
+			gid_string[pos] = c;
+			if (gid_string[pos] == '\n') {
+				gid_string[pos] = '\0';
+				break;
+			}
+			pos++;
+		}
+
+		debug("Reading gid %s", gid_string);
+		new_sim_user->sim_gid = (gid_t)atoi(gid_string);
 
 		/* Inserting as list head */
 		new_sim_user->next = sim_users_list;

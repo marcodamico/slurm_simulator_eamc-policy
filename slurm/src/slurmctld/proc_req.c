@@ -1193,7 +1193,7 @@ static bool _sched_backfill(void)
 
 	if (backfill == -1) {
 		char *sched_type = slurm_get_sched_type();
-		if (!xstrcmp(sched_type, "sched/backfill"))
+		if (!xstrcmp(sched_type, "sched/backfill") || !xstrcmp(sched_type, "sched/msa_backfill"))
 			backfill = 1;
 		else
 			backfill = 0;
@@ -1275,6 +1275,9 @@ static void _slurm_rpc_allocate_pack(slurm_msg_t * msg)
 	lock_slurmctld(job_write_lock);
 	inx = 0;
 	iter = list_iterator_create(job_req_list);
+//***************** Zia Edit Begin *******************************
+	bool is_delay = false;
+//***************** Zia Edit End *******************************
 	while ((job_desc_msg = (job_desc_msg_t *) list_next(iter))) {
 		if (job_uid == NO_VAL)
 			job_uid = job_desc_msg->user_id;
@@ -1349,6 +1352,11 @@ static void _slurm_rpc_allocate_pack(slurm_msg_t * msg)
 		if (pack_job_id == 0) {
 			pack_job_id = job_ptr->job_id;
 			first_job_ptr = job_ptr;
+
+//***************** Zia Edit Begin *******************************
+			if(job_ptr->details)
+			    job_ptr->details->delay = 0; //Pack leader cannot be delayed as the workflow starts with this job
+//***************** Zia Edit End *******************************
 		}
 		snprintf(tmp_str, sizeof(tmp_str), "%u", job_ptr->job_id);
 		if (jobid_hostset)
@@ -1358,6 +1366,11 @@ static void _slurm_rpc_allocate_pack(slurm_msg_t * msg)
 		job_ptr->pack_job_id     = pack_job_id;
 		job_ptr->pack_job_offset = pack_job_offset++;
 		list_append(submit_job_list, job_ptr);
+
+		//***************** Zia Edit Begin *******************************
+		if(!is_delay && job_desc_msg->delay)
+		    is_delay = true;
+		//***************** Zia Edit End *******************************
 	}
 	list_iterator_destroy(iter);
 
@@ -4136,6 +4149,9 @@ static void _slurm_rpc_submit_batch_pack_job(slurm_msg_t *msg)
 	is_super_user = validate_super_user(uid);
 	lock_slurmctld(job_read_lock);     /* Locks for job_submit plugin use */
 	iter = list_iterator_create(job_req_list);
+//***************** Zia Edit Begin *******************************
+	bool is_delay = false;
+//***************** Zia Edit End *******************************
 	while ((job_desc_msg = (job_desc_msg_t *) list_next(iter))) {
 		if (job_uid == NO_VAL)
 			job_uid = job_desc_msg->user_id;
@@ -4176,6 +4192,10 @@ static void _slurm_rpc_submit_batch_pack_job(slurm_msg_t *msg)
 			}
 			xfree(err_msg);
 		}
+//***************** Zia Edit Begin *******************************
+		if(!is_delay && job_desc_msg->delay)
+			is_delay = true;
+//***************** Zia Edit End *******************************
 		pack_job_offset++;
 	}
 	list_iterator_destroy(iter);
@@ -4201,16 +4221,25 @@ static void _slurm_rpc_submit_batch_pack_job(slurm_msg_t *msg)
 	lock_slurmctld(job_write_lock);
 	START_TIMER;	/* Restart after we have locks */
 	iter = list_iterator_create(job_req_list);
+//***************** Zia Edit Begin *******************************
+	int prev_delay = 0;
+	bool is_delay_change = false;
+//***************** Zia Edit End *******************************
 	while ((job_desc_msg = (job_desc_msg_t *) list_next(iter))) {
 		if (!script)
 			script = xstrdup(job_desc_msg->script);
-		if (pack_job_offset && job_desc_msg->script) {
+		if (pack_job_offset && job_desc_msg->script) {//add delay thingy
 			info("%s: Pack job %u offset %u has script, being ignored",
 			     __func__, pack_job_id, pack_job_offset);
 			xfree(job_desc_msg->script);
 
 		}
-		if (pack_job_offset) {
+//***************** Zia Edit Begin *******************************
+		is_delay_change = (prev_delay != job_desc_msg->delay) ? true : false;
+		prev_delay = job_desc_msg->delay;
+
+		if (pack_job_offset || !is_delay_change) {
+//***************** Zia Edit End *******************************
 			/* Email notifications disable except for pack leader */
 			job_desc_msg->mail_type = 0;
 			xfree(job_desc_msg->mail_user);
@@ -4218,7 +4247,9 @@ static void _slurm_rpc_submit_batch_pack_job(slurm_msg_t *msg)
 		if (!job_desc_msg->burst_buffer) {
 			xfree(job_desc_msg->script);
 			job_desc_msg->script =
-				bb_g_build_pack_script(script, pack_job_offset);
+//***************** Zia Edit Begin *******************************
+				bb_g_build_pack_script(script, pack_job_offset, is_delay_change);
+//***************** Zia Edit End *******************************
 		}
 		job_desc_msg->pack_job_offset = pack_job_offset;
 		error_code = job_allocate(job_desc_msg,
@@ -4232,6 +4263,11 @@ static void _slurm_rpc_submit_batch_pack_job(slurm_msg_t *msg)
 			if (pack_job_id == 0) {
 				pack_job_id = job_ptr->job_id;
 				first_job_ptr = job_ptr;
+
+//***************** Zia Edit Begin *******************************
+				if(job_ptr->details)
+				    job_ptr->details->delay = 0; //Pack leader cannot be delayed as the workflow starts with this job
+//***************** Zia Edit End *******************************
 				alloc_only = 1;
 			}
 			snprintf(tmp_str, sizeof(tmp_str), "%u",
@@ -4243,6 +4279,9 @@ static void _slurm_rpc_submit_batch_pack_job(slurm_msg_t *msg)
 			job_ptr->pack_job_id     = pack_job_id;
 			job_ptr->pack_job_offset = pack_job_offset++;
 			job_ptr->batch_flag      = 1;
+//***************** Zia Edit Begin *******************************
+			job_ptr->delayed_workflow = is_delay;
+//***************** Zia Edit End *******************************
 			list_append(submit_job_list, job_ptr);
 		}
 
