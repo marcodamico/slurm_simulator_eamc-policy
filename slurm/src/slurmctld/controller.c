@@ -576,6 +576,7 @@ int main(int argc, char **argv)
 		if (xstrcmp(prio_type, "priority/multifactor") && 
 			xstrcmp(prio_type, "priority/multifactor_energy"))
 			multifactor_interval = 0;
+		xfree(prio_type);
 #else
 		if (slurm_sched_init() != SLURM_SUCCESS)
 			fatal("failed to initialize scheduling plugin");
