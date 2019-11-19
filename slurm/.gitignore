@@ -16,6 +16,13 @@ autom4te.cache
 /contribs/cray/slurmconfgen.py
 /contribs/perlapi/libslurm/perl/Makefile.PL
 /contribs/perlapi/libslurmdb/perl/Makefile.PL
+/contribs/simulator/edit_trace
+/contribs/simulator/list_trace
+/contribs/simulator/sim_mgr
+/contribs/simulator/simdate
+/contribs/simulator/simqsnap
+/contribs/simulator/trace_builder
+/contribs/simulator/update_trace
 /doc/html/*.html
 !/doc/html/review_release.html
 /etc/cgroup.release_common.example
