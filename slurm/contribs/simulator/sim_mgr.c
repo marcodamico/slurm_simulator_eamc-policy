@@ -598,6 +598,7 @@ void intermodule_time_res_convertor(job_desc_msg_t* dmesg, job_desc_msg_t* dmesg
                            if(dmesg1->num_tasks > 1){ dmesg1->ntasks_per_node=2; dmesg1->cpus_per_task=8; }
                            dmesg1->min_cpus=dmesg1->min_nodes*16;
                            dmesg1->time_limit=MAX(1,(int)(1.07*dmesg->cpus_per_task*dmesg->time_limit/dmesg1->cpus_per_task));
+                           dmesg1->duration=MAX(1,(int)(1.07*dmesg->cpus_per_task*dmesg->duration/dmesg1->cpus_per_task));
 
                        }
                      }
@@ -607,6 +608,7 @@ void intermodule_time_res_convertor(job_desc_msg_t* dmesg, job_desc_msg_t* dmesg
                            dmesg1->max_nodes=dmesg->min_nodes;
                            dmesg1->min_nodes=dmesg1->max_nodes;
                            dmesg1->time_limit=10*dmesg->time_limit;
+                           dmesg1->duration=10*dmesg->duration;
                            dmesg1->min_cpus      = dmesg1->min_nodes * 24;
                            dmesg1->ntasks_per_node=dmesg->ntasks_per_node;
                            dmesg1->cpus_per_task=24;
@@ -622,6 +624,7 @@ void intermodule_time_res_convertor(job_desc_msg_t* dmesg, job_desc_msg_t* dmesg
                            dmesg1->max_nodes=2*dmesg->min_nodes; // due to memory
                            dmesg1->min_nodes=dmesg1->max_nodes;
                            dmesg1->time_limit=10*dmesg->time_limit; // GPU vs. CPU performance
+                           dmesg1->duration=10*dmesg->duration;
                            dmesg1->min_cpus      = dmesg1->min_nodes * 24;
                            dmesg1->num_tasks = 2*dmesg->num_tasks; // As we increased number of nodes, and the code will be slightly diferen due to GPU to CPU transition?
                            dmesg1->cpus_per_task=24;
@@ -633,7 +636,8 @@ void intermodule_time_res_convertor(job_desc_msg_t* dmesg, job_desc_msg_t* dmesg
                        else if(!strcmp(dmesg1->partition,"esb")){
                            dmesg1->max_nodes=4*dmesg->min_nodes; // due to esb's memory being 4x smaller per node than dam's memory per node
                            dmesg1->min_nodes=dmesg1->max_nodes;  
-                           dmesg1->time_limit=dmesg->time_limit/4; // since we are using 4x more nodes (due to memory) we have 4x more computing power
+                           dmesg1->time_limit=MAX(1,dmesg->time_limit/4); // since we are using 4x more nodes (due to memory) we have 4x more computing power
+                           dmesg1->duration=MAX(1,dmesg->duration/4);
                            dmesg1->min_cpus      = dmesg1->min_nodes * 8;
                            dmesg1->num_tasks = 4*dmesg->num_tasks; // As we increased number of nodes?
                            dmesg1->cpus_per_task=8;
@@ -700,7 +704,7 @@ void generate_job_desc_msg(job_desc_msg_t* dmesg, job_trace_t* jobd) {
 		if(jobd->tasks_per_node)
 			dmesg->ntasks_per_node = jobd->tasks_per_node;
 		dmesg->ntasks_per_node = MAX(1,jobd->tasks/dmesg->min_nodes);
-        dmesg->duration		 = jobd->duration;
+                dmesg->duration		 = jobd->duration;
 
 		/*TODO: implement this in the trace file */
 		if (napps) {
