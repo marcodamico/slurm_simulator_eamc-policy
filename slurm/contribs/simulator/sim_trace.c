@@ -150,7 +150,7 @@ int read_job_trace_record_ascii(FILE * trace_file_ptr, job_trace_t *job_trace, i
 
                 if(job_trace->wclimit == -1)
                     job_trace->wclimit = MAX(1,ceil((float)(job_trace->duration/60))*2);   // We set wclimit as twice the job duration if SWF does not have wclimit info. TODO Add a model.  
-                job_trace->duration = MAX(1,ceil((float)(job_trace->duration/60)));
+                job_trace->duration = MAX(1,job_trace->duration);
                 
                 if(job_trace->tasks == 0){
                     printf("sim_trace: Trace contains jobs with job_trace->tasks %u\n", job_trace->tasks );

@@ -580,29 +580,10 @@ time_mgr(void *arg) {
 
 /* Model for conversion of requested time and resources from preferred to alternative modules */
 void intermodule_time_res_convertor(job_desc_msg_t* dmesg, job_desc_msg_t* dmesg1, job_trace_t* jobd){
-                     //info("sbatch: Conversion for job %d", jobd->job_id);
-                     char r_str[7]="";
-                     sprintf(r_str, "%d", jobd->job_id);
-                     dmesg->name = strdup(r_str);
-                     dmesg1->name = strdup(r_str);
-                     //dmesg2->name = strdup(r_str);
             //info("Start filling in desc msgs 1 and 2 priority, timelimit, etc.");
                      if(!strcmp(dmesg->partition,"cm")){ // It can only be cm,dam combination
-                          dmesg->cpus_per_task=24;
-                       /*if(!strcmp(dmesg1->partition,"esb")){
-                           dmesg1->num_tasks=dmesg->num_tasks;
-                           dmesg1->max_nodes= MAX(1,(int)(4*dmesg->num_tasks/dmesg->ntasks_per_node)); // system("sbatch -n 6 -N 1  --cpus-per-task=4 --time=4 -p cm ") might be problem!
-                           if(dmesg1->max_nodes > 75){
-                              dmesg1->max_nodes = -1;
-                              info("sbatch: this job cannot be submitted to esb as there are no sufficient nodes");
-                           }
-                           dmesg1->min_nodes=dmesg1->max_nodes;
-                           dmesg1->ntasks_per_node=MAX(1,(int)(dmesg->ntasks_per_node/4));
-                           dmesg1->cpus_per_task=MAX(1,(int)(8/dmesg1->ntasks_per_node));
-                           dmesg1->min_cpus=dmesg1->min_nodes*8;
-                           dmesg1->time_limit=MAX(1,(int)(1.28*dmesg->cpus_per_task*dmesg1->time_limit/dmesg1->cpus_per_task));
-                       }
-                       else*/ if(!strcmp(dmesg1->partition,"dam")){
+                         dmesg->cpus_per_task=24;
+                         if(!strcmp(dmesg1->partition,"dam")){
                            dmesg1->num_tasks=dmesg->num_tasks;
                            dmesg1->cpus_per_task=16;
                            dmesg1->ntasks_per_node=1;
@@ -613,41 +594,10 @@ void intermodule_time_res_convertor(job_desc_msg_t* dmesg, job_desc_msg_t* dmesg
                            }
                            dmesg1->min_nodes=dmesg1->max_nodes;
                            if(dmesg1->num_tasks > 1){ dmesg1->ntasks_per_node=2; dmesg1->cpus_per_task=8; }
-                           //else dmesg1->ntasks_per_node=-1;
-                           //dmesg1->cpus_per_task=MAX(1,(int)(16/dmesg1->ntasks_per_node)); // If 16 is instead of 24 this configuration is never runnable on dam. Why?? It has to be 16 , as dam  node has 16 cores
                            dmesg1->min_cpus=dmesg1->min_nodes*16;
                            dmesg1->time_limit=MAX(1,(int)(1.07*dmesg->cpus_per_task*dmesg->time_limit/dmesg1->cpus_per_task));
 
                        }
-
-                       /*if(!strcmp(dmesg2->partition,"esb")){
-                           dmesg2->num_tasks=dmesg->num_tasks;
-                           dmesg2->max_nodes= MAX(1,(int)(4*dmesg->num_tasks/dmesg->ntasks_per_node)); // system("sbatch -n 6 -N 1  --cpus-per-task=4 --time=4 -p cm ") might be problem!
-                           if(dmesg2->max_nodes > 75){
-                              dmesg2->max_nodes = -1;
-                              info("sbatch: this job cannot be submitted to esb as there are no sufficient nodes");
-                           }
-                           dmesg2->min_nodes=dmesg2->max_nodes;
-                           dmesg2->ntasks_per_node=MAX(1,(int)(dmesg->ntasks_per_node/4));
-                           dmesg2->cpus_per_task=MAX(1,(int)(8/dmesg2->ntasks_per_node));
-                           dmesg2->min_cpus=dmesg2->min_nodes*8;
-                           dmesg2->time_limit=MAX(1,(int)(1.28*dmesg->cpus_per_task*dmesg2->time_limit/dmesg2->cpus_per_task));
-                       }
-                       else if(!strcmp(dmesg2->partition,"dam")){
-                           dmesg2->num_tasks=dmesg->num_tasks;
-                           dmesg2->max_nodes=MAX(1,(int)(dmesg->num_tasks/(2*dmesg->ntasks_per_node)));
-                           if(dmesg2->max_nodes > 16) {
-                             dmesg2->max_nodes = -1;
-                             info("sbatch: this job cannot be submitted to dam as there are no sufficient nodes");
-                           }
-                           dmesg2->min_nodes=dmesg2->max_nodes;
-                           if(dmesg2->num_tasks<=16) dmesg2->ntasks_per_node=dmesg2->num_tasks;
-                           else dmesg2->ntasks_per_node=-1;
-                           dmesg2->cpus_per_task=MAX(1,(int)(16/dmesg2->ntasks_per_node)); // If 16 is instead of 24 this configuration is never runnable on dam. Why?? It has to be 16 , as dam  node has 16 cores
-                           dmesg2->min_cpus=dmesg2->min_nodes*16;
-                           dmesg2->time_limit=MAX(1,(int)(1.07*dmesg->cpus_per_task*dmesg->time_limit/dmesg2->cpus_per_task));
-
-                       }*/
                      }
                      else if(!strcmp(dmesg->partition,"esb")){ // it can only be esb,cm combination
                        dmesg->min_nodes = dmesg->num_tasks / dmesg->ntasks_per_node;
@@ -663,36 +613,6 @@ void intermodule_time_res_convertor(job_desc_msg_t* dmesg, job_desc_msg_t* dmesg
                              info("sbatch: job %d cannot be submitted to cm as there are no sufficient nodes",jobd->job_id);
                            }
                        }
-                       /*else if(!strcmp(dmesg1->partition,"dam")){
-                           dmesg1->max_nodes=dmesg->min_nodes;
-                           dmesg1->min_nodes=dmesg1->max_nodes;
-                           if(dmesg1->max_nodes > 16) {
-                             dmesg1->max_nodes = -1;
-                             info("sbatch: this job cannot be submitted to dam as there are no sufficient nodes");
-                           }
-                           dmesg1->time_limit=dmesg->time_limit;
-                           dmesg1->min_cpus      = dmesg1->min_nodes * 16;
-                           dmesg1->ntasks_per_node=dmesg->ntasks_per_node;
-                       }
-
-                       if(!strcmp(dmesg2->partition,"cm")){
-                           dmesg2->max_nodes=dmesg->min_nodes;
-                           dmesg2->min_nodes=dmesg2->max_nodes;
-                           dmesg2->time_limit=10*dmesg->time_limit;
-                           dmesg2->min_cpus      = dmesg2->min_nodes * 24;
-                           dmesg2->ntasks_per_node=dmesg->ntasks_per_node;
-                       }
-                       else if(!strcmp(dmesg2->partition,"dam")){
-                           dmesg2->max_nodes=dmesg->min_nodes;
-                           dmesg2->min_nodes=dmesg2->max_nodes;
-                           if(dmesg2->max_nodes > 16) {
-                             dmesg2->max_nodes = -1;
-                             info("sbatch: this job cannot be submitted to dam as there are no sufficient nodes");
-                           }
-                           dmesg2->time_limit=dmesg->time_limit;
-                           dmesg2->min_cpus      = dmesg2->min_nodes * 16;
-                           dmesg2->ntasks_per_node=dmesg->ntasks_per_node;
-                       }*/
                      }
                      else if(!strcmp(dmesg->partition,"dam")){ // it can be either dam,esb or dam,cm
                        dmesg->min_nodes = dmesg->num_tasks / dmesg->ntasks_per_node;
@@ -702,7 +622,6 @@ void intermodule_time_res_convertor(job_desc_msg_t* dmesg, job_desc_msg_t* dmesg
                            dmesg1->time_limit=10*dmesg->time_limit; // GPU vs. CPU performance
                            dmesg1->min_cpus      = dmesg1->min_nodes * 24;
                            dmesg1->num_tasks = 2*dmesg->num_tasks; // As we increased number of nodes, and the code will be slightly diferen due to GPU to CPU transition?
-                           //dmesg1->ntasks_per_node=dmesg->ntasks_per_node/2;
                            dmesg1->cpus_per_task=24;
                            if(dmesg1->max_nodes > 50) {
                              dmesg1->max_nodes = -1;
@@ -714,7 +633,6 @@ void intermodule_time_res_convertor(job_desc_msg_t* dmesg, job_desc_msg_t* dmesg
                            dmesg1->min_nodes=dmesg1->max_nodes;  
                            dmesg1->time_limit=dmesg->time_limit/4; // since we are using 4x more nodes (due to memory) we have 4x more computing power
                            dmesg1->min_cpus      = dmesg1->min_nodes * 8;
-                           //dmesg1->ntasks_per_node=dmesg->ntasks_per_node/4;
                            dmesg1->num_tasks = 4*dmesg->num_tasks; // As we increased number of nodes?
                            dmesg1->cpus_per_task=8;
                            if(dmesg1->max_nodes > 75) {
@@ -722,49 +640,9 @@ void intermodule_time_res_convertor(job_desc_msg_t* dmesg, job_desc_msg_t* dmesg
                              info("sbatch: job %d cannot be submitted to esb as there are no sufficient nodes",jobd->job_id);
                            }
                        }
-
-                       /*if(!strcmp(dmesg2->partition,"cm")){
-                           dmesg2->max_nodes=2*dmesg->min_nodes;
-                           dmesg2->min_nodes=dmesg2->max_nodes;
-                           dmesg2->time_limit=10*dmesg->time_limit;
-                           dmesg2->min_cpus      = dmesg2->min_nodes * 24;
-                           dmesg2->ntasks_per_node=dmesg->ntasks_per_node/2;
-                       }
-                       else if(!strcmp(dmesg2->partition,"esb")){
-                           dmesg2->max_nodes=4*dmesg->min_nodes;
-                           dmesg2->min_nodes=dmesg2->max_nodes;
-                           dmesg2->time_limit=dmesg->time_limit;
-                           dmesg2->min_cpus      = dmesg2->min_nodes * 8;
-                           dmesg2->ntasks_per_node=dmesg->ntasks_per_node/4;
-                       }*/
                      }
 
-          //info("End filling in desc msgs 1 and 2 priority, timelimit, etc.");
-          /*dmesg1->num_tasks     = dmesg1->min_nodes;
-          dmesg2->num_tasks     = dmesg2->min_nodes;
-          dmesg1->min_cpus      = dmesg1->min_nodes * jobd->cpus_per_task;
-          dmesg2->min_cpus      = dmesg2->min_nodes * jobd->cpus_per_task;*/
           dmesg1->cpus_per_task = dmesg1->min_cpus/dmesg1->num_tasks;
-          //dmesg2->cpus_per_task = dmesg2->min_cpus/dmesg2->num_tasks;
-
-          // Set temporarily
-          /*dmesg->ntasks_per_node=1;
-          dmesg1->ntasks_per_node=1;
-          dmesg2->ntasks_per_node=1;*/
-          
-
-     //info("End filling in desc msgs 1 and 2 priority, timelimit, etc.");
-     /*dmesg1->num_tasks     = dmesg1->min_nodes;
-     dmesg2->num_tasks     = dmesg2->min_nodes;
-     dmesg1->min_cpus      = dmesg1->min_nodes * jobd->cpus_per_task;
-     dmesg2->min_cpus      = dmesg2->min_nodes * jobd->cpus_per_task;*/
-     dmesg1->cpus_per_task = dmesg1->min_cpus/dmesg1->num_tasks;
-     //dmesg2->cpus_per_task = dmesg2->min_cpus/dmesg2->num_tasks;
-
-     // Set temporarily
-     /*dmesg->ntasks_per_node=1;
-     dmesg1->ntasks_per_node=1;
-     dmesg2->ntasks_per_node=1;*/
 }
 
 void generate_job_desc_msg(job_desc_msg_t* dmesg, job_trace_t* jobd) {
@@ -930,6 +808,12 @@ generateJob(job_trace_t* jobd, List *job_req_list, int modular_jobid, int * dura
                          	free(module[i]);
                      	  }
                      	  free(module);
+
+                          // Use the original job_id (from the trace) as jobname for all the jobs in the dependency group  
+                          char r_str[7]="";
+                          sprintf(r_str, "%d", jobd->job_id);
+                          dmesg.name = strdup(r_str);
+                          dmesg1.name = strdup(r_str);
 
                           intermodule_time_res_convertor(&dmesg,&dmesg1,jobd); // TODO Simple model implemented. Implement model based on WP1 inputs.
 
