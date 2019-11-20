@@ -38,6 +38,7 @@
 #include "src/common/sim_funcs.h"
 //#include "src/unittests_lib/tools.h"
 #include <getopt.h>
+#include <math.h>
 
 #undef DEBUG
 int sim_mgr_debug_level = 9;
@@ -113,6 +114,7 @@ char   help_msg[]= "sim_mgr [endtime]\n\t[-c | --compath <cpath>]\n\t[-f | "
 
 /* Function prototypes */
 void  generateJob(job_trace_t* jobd, List *job_req_list, int modular_jobid, int *duration);
+void generate_job_desc_msg(job_desc_msg_t* dmesg, job_trace_t* jobd);
 void  dumping_shared_mem();
 void  fork_daemons(int idx);
 char* getPathFromSelf(char*);
@@ -651,7 +653,7 @@ void generate_job_desc_msg(job_desc_msg_t* dmesg, job_trace_t* jobd) {
 		gid_t gidt;
 
 		/* First, set up and call Slurm C-API for actual job submission. */
-		dmesg->time_limit    = ceil(jobd->wclimit / 60); //In minutes
+		dmesg->time_limit    = ceil((double)jobd->wclimit / 60); //In minutes
 		dmesg->job_id        = NO_VAL;
 		dmesg->name	    = "sim_job"; //jobd->job_id;   // job_id from the swf trace will be used for job_name, which is still used for plussingleton dependency. TODO Use comment field instead of name field for plussingleton. 
 		uidt = userIdFromName(jobd->username, &gidt);
@@ -1410,7 +1412,7 @@ main(int argc, char *argv[], char *envp[]) {
 	//read apps info - TODO: move this path to slurm.conf and sim.conf
 	char *apps_file = getenv("LIBEN_APPS");
 	if (!apps_file) {
-		debug("Apps file not specified");
+		printf("Apps file not specified\n");
 		napps = 0;
 	}
 	else {
