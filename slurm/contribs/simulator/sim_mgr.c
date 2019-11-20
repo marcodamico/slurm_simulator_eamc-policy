@@ -653,7 +653,7 @@ void generate_job_desc_msg(job_desc_msg_t* dmesg, job_trace_t* jobd) {
 		gid_t gidt;
 
 		/* First, set up and call Slurm C-API for actual job submission. */
-		dmesg->time_limit    = ceil((double)jobd->wclimit / 60); //In minutes
+		dmesg->time_limit    = jobd->wclimit;
 		dmesg->job_id        = NO_VAL;
 		dmesg->name	    = "sim_job"; //jobd->job_id;   // job_id from the swf trace will be used for job_name, which is still used for plussingleton dependency. TODO Use comment field instead of name field for plussingleton. 
 		uidt = userIdFromName(jobd->username, &gidt);
