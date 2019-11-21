@@ -651,6 +651,77 @@ void intermodule_time_res_convertor(job_desc_msg_t* dmesg, job_desc_msg_t* dmesg
           dmesg1->cpus_per_task = dmesg1->min_cpus/dmesg1->num_tasks;
 }
 
+/* Model for conversion of requested time and resources from preferred to alternative modules. The case of alternative being the same as prefered. For implementation validation only */
+void intermodule_time_res_convertor_dummy(job_desc_msg_t* dmesg, job_desc_msg_t* dmesg1, job_trace_t* jobd){
+            //info("Start filling in desc msgs 1 and 2 priority, timelimit, etc.");
+                     if(!strcmp(dmesg->partition,"cm")){
+                         dmesg->cpus_per_task=24;
+                         if(!strcmp(dmesg1->partition,"dam")){
+                           dmesg1->num_tasks=dmesg->num_tasks;
+                           dmesg1->cpus_per_task=16;
+                           dmesg1->ntasks_per_node=1;
+                           dmesg1->max_nodes=dmesg->max_nodes;
+                           if(dmesg1->max_nodes > 16) {
+                             dmesg1->max_nodes = -1;
+                             info("sbatch: job %d cannot be submitted to dam as there are no sufficient nodes",jobd->job_id);
+                           }
+                           dmesg1->min_nodes=dmesg->max_nodes;
+                           if(dmesg1->num_tasks > 1){ dmesg1->ntasks_per_node=2; dmesg1->cpus_per_task=8; }
+                           dmesg1->min_cpus=dmesg1->min_nodes*16;
+                           dmesg1->time_limit=dmesg->time_limit;
+                           dmesg1->duration=dmesg->duration;
+
+                       }
+                     }
+                     else if(!strcmp(dmesg->partition,"esb")){
+                       dmesg->min_nodes = dmesg->num_tasks / dmesg->ntasks_per_node;
+                       if(!strcmp(dmesg1->partition,"cm")){
+                           dmesg1->max_nodes=dmesg->min_nodes;
+                           dmesg1->min_nodes=dmesg1->max_nodes;
+                           dmesg1->time_limit=dmesg->time_limit;
+                           dmesg1->duration=dmesg->duration;
+                           dmesg1->min_cpus      = dmesg1->min_nodes * 24;
+                           dmesg1->ntasks_per_node=dmesg->ntasks_per_node;
+                           dmesg1->cpus_per_task=24;
+                           if(dmesg1->max_nodes > 50) {
+                             dmesg1->max_nodes = -1;
+                             info("sbatch: job %d cannot be submitted to cm as there are no sufficient nodes",jobd->job_id);
+                           }
+                       }
+                     }
+                     else if(!strcmp(dmesg->partition,"dam")){ 
+                       dmesg->min_nodes = dmesg->num_tasks / dmesg->ntasks_per_node;
+                       if(!strcmp(dmesg1->partition,"cm")){
+                           dmesg1->max_nodes=dmesg->min_nodes;
+                           dmesg1->min_nodes=dmesg1->max_nodes;
+                           dmesg1->time_limit=dmesg->time_limit;
+                           dmesg1->duration=dmesg->duration;
+                           dmesg1->min_cpus      = dmesg1->min_nodes * 24;
+                           dmesg1->num_tasks = dmesg->num_tasks;
+                           dmesg1->cpus_per_task=24;
+                           if(dmesg1->max_nodes > 50) {
+                             dmesg1->max_nodes = -1;
+                             info("sbatch: job %d cannot be submitted to cm as there are no sufficient nodes",jobd->job_id);
+                           }
+                       }
+                       else if(!strcmp(dmesg1->partition,"esb")){
+                           dmesg1->max_nodes=dmesg->min_nodes;
+                           dmesg1->min_nodes=dmesg1->max_nodes;
+                           dmesg1->time_limit=dmesg->time_limit;
+                           dmesg1->duration=dmesg->duration;
+                           dmesg1->min_cpus      = dmesg1->min_nodes * 8;
+                           dmesg1->num_tasks =dmesg->num_tasks;
+                           dmesg1->cpus_per_task=8;
+                           if(dmesg1->max_nodes > 75) {
+                             dmesg1->max_nodes = -1;
+                             info("sbatch: job %d cannot be submitted to esb as there are no sufficient nodes",jobd->job_id);
+                           }
+                       }
+                     }
+
+          dmesg1->cpus_per_task = dmesg1->min_cpus/dmesg1->num_tasks;
+}
+
 void generate_job_desc_msg(job_desc_msg_t* dmesg, job_trace_t* jobd) {
 		char script[8192], line[1024];
 		uid_t uidt;
