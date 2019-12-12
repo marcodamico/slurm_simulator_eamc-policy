@@ -713,14 +713,12 @@ _simulator_helper(void *arg)
 			/* TODO: It should be done better with a counter of EPILOG messages processed */
 
 			while (1) {
-				pthread_mutex_lock(&epilogs_mutex);
+				__sync_synchronize();
 				if (waiting_epilog_msgs == 0) {
-					pthread_mutex_unlock(&epilogs_mutex);
 					break;
 				}
-				pthread_mutex_unlock(&epilogs_mutex);
 				debug3("Waiting epilog to finish");
-				usleep(100);
+				usleep(500);
 			}
 			_send_sim_helper_cycle_msg(jobs_ended);
 		} else {

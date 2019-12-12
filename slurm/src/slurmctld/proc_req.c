@@ -7262,27 +7262,28 @@ static void _slurm_rpc_sim_helper_cycle(slurm_msg_t * msg)
 		(sim_helper_msg_t *) msg->data;
 	debug3("Ended jobs %d", helper_msg->total_jobs_ended);
 	while (1) {
-		pthread_mutex_lock(&lock_finishing_jobs);
+		__sync_synchronize();
 		if (total_finished_jobs == helper_msg->total_jobs_ended) {
+			pthread_mutex_lock(&lock_finishing_jobs);
 			total_finished_jobs = 0;
 			pthread_mutex_unlock(&lock_finishing_jobs);
 			break;
 		}
 		pthread_mutex_unlock(&lock_finishing_jobs);
 		debug3("Waiting complete jobs to arrive");
-		usleep(100);
+		usleep(500);
 	}
 
 	while (1) {
-		pthread_mutex_lock(&lock_remaining_epilogs);
+		__sync_synchronize();
 		if (arrived_jobs_epilogs == helper_msg->total_jobs_ended) {
+			pthread_mutex_lock(&lock_remaining_epilogs);
 			arrived_jobs_epilogs = 0;
 			pthread_mutex_unlock(&lock_remaining_epilogs);
 			break;
 		}
-		pthread_mutex_unlock(&lock_remaining_epilogs);
 		debug3("Waiting epilogs to finish");
-		usleep(100);
+		usleep(500);
 	}
 
 	debug3("Processing RPC: MESSAGE_SIM_HELPER_CYCLE for %d jobs",

@@ -506,13 +506,11 @@ int simulator_add_future_event(batch_job_launch_msg_t *req){
         simulator_event_info_t *temp_ptr = head_simulator_event_info;
         time_t now;
 
-        pthread_mutex_lock(&simulator_mutex);
         now = time(NULL);
 
         new_event = (simulator_event_t *)malloc(sizeof(simulator_event_t));
         if(!new_event){
                 error("SIMULATOR: malloc fails for new_event\n");
-                pthread_mutex_unlock(&simulator_mutex);
                 return -1;
         }
 
@@ -524,7 +522,6 @@ int simulator_add_future_event(batch_job_launch_msg_t *req){
         }
         if(!temp_ptr){
                 info("SIM: No job_id event matching this job_id %d\n", req->job_id);
-                pthread_mutex_unlock(&simulator_mutex);
                 return -1;
         }
         new_event->job_id = req->job_id;
@@ -532,7 +529,7 @@ int simulator_add_future_event(batch_job_launch_msg_t *req){
         new_event->when = now + req->duration;
         new_event->nodelist = strdup(req->nodes);
         new_event->next = NULL;
-
+		pthread_mutex_lock(&simulator_mutex);
         total_sim_events++;
         if(!head_simulator_event){
                 info("SIM: Adding new event for job %d when list is empty for future time %ld!", new_event->job_id, new_event->when);
