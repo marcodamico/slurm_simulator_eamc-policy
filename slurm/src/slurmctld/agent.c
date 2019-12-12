@@ -1331,7 +1331,10 @@ static void *_agent_init(void *arg)
 		pending_mail = false;
 		pending_wait_time = NO_VAL16;
 		slurm_mutex_unlock(&pending_mutex);
-
+#ifdef SLURM_SIMULATOR
+		/* Marco: try to empty retry list */
+		while(retry_list_size())
+#endif
 		_agent_retry(min_wait, mail_too);
 	}
 
