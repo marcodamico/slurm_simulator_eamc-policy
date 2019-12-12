@@ -779,7 +779,7 @@ void generate_job_desc_msg(job_desc_msg_t* dmesg, job_trace_t* jobd) {
 
 		/*TODO: implement this in the trace file */
 		if (napps) {
-			int app_id = 1 + rand() % (napps - 1);
+			int app_id = 1 + rand() % (napps);
 			char appid[100];
 			sprintf(appid,"%d", app_id);
 			dmesg->comment       = strdup(appid);
