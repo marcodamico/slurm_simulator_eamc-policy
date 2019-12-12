@@ -1,10 +1,10 @@
 #include <fcntl.h>
 #include "sim_trace.h"
 #include <unistd.h>
-#include <string.h>
 #include <math.h>
-//#include "src/common/xmalloc.h" Including xmalloc and using malloc
 #include <stdlib.h>
+#include "src/common/xmalloc.h"
+#include "src/common/xstring.h"
 
 #ifndef MAX
 #  define MAX(a,b) ((a) > (b) ? (a) : (b))
@@ -23,7 +23,7 @@ char* read_file(char *file_name) {
 		return NULL;
 	}
 	long length  = lseek (file, 0, SEEK_END);
-	char *buffer = malloc (length);
+	char *buffer = xmalloc (length);
 	lseek (file, 0, SEEK_SET);
 	if (buffer)
 	{
@@ -69,7 +69,7 @@ int read_job_trace_record(int trace_file, job_trace_t *job_trace) {
 		if (!real_file_name)
 			real_file_name=job_trace->manifest_filename;
 		job_trace->manifest = read_file(real_file_name);
-		free(file_name_copy);
+		xfree(file_name_copy);
 		if (job_trace->manifest == NULL) {
 			printf("Missing manifest file!! %s\n",
 					real_file_name);
@@ -126,7 +126,7 @@ int read_job_trace_record_ascii(FILE * trace_file_ptr, job_trace_t *job_trace, i
 			if (!real_file_name)
 				real_file_name=job_trace->manifest_filename;
 			job_trace->manifest = read_file(real_file_name);
-			free(file_name_copy);
+			xfree(file_name_copy);
 			if (job_trace->manifest == NULL) {
 				printf("Missing manifest file!! %s\n",
 						real_file_name);
@@ -149,8 +149,8 @@ int read_job_trace_record_ascii(FILE * trace_file_ptr, job_trace_t *job_trace, i
 		job_trace->dependency, &dummy, job_trace->module_list);
 
                 if(job_trace->wclimit == -1)
-                    job_trace->wclimit = MAX(1,ceil((float)(job_trace->duration/60))*2);   // We set wclimit as twice the job duration if SWF does not have wclimit info. TODO Add a model.  
-                job_trace->duration = MAX(1,job_trace->duration);
+                    job_trace->wclimit = MAX(1,ceil((float)job_trace->duration/60)*2);   // We set wclimit as twice the job duration if SWF does not have wclimit info. TODO Add a model.  
+                //job_trace->duration = MAX(1,ceil((float)(job_trace->duration/60)));
                 
                 if(job_trace->tasks == 0){
                     printf("sim_trace: Trace contains jobs with job_trace->tasks %u\n", job_trace->tasks );
@@ -183,7 +183,7 @@ int read_job_trace_record_ascii(FILE * trace_file_ptr, job_trace_t *job_trace, i
 			if (!real_file_name)
 				real_file_name=job_trace->manifest_filename;
 			job_trace->manifest = read_file(real_file_name);
-			free(file_name_copy);
+			xfree(file_name_copy);
 			if (job_trace->manifest == NULL) {
 				printf("Missing manifest file!! %s\n",
 						real_file_name);
@@ -261,12 +261,12 @@ int read_job_trace_record_ascii(FILE * trace_file_ptr, job_trace_t *job_trace, i
 			return ret_val;
 		if (job_trace->manifest_filename[0]!='|') {
 			/*Marco: changed xtrsup to strdup*/
-			char *file_name_copy=strdup(job_trace->manifest_filename);
+			char *file_name_copy=xstrdup(job_trace->manifest_filename);
 			char *real_file_name=strtok(file_name_copy,"-");
 			if (!real_file_name)
 				real_file_name=job_trace->manifest_filename;
 			job_trace->manifest = read_file(real_file_name);
-			free(file_name_copy);
+			xfree(file_name_copy);
 			if (job_trace->manifest == NULL) {
 				printf("Missing manifest file!! %s\n",
 						real_file_name);

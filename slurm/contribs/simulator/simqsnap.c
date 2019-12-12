@@ -175,7 +175,7 @@ recordRecord(slurm_job_info_t* j) {
 	fprintf(fp, "num_nodes         %u\n",  j->num_nodes);
 	fprintf(fp, "num_cpus          %u\n",  j->num_cpus);
 	fprintf(fp, "partition         %s\n",  j->partition);
-	fprintf(fp, "pn_min_memory     %u\n",  j->pn_min_memory);
+	fprintf(fp, "pn_min_memory     %lu\n",  j->pn_min_memory);
 	fprintf(fp, "pn_min_cpus       %u\n",  j->pn_min_cpus);
 	fprintf(fp, "pn_min_tmp_disk   %u\n",  j->pn_min_tmp_disk);
 	fprintf(fp, "pre_sus_time      %ld\n", j->pre_sus_time);
@@ -228,8 +228,6 @@ recordRecord(slurm_job_info_t* j) {
 
 void
 recordJobResources(job_resources_t* jrcs) {
-	int ix;
-
 	if(!jrcs) return;
 
 	/*bitstr_t *      core_bitmap;*/

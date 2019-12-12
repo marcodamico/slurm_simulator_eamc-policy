@@ -9,8 +9,6 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <linux/tcp.h>
-#include <string.h>
-#include <strings.h>
 #include <errno.h>
 #include <time.h>
 #include <sys/time.h>
@@ -56,8 +54,6 @@ char  daemon2[1024];
 char  default_sim_daemons_path[] = "/sbin";
 char* sim_daemons_path = NULL;
 int napps;
-static int CM = 0;
-static int DAM = 0;
 
 sem_t *sim_sem;
 sem_t *slurm_sem;
@@ -134,7 +130,7 @@ int workflow_count = 0;
  * Pair of job ids corresponding to the id a job had in the trace and the one
  * that was actually raun with.
  */
-typedef struct job_id_pair_t {
+struct job_id_pair_t {
 	uint32_t trace_job_id;
 	uint32_t real_job_id;
 };
@@ -147,7 +143,8 @@ List job_id_list;
  * create_job_id_pair - allocates a memory for a job_id_par_t, it will require
  * to be destroyed with _free_job_id_pair.
  */
-struct job_id_pair_t *create_job_id_pair() {
+struct job_id_pair_t *create_job_id_pair()
+{
 	struct job_id_pair_t *pair_ptr;
 	pair_ptr = xmalloc(sizeof(struct job_id_pair_t));
 	pair_ptr->trace_job_id=NO_VAL;
@@ -158,14 +155,16 @@ struct job_id_pair_t *create_job_id_pair() {
 /*
  * _free_job_id_pair deallocates memory.
  */
-void _free_job_id_pair(struct job_id_pair_t *pair_ptr) {
+static void _free_job_id_pair(void *pair_ptr)
+{
 	xfree(pair_ptr);
 }
 
 /*
  * Inits the job_id_list global variable.
  */
-void _create_job_id_list() {
+void _create_job_id_list()
+{
 	job_id_list = list_create(_free_job_id_pair);
 }
 
@@ -173,7 +172,8 @@ void _create_job_id_list() {
  * _add_job_pair - adds info to the job_id_list for a job that had trace_job_id
  * id in the trace, but received real_job_id from slurmctld when submitted.
  */
-void _add_job_pair(uint32_t trace_job_id, uint32_t real_job_id) {
+void _add_job_pair(uint32_t trace_job_id, uint32_t real_job_id)
+{
 	struct job_id_pair_t *pair_ptr=create_job_id_pair();
 	pair_ptr->trace_job_id = trace_job_id;
 	pair_ptr->real_job_id = real_job_id;
@@ -186,11 +186,12 @@ void _add_job_pair(uint32_t trace_job_id, uint32_t real_job_id) {
  * _get_real_job_id - returns the real job id corresponding to the trace job
  * id trace_job_id. If id not found, returns NO_VAL.
  */
-uint32_t _get_real_job_id(uint32_t trace_job_id) {
-	ListIterator *iter = list_iterator_create(job_id_list);
+uint32_t _get_real_job_id(uint32_t trace_job_id)
+{
+	ListIterator iter = list_iterator_create(job_id_list);
 	struct job_id_pair_t *pair_ptr;
 	uint32_t real_job_id=NO_VAL;
-	while((pair_ptr=list_next(iter))) {
+	while((pair_ptr=(struct job_id_pair_t *)list_next(iter))) {
 		if (pair_ptr->trace_job_id==trace_job_id) {
 			real_job_id=pair_ptr->real_job_id;
 			break;
@@ -207,15 +208,16 @@ uint32_t _get_real_job_id(uint32_t trace_job_id) {
  * "afterok:2,afterok:3") with the same structure as dep_string but
  * replacing the trace job ids for real jobs ids.
  */
-char *re_write_dependencies(job_trace_t * jobd) {
+char *re_write_dependencies(job_trace_t * jobd)
+{
 	char *token;
 	char *saveptr1;
 	uint32_t trace_job_id, real_job_id, dep_count = 0, index = 0;
 	char buffer[10*1024] = "\0";
 	char buffer_2[10*1024] = "\0";
 	char buffer_3[10][1024];
-	char *new_dep = &buffer;
-	char *new_dep_copy=&buffer_2;
+	char *new_dep = buffer;
+	char *new_dep_copy=buffer_2;
 	char first=1;
 
 	if (trace_format > 2) {	
@@ -296,19 +298,16 @@ handlerSignal(int signo) {
 //}*/
 
 
-void
-change_debug_level(int signum) {
-
+void change_debug_level(int signum)
+{
 	if(sim_mgr_debug_level > 0)
 		sim_mgr_debug_level = 0;
 	else
 		sim_mgr_debug_level = 9;
 }
 
-void
-terminate_simulation(int signum) {
-
-	int i;
+void terminate_simulation(int signum)
+{
 	char sim_sem_name[100], slurm_sem_name[100];
 	get_semaphores_names(sim_sem_name, slurm_sem_name);
 	dumping_shared_mem();
@@ -328,12 +327,12 @@ terminate_simulation(int signum) {
 }
 
 /* Debugging */
-void
-dumping_shared_mem() {
+void dumping_shared_mem()
+{
+#ifdef DEBUG
 	struct timeval t1;
 
 	printf("Let's dump the shared memory contents\n");
-#ifdef DEBUG
 	gettimeofday(&t1, NULL);
 	printf("SIM_MGR[%u][%ld][%ld]\n", current_sim[0], t1.tv_sec, t1.tv_usec);
 #endif
@@ -341,16 +340,13 @@ dumping_shared_mem() {
 }
 
 /* This is the main simulator function */
-static void*
-time_mgr(void *arg) {
-
+static void *time_mgr(void *arg)
+{
 	job_desc_msg_t *dmesg;
 	List job_req_list = NULL;
 	int child;
-	long int wait_time;
-	struct timeval t1 /*, t2*/;
-	struct timeval t_start, t_end, i_loop;
-	int i, j, total_comp = 0, modular_jobid = 0;
+	struct timeval t_start, t_end;//, i_loop;
+	int total_comp = 0, modular_jobid = 0;
 	int * duration = NULL;
 
 	printf("INFO: Creating time_mgr thread\n");
@@ -378,12 +374,11 @@ time_mgr(void *arg) {
 	info("Waiting for slurmd registrations, slurmd_registered: %d...",
                                 *slurmd_registered);
 	//sleep(5);
-        while (*slurmd_registered < 1 ) {
+    while (*slurmd_registered < 1 ) {
 		info("before ... slurmd_registered: %d", *slurmd_registered);
-                sleep(5);
-                info("after ... slurmd_registered: %d", *slurmd_registered);
-        }
-
+    	sleep(5);
+    	info("after ... slurmd_registered: %d", *slurmd_registered);
+    }
 	info("Done waiting.\n");
 
 #ifdef DEBUG
@@ -398,7 +393,9 @@ time_mgr(void *arg) {
 	while (1) {
 		real_gettimeofday(&t_start, NULL);
 		/* Do we have to end simulation in this cycle? */
-		if (!time_end && (sim_end_point && sim_end_point <= current_sim[0] || *trace_recs_end_sim==-1)) { /* ANA: added condition for terminating sim using shmem var trace_recs_end_sim when all jobs have finished */
+		if (!time_end &&
+			((sim_end_point && sim_end_point <= current_sim[0]) ||
+			 *trace_recs_end_sim==-1)) { /* ANA: added condition for terminating sim using shmem var trace_recs_end_sim when all jobs have finished */
 			fprintf(stderr, "End point of trace arrived, keep simulation for %d"
 					" seconds for last jobs to be registered\n",
 					seconds_to_finish);
@@ -454,38 +451,26 @@ time_mgr(void *arg) {
 				sim_mgr_debug(9, "reservation created\n");
 			else
 				sim_mgr_debug(9, "reservation failed");
-
 			rsv_trace_head = rsv_trace_head->next;
 		}
 #endif
-
 		/* Now checking if a new job needs to be submitted */
 		while(trace_head) {
-
-			int hour,min,sec;
-			int exec_result;
-			static int failed_submissions = 0;
-
 			/*
 			 * Uhmm... This is necessary if a large number of jobs
 			 * are submitted at the same time but it seems
 			 * to have an impact on determinism
 			 */
-
 #ifdef DEBUG
 			info("time_mgr: current %u and next trace %ld\n",
 					*(current_sim), trace_head->submit);
 #endif
-
 			if (*(current_sim) >= trace_head->submit) {
-
 				job_trace_t *temp_ptr;
-
 #ifdef DEBUG
 				info("[%d] time_mgr--current simulated time: "
 				       "%u\n", __LINE__, *current_sim);
 #endif
-
 
 				// if we have more than 1 component at submitt time, prepare for a job pack submission
 				if (trace_format > 2 && trace_head->total_components > 1) {
@@ -494,7 +479,7 @@ time_mgr(void *arg) {
 
 					// first position of duration array will have the number of total_components
 					// the rest of the positions will have the duration of each job pack			
-					duration = (int *) calloc(total_comp+1, sizeof(int));
+					duration = (int *) xmalloc((total_comp+1) * sizeof(int));
 					duration[0] = total_comp;
 
 					job_req_list = list_create(NULL);
@@ -513,11 +498,11 @@ time_mgr(void *arg) {
 						/* Let's free trace record */
 						temp_ptr = trace_head;
 						trace_head = trace_head->next;
-						free(temp_ptr);
+						xfree(temp_ptr);
 					}
 					generateJob (trace_head, &job_req_list, modular_jobid, duration);
 
-					free(duration);
+					xfree(duration);
 				}
 				else {
 					generateJob (trace_head, &job_req_list, 0, NULL);
@@ -525,7 +510,7 @@ time_mgr(void *arg) {
 					/* Let's free trace record */
 					temp_ptr = trace_head;
 					trace_head = trace_head->next;
-					free(temp_ptr);
+					xfree(temp_ptr);
 				}
 
 			} else {
@@ -563,12 +548,12 @@ time_mgr(void *arg) {
 		real_gettimeofday(&t_end, NULL);
 		*(current_sim) = *(current_sim) + time_incr;
 
-		timersub(&t_end, &t_start, &i_loop);
-		float speed_up;
-		speed_up = ((float)(time_incr)*1000000.0) /
-				   ((float)(i_loop.tv_sec*1000000+i_loop.tv_usec));
-		float loop_time=(float)(i_loop.tv_sec*1000000+i_loop.tv_usec) /
-				1000000.0;
+		//timersub(&t_end, &t_start, &i_loop);
+		//float speed_up;
+		//speed_up = ((float)(time_incr)*1000000.0) /
+		//		   ((float)(i_loop.tv_sec*1000000+i_loop.tv_usec));
+		//float loop_time=(float)(i_loop.tv_sec*1000000+i_loop.tv_usec) /
+		//		1000000.0;
 		//printf("sim_mgr loop iteration time %lu, SU: %f, sim_inc: %d, sim_time: %d\n",
 		//		i_loop.tv_usec, speed_up, time_incr, *(current_sim));
 #ifdef DEBUG
@@ -582,10 +567,29 @@ time_mgr(void *arg) {
 
 /* Model for conversion of requested time and resources from preferred to alternative modules */
 void intermodule_time_res_convertor(job_desc_msg_t* dmesg, job_desc_msg_t* dmesg1, job_trace_t* jobd){
+                     //info("sbatch: Conversion for job %d", jobd->job_id);
+                     char r_str[7]="";
+                     sprintf(r_str, "%d", jobd->job_id);
+                     dmesg->name = strdup(r_str);
+                     dmesg1->name = strdup(r_str);
+                     //dmesg2->name = strdup(r_str);
             //info("Start filling in desc msgs 1 and 2 priority, timelimit, etc.");
                      if(!strcmp(dmesg->partition,"cm")){ // It can only be cm,dam combination
-                         dmesg->cpus_per_task=24;
-                         if(!strcmp(dmesg1->partition,"dam")){
+                          dmesg->cpus_per_task=24;
+                       /*if(!strcmp(dmesg1->partition,"esb")){
+                           dmesg1->num_tasks=dmesg->num_tasks;
+                           dmesg1->max_nodes= MAX(1,(int)(4*dmesg->num_tasks/dmesg->ntasks_per_node)); // system("sbatch -n 6 -N 1  --cpus-per-task=4 --time=4 -p cm ") might be problem!
+                           if(dmesg1->max_nodes > 75){
+                              dmesg1->max_nodes = -1;
+                              info("sbatch: this job cannot be submitted to esb as there are no sufficient nodes");
+                           }
+                           dmesg1->min_nodes=dmesg1->max_nodes;
+                           dmesg1->ntasks_per_node=MAX(1,(int)(dmesg->ntasks_per_node/4));
+                           dmesg1->cpus_per_task=MAX(1,(int)(8/dmesg1->ntasks_per_node));
+                           dmesg1->min_cpus=dmesg1->min_nodes*8;
+                           dmesg1->time_limit=MAX(1,(int)(1.28*dmesg->cpus_per_task*dmesg1->time_limit/dmesg1->cpus_per_task));
+                       }
+                       else*/ if(!strcmp(dmesg1->partition,"dam")){
                            dmesg1->num_tasks=dmesg->num_tasks;
                            dmesg1->cpus_per_task=16;
                            dmesg1->ntasks_per_node=1;
@@ -596,11 +600,41 @@ void intermodule_time_res_convertor(job_desc_msg_t* dmesg, job_desc_msg_t* dmesg
                            }
                            dmesg1->min_nodes=dmesg1->max_nodes;
                            if(dmesg1->num_tasks > 1){ dmesg1->ntasks_per_node=2; dmesg1->cpus_per_task=8; }
+                           //else dmesg1->ntasks_per_node=-1;
+                           //dmesg1->cpus_per_task=MAX(1,(int)(16/dmesg1->ntasks_per_node)); // If 16 is instead of 24 this configuration is never runnable on dam. Why?? It has to be 16 , as dam  node has 16 cores
                            dmesg1->min_cpus=dmesg1->min_nodes*16;
                            dmesg1->time_limit=MAX(1,(int)(1.07*dmesg->cpus_per_task*dmesg->time_limit/dmesg1->cpus_per_task));
-                           dmesg1->duration=MAX(1,(int)(1.07*dmesg->cpus_per_task*dmesg->duration/dmesg1->cpus_per_task));
 
                        }
+
+                       /*if(!strcmp(dmesg2->partition,"esb")){
+                           dmesg2->num_tasks=dmesg->num_tasks;
+                           dmesg2->max_nodes= MAX(1,(int)(4*dmesg->num_tasks/dmesg->ntasks_per_node)); // system("sbatch -n 6 -N 1  --cpus-per-task=4 --time=4 -p cm ") might be problem!
+                           if(dmesg2->max_nodes > 75){
+                              dmesg2->max_nodes = -1;
+                              info("sbatch: this job cannot be submitted to esb as there are no sufficient nodes");
+                           }
+                           dmesg2->min_nodes=dmesg2->max_nodes;
+                           dmesg2->ntasks_per_node=MAX(1,(int)(dmesg->ntasks_per_node/4));
+                           dmesg2->cpus_per_task=MAX(1,(int)(8/dmesg2->ntasks_per_node));
+                           dmesg2->min_cpus=dmesg2->min_nodes*8;
+                           dmesg2->time_limit=MAX(1,(int)(1.28*dmesg->cpus_per_task*dmesg2->time_limit/dmesg2->cpus_per_task));
+                       }
+                       else if(!strcmp(dmesg2->partition,"dam")){
+                           dmesg2->num_tasks=dmesg->num_tasks;
+                           dmesg2->max_nodes=MAX(1,(int)(dmesg->num_tasks/(2*dmesg->ntasks_per_node)));
+                           if(dmesg2->max_nodes > 16) {
+                             dmesg2->max_nodes = -1;
+                             info("sbatch: this job cannot be submitted to dam as there are no sufficient nodes");
+                           }
+                           dmesg2->min_nodes=dmesg2->max_nodes;
+                           if(dmesg2->num_tasks<=16) dmesg2->ntasks_per_node=dmesg2->num_tasks;
+                           else dmesg2->ntasks_per_node=-1;
+                           dmesg2->cpus_per_task=MAX(1,(int)(16/dmesg2->ntasks_per_node)); // If 16 is instead of 24 this configuration is never runnable on dam. Why?? It has to be 16 , as dam  node has 16 cores
+                           dmesg2->min_cpus=dmesg2->min_nodes*16;
+                           dmesg2->time_limit=MAX(1,(int)(1.07*dmesg->cpus_per_task*dmesg->time_limit/dmesg2->cpus_per_task));
+
+                       }*/
                      }
                      else if(!strcmp(dmesg->partition,"esb")){ // it can only be esb,cm combination
                        dmesg->min_nodes = dmesg->num_tasks / dmesg->ntasks_per_node;
@@ -608,7 +642,6 @@ void intermodule_time_res_convertor(job_desc_msg_t* dmesg, job_desc_msg_t* dmesg
                            dmesg1->max_nodes=dmesg->min_nodes;
                            dmesg1->min_nodes=dmesg1->max_nodes;
                            dmesg1->time_limit=10*dmesg->time_limit;
-                           dmesg1->duration=10*dmesg->duration;
                            dmesg1->min_cpus      = dmesg1->min_nodes * 24;
                            dmesg1->ntasks_per_node=dmesg->ntasks_per_node;
                            dmesg1->cpus_per_task=24;
@@ -617,6 +650,36 @@ void intermodule_time_res_convertor(job_desc_msg_t* dmesg, job_desc_msg_t* dmesg
                              info("sbatch: job %d cannot be submitted to cm as there are no sufficient nodes",jobd->job_id);
                            }
                        }
+                       /*else if(!strcmp(dmesg1->partition,"dam")){
+                           dmesg1->max_nodes=dmesg->min_nodes;
+                           dmesg1->min_nodes=dmesg1->max_nodes;
+                           if(dmesg1->max_nodes > 16) {
+                             dmesg1->max_nodes = -1;
+                             info("sbatch: this job cannot be submitted to dam as there are no sufficient nodes");
+                           }
+                           dmesg1->time_limit=dmesg->time_limit;
+                           dmesg1->min_cpus      = dmesg1->min_nodes * 16;
+                           dmesg1->ntasks_per_node=dmesg->ntasks_per_node;
+                       }
+
+                       if(!strcmp(dmesg2->partition,"cm")){
+                           dmesg2->max_nodes=dmesg->min_nodes;
+                           dmesg2->min_nodes=dmesg2->max_nodes;
+                           dmesg2->time_limit=10*dmesg->time_limit;
+                           dmesg2->min_cpus      = dmesg2->min_nodes * 24;
+                           dmesg2->ntasks_per_node=dmesg->ntasks_per_node;
+                       }
+                       else if(!strcmp(dmesg2->partition,"dam")){
+                           dmesg2->max_nodes=dmesg->min_nodes;
+                           dmesg2->min_nodes=dmesg2->max_nodes;
+                           if(dmesg2->max_nodes > 16) {
+                             dmesg2->max_nodes = -1;
+                             info("sbatch: this job cannot be submitted to dam as there are no sufficient nodes");
+                           }
+                           dmesg2->time_limit=dmesg->time_limit;
+                           dmesg2->min_cpus      = dmesg2->min_nodes * 16;
+                           dmesg2->ntasks_per_node=dmesg->ntasks_per_node;
+                       }*/
                      }
                      else if(!strcmp(dmesg->partition,"dam")){ // it can be either dam,esb or dam,cm
                        dmesg->min_nodes = dmesg->num_tasks / dmesg->ntasks_per_node;
@@ -624,9 +687,9 @@ void intermodule_time_res_convertor(job_desc_msg_t* dmesg, job_desc_msg_t* dmesg
                            dmesg1->max_nodes=2*dmesg->min_nodes; // due to memory
                            dmesg1->min_nodes=dmesg1->max_nodes;
                            dmesg1->time_limit=10*dmesg->time_limit; // GPU vs. CPU performance
-                           dmesg1->duration=10*dmesg->duration;
                            dmesg1->min_cpus      = dmesg1->min_nodes * 24;
                            dmesg1->num_tasks = 2*dmesg->num_tasks; // As we increased number of nodes, and the code will be slightly diferen due to GPU to CPU transition?
+                           //dmesg1->ntasks_per_node=dmesg->ntasks_per_node/2;
                            dmesg1->cpus_per_task=24;
                            if(dmesg1->max_nodes > 50) {
                              dmesg1->max_nodes = -1;
@@ -636,9 +699,9 @@ void intermodule_time_res_convertor(job_desc_msg_t* dmesg, job_desc_msg_t* dmesg
                        else if(!strcmp(dmesg1->partition,"esb")){
                            dmesg1->max_nodes=4*dmesg->min_nodes; // due to esb's memory being 4x smaller per node than dam's memory per node
                            dmesg1->min_nodes=dmesg1->max_nodes;  
-                           dmesg1->time_limit=MAX(1,dmesg->time_limit/4); // since we are using 4x more nodes (due to memory) we have 4x more computing power
-                           dmesg1->duration=MAX(1,dmesg->duration/4);
+                           dmesg1->time_limit=dmesg->time_limit/4; // since we are using 4x more nodes (due to memory) we have 4x more computing power
                            dmesg1->min_cpus      = dmesg1->min_nodes * 8;
+                           //dmesg1->ntasks_per_node=dmesg->ntasks_per_node/4;
                            dmesg1->num_tasks = 4*dmesg->num_tasks; // As we increased number of nodes?
                            dmesg1->cpus_per_task=8;
                            if(dmesg1->max_nodes > 75) {
@@ -646,80 +709,49 @@ void intermodule_time_res_convertor(job_desc_msg_t* dmesg, job_desc_msg_t* dmesg
                              info("sbatch: job %d cannot be submitted to esb as there are no sufficient nodes",jobd->job_id);
                            }
                        }
+
+                       /*if(!strcmp(dmesg2->partition,"cm")){
+                           dmesg2->max_nodes=2*dmesg->min_nodes;
+                           dmesg2->min_nodes=dmesg2->max_nodes;
+                           dmesg2->time_limit=10*dmesg->time_limit;
+                           dmesg2->min_cpus      = dmesg2->min_nodes * 24;
+                           dmesg2->ntasks_per_node=dmesg->ntasks_per_node/2;
+                       }
+                       else if(!strcmp(dmesg2->partition,"esb")){
+                           dmesg2->max_nodes=4*dmesg->min_nodes;
+                           dmesg2->min_nodes=dmesg2->max_nodes;
+                           dmesg2->time_limit=dmesg->time_limit;
+                           dmesg2->min_cpus      = dmesg2->min_nodes * 8;
+                           dmesg2->ntasks_per_node=dmesg->ntasks_per_node/4;
+                       }*/
                      }
 
+          //info("End filling in desc msgs 1 and 2 priority, timelimit, etc.");
+          /*dmesg1->num_tasks     = dmesg1->min_nodes;
+          dmesg2->num_tasks     = dmesg2->min_nodes;
+          dmesg1->min_cpus      = dmesg1->min_nodes * jobd->cpus_per_task;
+          dmesg2->min_cpus      = dmesg2->min_nodes * jobd->cpus_per_task;*/
           dmesg1->cpus_per_task = dmesg1->min_cpus/dmesg1->num_tasks;
-}
+          //dmesg2->cpus_per_task = dmesg2->min_cpus/dmesg2->num_tasks;
 
-/* Model for conversion of requested time and resources from preferred to alternative modules. The case of alternative being the same as prefered. For implementation validation only */
-void intermodule_time_res_convertor_dummy(job_desc_msg_t* dmesg, job_desc_msg_t* dmesg1, job_trace_t* jobd){
-            //info("Start filling in desc msgs 1 and 2 priority, timelimit, etc.");
-                     if(!strcmp(dmesg->partition,"cm")){
-                         dmesg->cpus_per_task=24;
-                         if(!strcmp(dmesg1->partition,"dam")){
-                           dmesg1->num_tasks=dmesg->num_tasks;
-                           dmesg1->cpus_per_task=16;
-                           dmesg1->ntasks_per_node=1;
-                           dmesg1->max_nodes=dmesg->max_nodes;
-                           if(dmesg1->max_nodes > 16) {
-                             dmesg1->max_nodes = -1;
-                             info("sbatch: job %d cannot be submitted to dam as there are no sufficient nodes",jobd->job_id);
-                           }
-                           dmesg1->min_nodes=dmesg->max_nodes;
-                           if(dmesg1->num_tasks > 1){ dmesg1->ntasks_per_node=2; dmesg1->cpus_per_task=8; }
-                           dmesg1->min_cpus=dmesg1->min_nodes*16;
-                           dmesg1->time_limit=dmesg->time_limit;
-                           dmesg1->duration=dmesg->duration;
+          // Set temporarily
+          /*dmesg->ntasks_per_node=1;
+          dmesg1->ntasks_per_node=1;
+          dmesg2->ntasks_per_node=1;*/
+          
 
-                       }
-                     }
-                     else if(!strcmp(dmesg->partition,"esb")){
-                       dmesg->min_nodes = dmesg->num_tasks / dmesg->ntasks_per_node;
-                       if(!strcmp(dmesg1->partition,"cm")){
-                           dmesg1->max_nodes=dmesg->min_nodes;
-                           dmesg1->min_nodes=dmesg1->max_nodes;
-                           dmesg1->time_limit=dmesg->time_limit;
-                           dmesg1->duration=dmesg->duration;
-                           dmesg1->min_cpus      = dmesg1->min_nodes * 24;
-                           dmesg1->ntasks_per_node=dmesg->ntasks_per_node;
-                           dmesg1->cpus_per_task=24;
-                           if(dmesg1->max_nodes > 50) {
-                             dmesg1->max_nodes = -1;
-                             info("sbatch: job %d cannot be submitted to cm as there are no sufficient nodes",jobd->job_id);
-                           }
-                       }
-                     }
-                     else if(!strcmp(dmesg->partition,"dam")){ 
-                       dmesg->min_nodes = dmesg->num_tasks / dmesg->ntasks_per_node;
-                       if(!strcmp(dmesg1->partition,"cm")){
-                           dmesg1->max_nodes=dmesg->min_nodes;
-                           dmesg1->min_nodes=dmesg1->max_nodes;
-                           dmesg1->time_limit=dmesg->time_limit;
-                           dmesg1->duration=dmesg->duration;
-                           dmesg1->min_cpus      = dmesg1->min_nodes * 24;
-                           dmesg1->num_tasks = dmesg->num_tasks;
-                           dmesg1->cpus_per_task=24;
-                           if(dmesg1->max_nodes > 50) {
-                             dmesg1->max_nodes = -1;
-                             info("sbatch: job %d cannot be submitted to cm as there are no sufficient nodes",jobd->job_id);
-                           }
-                       }
-                       else if(!strcmp(dmesg1->partition,"esb")){
-                           dmesg1->max_nodes=dmesg->min_nodes;
-                           dmesg1->min_nodes=dmesg1->max_nodes;
-                           dmesg1->time_limit=dmesg->time_limit;
-                           dmesg1->duration=dmesg->duration;
-                           dmesg1->min_cpus      = dmesg1->min_nodes * 8;
-                           dmesg1->num_tasks =dmesg->num_tasks;
-                           dmesg1->cpus_per_task=8;
-                           if(dmesg1->max_nodes > 75) {
-                             dmesg1->max_nodes = -1;
-                             info("sbatch: job %d cannot be submitted to esb as there are no sufficient nodes",jobd->job_id);
-                           }
-                       }
-                     }
+     //info("End filling in desc msgs 1 and 2 priority, timelimit, etc.");
+     /*dmesg1->num_tasks     = dmesg1->min_nodes;
+     dmesg2->num_tasks     = dmesg2->min_nodes;
+     dmesg1->min_cpus      = dmesg1->min_nodes * jobd->cpus_per_task;
+     dmesg2->min_cpus      = dmesg2->min_nodes * jobd->cpus_per_task;*/
+     dmesg1->cpus_per_task = dmesg1->min_cpus/dmesg1->num_tasks;
+     //dmesg2->cpus_per_task = dmesg2->min_cpus/dmesg2->num_tasks;
 
-          dmesg1->cpus_per_task = dmesg1->min_cpus/dmesg1->num_tasks;
+     // Set temporarily
+     /*dmesg->ntasks_per_node=1;
+     dmesg1->ntasks_per_node=1;
+     dmesg2->ntasks_per_node=1;*/
 }
 
 void generate_job_desc_msg(job_desc_msg_t* dmesg, job_trace_t* jobd) {
@@ -728,7 +760,7 @@ void generate_job_desc_msg(job_desc_msg_t* dmesg, job_trace_t* jobd) {
 		gid_t gidt;
 
 		/* First, set up and call Slurm C-API for actual job submission. */
-		dmesg->time_limit    = jobd->wclimit;
+		//dmesg->time_limit    = ceil((double)jobd->wclimit / 60); //In minutes
 		dmesg->job_id        = NO_VAL;
 		dmesg->name	    = "sim_job"; //jobd->job_id;   // job_id from the swf trace will be used for job_name, which is still used for plussingleton dependency. TODO Use comment field instead of name field for plussingleton. 
 		uidt = userIdFromName(jobd->username, &gidt);
@@ -775,7 +807,7 @@ void generate_job_desc_msg(job_desc_msg_t* dmesg, job_trace_t* jobd) {
 		if(jobd->tasks_per_node)
 			dmesg->ntasks_per_node = jobd->tasks_per_node;
 		dmesg->ntasks_per_node = MAX(1,jobd->tasks/dmesg->min_nodes);
-                dmesg->duration		 = jobd->duration;
+        dmesg->duration		 = jobd->duration;
 
 		/*TODO: implement this in the trace file */
 		if (napps) {
@@ -814,7 +846,7 @@ void generate_job_desc_msg(job_desc_msg_t* dmesg, job_trace_t* jobd) {
 			//dmesg->name=xstrdup(jobd->manifest_filename+1);
 		}
 		if (jobd->wait_component_job_time && jobd->wait_component_job_time != -1) {
-			dmesg->delay = ceil(jobd->wait_component_job_time / 60); //In minutes
+			dmesg->delay = ceil((double)jobd->wait_component_job_time / 60); //In minutes
 			printf("Delayed jobpack compont %d by %d\n", jobd->component_job_id, dmesg->delay);
 		}
 }
@@ -824,7 +856,6 @@ generateJob(job_trace_t* jobd, List *job_req_list, int modular_jobid, int * dura
 	job_desc_msg_t dmesg;
         job_desc_msg_t dmesg1 /*,dmesg2*/; // SHould it be declared somewhere else?
 	submit_response_msg_t respMsg, *rptr = &respMsg, respMsg1, *rptr1 = &respMsg1 /*, respMsg2, *rptr2 = &respMsg2*/;
-	int rv, ix, jx;
 
 #if 0
 	displayJobTraceT(jobd);
@@ -832,9 +863,8 @@ generateJob(job_trace_t* jobd, List *job_req_list, int modular_jobid, int * dura
 	sim_job_msg_t req, req1 /*, req2*/;
 	slurm_msg_t   req_msg, req_msg1 /*, req_msg2*/;
 	slurm_msg_t   resp_msg, resp_msg1 /*, resp_msg2*/;
-	slurm_addr_t  remote_addr;
 	char* this_addr;
-	uint32_t trace_job_id,trace_job_id1 /*,trace_job_id2*/;
+	uint32_t trace_job_id, trace_job_id1 /*,trace_job_id2*/;
 
 
 	// NO job_req_list - Normal Submission
@@ -844,145 +874,136 @@ generateJob(job_trace_t* jobd, List *job_req_list, int modular_jobid, int * dura
 		slurm_init_job_desc_msg(&dmesg);
 		generate_job_desc_msg(&dmesg, jobd);
 
-                // In case the user provides preferred and alternative modules - MODULE LIST implementation
-                // ONE PREFERRED + TWO ALTERNATIVE MODUELS always assumed. TODO This should be made more generic.
-                // What if job pack, or a component of a job pack has module list option? TODO This should be moved to a separate function.
-                if(strcmp(jobd->module_list,"")){          // In case the input is a trace without module list field this will not work? Check if jobd->module_list exists?
-                          //job_desc_msg_t dmesg1, dmesg2; 
-			  slurm_init_job_desc_msg(&dmesg1);
-                          //slurm_init_job_desc_msg(&dmesg2);
+		// In case the user provides preferred and alternative modules - MODULE LIST implementation
+		// ONE PREFERRED + TWO ALTERNATIVE MODUELS always assumed. 
+		// TODO This should be made more generic.
+		// What if job pack, or a component of a job pack has module list option?
+		// TODO This should be moved to a separate function.
+		if(strcmp(jobd->module_list,"")) { // In case the input is a trace without
+										   // module list field this will not work?
+										   // Check if jobd->module_list exists?
+			//job_desc_msg_t dmesg1, dmesg2;
+			slurm_init_job_desc_msg(&dmesg1);
+			//slurm_init_job_desc_msg(&dmesg2);
 
-			  strcpy(jobd->dependency,"plussingleton");
-                          dmesg.dependency    = re_write_dependencies(jobd);
+			strcpy(jobd->dependency,"plussingleton");
+			dmesg.dependency    = re_write_dependencies(jobd);
 
-                	  generate_job_desc_msg(&dmesg1, jobd);
-                	  //generate_job_desc_msg(&dmesg2, jobd);
+			generate_job_desc_msg(&dmesg1, jobd);
+			//generate_job_desc_msg(&dmesg2, jobd);
 
-                          char *token, *tmp_list;
-            		  char **module=(char**)malloc(2*sizeof(char*));
-            		  for(int i = 0; i < 2; i++){
-                	  	module[i] = (char*)malloc(10*sizeof(char));// name of each module max. 10 characters
-            		  }
-              		  tmp_list = xstrdup(jobd->module_list);
-            		  //info("Module list parsing module list: %s\n", tmp_list);
-            		  int j=0;
-            		  token = strtok(tmp_list, ",");
-            		  while (token != 0) {
-                		strcpy(module[j],token);
-                		//info("Module list parsing, %d: %s\n", j, token);
-                    		token=strtok(0,",0");
-                    		j++;
-            		  }
+			char *token, *tmp_list;
+			char **module=(char**)malloc(2*sizeof(char*));
+			for(int i = 0; i < 2; i++)
+				module[i] = (char*)malloc(10*sizeof(char)); // name of each module max. 10 characters
+			tmp_list = xstrdup(jobd->module_list);
+			//info("Module list parsing module list: %s\n", tmp_list);
+			int j = 0;
+			token = strtok(tmp_list, ",");
+			while (token != 0) {
+				strcpy(module[j],token);
+				//info("Module list parsing, %d: %s\n", j, token);
+				//token=strtok(0,",0");
+				j++;
+			}
 
-            		  int l=strlen(module[1]);
-            		  module[1][l]='\0';
+			int l = strlen(module[1]);
+			module[1][l] = '\0';
 
-                          dmesg.partition = strdup(module[0]); // PREFERRED
-                          dmesg1.partition = strdup(module[1]);// 1ST ALTERNATIVE
-                          //dmesg2.partition = strdup(module[2]);// 2ND ALTERNATIVE
+			dmesg.partition = strdup(module[0]); // PREFERRED
+			dmesg1.partition = strdup(module[1]);// 1ST ALTERNATIVE
+			//dmesg2.partition = strdup(module[2]);// 2ND ALTERNATIVE
 
-                          for(int i = 0; i < 2; i++){
-                         	free(module[i]);
-                     	  }
-                     	  free(module);
+			for(int i = 0; i < 2; i++)
+				xfree(module[i]);
+			xfree(module);
 
-                          // Use the original job_id (from the trace) as jobname for all the jobs in the dependency group  
-                          char r_str[7]="";
-                          sprintf(r_str, "%d", jobd->job_id);
-                          dmesg.name = strdup(r_str);
-                          dmesg1.name = strdup(r_str);
+			intermodule_time_res_convertor(&dmesg,&dmesg1,jobd); // TODO Simple model implemented. Implement model based on WP1 inputs.
+		}
+		//info("Submit the first job on module %s, num_tasks: %u,  min_nodes: %u, ntasks_per_node %u, cpus_per_task %u  ", dmesg.partition, dmesg.num_tasks, dmesg.min_nodes, dmesg.ntasks_per_node, dmesg.cpus_per_task);
+		if ( slurm_submit_batch_job(&dmesg, &rptr) ) {
+			printf("Function: %s, Line: %d\n", __FUNCTION__, __LINE__);
+			slurm_perror ("slurm_submit_batch_job");
+		}
 
-                          intermodule_time_res_convertor(&dmesg,&dmesg1,jobd); // TODO Simple model implemented. Implement model based on WP1 inputs.
+		_add_job_pair(trace_job_id, rptr->job_id);
 
-                     }
-                     //info("Submit the first job on module %s, num_tasks: %u,  min_nodes: %u, ntasks_per_node %u, cpus_per_task %u  ", dmesg.partition, dmesg.num_tasks, dmesg.min_nodes, dmesg.ntasks_per_node, dmesg.cpus_per_task);
-                     if ( slurm_submit_batch_job(&dmesg, &rptr) ) {
-                           printf("Function: %s, Line: %d\n", __FUNCTION__, __LINE__);
-                           slurm_perror ("slurm_submit_batch_job");
-                     }
+		printf("\nResponse from job submission\n\terror_code: %u\n\t"
+			   "job_id: %u\n\tstep_id: %u\n",
+			   rptr->error_code, rptr->job_id, rptr->step_id);
+		printf("\n");
 
-                     _add_job_pair(trace_job_id, rptr->job_id);
+		/*
+		* Second, send special Simulator message to the slurmd to inform it
+		* when the given job should terminate. job_id is obtained from whatever
+		* slurmctld returned.
+		*/
+		slurm_msg_t_init(&req_msg);
+		slurm_msg_t_init(&resp_msg);
+		req.job_id       = rptr->job_id;
+		req.duration     = jobd->duration;
+		req_msg.msg_type = REQUEST_SIM_JOB;
+		req_msg.data     = &req;
+		req_msg.protocol_version = SLURM_PROTOCOL_VERSION;
+		this_addr = "localhost";
+		slurm_set_addr(&req_msg.address, (uint16_t)slurm_get_slurmd_port(), this_addr);
+		if (!jobd->manifest || 1)
+			if (slurm_send_recv_node_msg(&req_msg, &resp_msg, 500000) < 0)
+				printf("check_events_trace: error in slurm_send_recv_node_msg\n");
+		if(strcmp(jobd->module_list,"")) {
 
-                     printf("\nResponse from job submission\n\terror_code: %u\n\t"
-                        "job_id: %u\n\tstep_id: %u\n",
-                        rptr->error_code, rptr->job_id, rptr->step_id);
-                     printf("\n");
+			if(dmesg1.max_nodes != -1 && dmesg1.ntasks_per_node != -1) {
+				//info("Submit the second job on module %s, num_tasks: %u,
+				//min_nodes: %u, ntasks_per_node %u, cpus_per_task %u  ",
+				//dmesg1.partition, dmesg1.num_tasks, dmesg1.min_nodes,
+				//dmesg1.ntasks_per_node, dmesg1.cpus_per_task);
+				if ( slurm_submit_batch_job(&dmesg1, &rptr1) ) {
+					printf("Function: %s, Line: %d\n", __FUNCTION__, __LINE__);
+					slurm_perror ("slurm_submit_batch_job");
+				}
+				_add_job_pair(trace_job_id1, rptr1->job_id);
+				printf("\nResponse from job submission\n\terror_code: %u\n\t" 
+					   "job_id: %u\n\tstep_id: %u\n",
+					   rptr1->error_code, rptr1->job_id, rptr1->step_id);
+				printf("\n");
+         	}
+			/*if(dmesg2.max_nodes != -1 && dmesg2.ntasks_per_node != -1){
+			//info("Submit the third job on module %s, num_tasks: %u,  min_nodes: %u, ntasks_per_node %u, cpus_per_task %u  ", dmesg2.partition, dmesg2.num_tasks, dmesg2.min_nodes, dmesg2.ntasks_per_node, dmesg2.cpus_per_task);
+				if ( slurm_submit_batch_job(&dmesg2, &rptr2) ) {
+					printf("Function: %s, Line: %d\n", __FUNCTION__, __LINE__);
+					slurm_perror ("slurm_submit_batch_job");
+				}
+				_add_job_pair(trace_job_id2, rptr2->job_id);
+				printf("\nResponse from job submission\n\terror_code: %u\n\t"
+					   "job_id: %u\n\tstep_id: %u\n",
+					   rptr2->error_code, rptr2->job_id, rptr2->step_id);
+				printf("\n");
+			}*/
+			// TODO check first if rptr1->error_code and rptr2->error_code have valid values, since the alternative jobs might not have been submitted.
+			slurm_msg_t_init(&req_msg1);
+			//slurm_msg_t_init(&req_msg2);
+			slurm_msg_t_init(&resp_msg1);
+			//slurm_msg_t_init(&resp_msg2);
+			req1.job_id       = rptr1->job_id;
+			//req2.job_id       = rptr2->job_id;
+			req1.duration     = (int)((dmesg1.time_limit*jobd->duration)/dmesg.time_limit);
+			//req2.duration     = (int)((dmesg2.time_limit*jobd->duration)/dmesg.time_limit);
+			req_msg1.msg_type = REQUEST_SIM_JOB;
+			//req_msg2.msg_type = REQUEST_SIM_JOB;
+			req_msg1.data     = &req1;
+			//req_msg2.data     = &req2;
+			req_msg1.protocol_version = SLURM_PROTOCOL_VERSION;
+			//req_msg2.protocol_version = SLURM_PROTOCOL_VERSION;
+			slurm_set_addr(&req_msg1.address, (uint16_t)slurm_get_slurmd_port(), this_addr);
+			//slurm_set_addr(&req_msg2.address, (uint16_t)slurm_get_slurmd_port(), this_addr);
 
-                /*
-                * Second, send special Simulator message to the slurmd to inform it
-                * when the given job should terminate. job_id is obtained from whatever
-                * slurmctld returned.
-                */
-                    slurm_msg_t_init(&req_msg);
-                    slurm_msg_t_init(&resp_msg);
-                    req.job_id       = rptr->job_id;
-                    req.duration     = jobd->duration;
-                    req_msg.msg_type = REQUEST_SIM_JOB;
-                    req_msg.data     = &req;
-                    req_msg.protocol_version = SLURM_PROTOCOL_VERSION;
-                    this_addr = "localhost";
-                    slurm_set_addr(&req_msg.address, (uint16_t)slurm_get_slurmd_port(),
-                                                        this_addr);
-                    if (!jobd->manifest || 1) {
-                        if (slurm_send_recv_node_msg(&req_msg, &resp_msg, 500000) < 0) {
-                                printf("check_events_trace: error in slurm_send_recv_node_msg\n");
-                        }
-                    }
-                    if(strcmp(jobd->module_list,"")){
-
-                          if(dmesg1.max_nodes != -1 && dmesg1.ntasks_per_node != -1){
-                                   //info("Submit the second job on module %s, num_tasks: %u,  min_nodes: %u, ntasks_per_node %u, cpus_per_task %u  ", dmesg1.partition, dmesg1.num_tasks, dmesg1.min_nodes, dmesg1.ntasks_per_node, dmesg1.cpus_per_task);
-	     		           if ( slurm_submit_batch_job(&dmesg1, &rptr1) ) {
-                			printf("Function: %s, Line: %d\n", __FUNCTION__, __LINE__);
-                			slurm_perror ("slurm_submit_batch_job");
-           			   }
-                                   _add_job_pair(trace_job_id1, rptr1->job_id);
-           			   printf("\nResponse from job submission\n\terror_code: %u\n\t" 
-					"job_id: %u\n\tstep_id: %u\n",
-                			rptr1->error_code, rptr1->job_id, rptr1->step_id);
-           			   printf("\n");
-         		  }
-         		  /*if(dmesg2.max_nodes != -1 && dmesg2.ntasks_per_node != -1){
-                                   //info("Submit the third job on module %s, num_tasks: %u,  min_nodes: %u, ntasks_per_node %u, cpus_per_task %u  ", dmesg2.partition, dmesg2.num_tasks, dmesg2.min_nodes, dmesg2.ntasks_per_node, dmesg2.cpus_per_task);
-           			   if ( slurm_submit_batch_job(&dmesg2, &rptr2) ) {
-                			printf("Function: %s, Line: %d\n", __FUNCTION__, __LINE__);
-                			slurm_perror ("slurm_submit_batch_job");
-           		  	   }
-                                   _add_job_pair(trace_job_id2, rptr2->job_id);
-           		 	   printf("\nResponse from job submission\n\terror_code: %u\n\t"
-               			   "job_id: %u\n\tstep_id: %u\n",
-                		   rptr2->error_code, rptr2->job_id, rptr2->step_id);
-           			   printf("\n");
-         		  }*/
-                         // TODO check first if rptr1->error_code and rptr2->error_code have valid values, since the alternative jobs might not have been submitted.
-                         slurm_msg_t_init(&req_msg1);
-	                 //slurm_msg_t_init(&req_msg2);
-           		 slurm_msg_t_init(&resp_msg1);
-           		 //slurm_msg_t_init(&resp_msg2);
-            		 req1.job_id       = rptr1->job_id;
-           		 //req2.job_id       = rptr2->job_id;
-           		 req1.duration     = (int)((dmesg1.time_limit*jobd->duration)/dmesg.time_limit);
-           		 //req2.duration     = (int)((dmesg2.time_limit*jobd->duration)/dmesg.time_limit);
-           		 req_msg1.msg_type = REQUEST_SIM_JOB;
-           		 //req_msg2.msg_type = REQUEST_SIM_JOB;
-           		 req_msg1.data     = &req1;
-           		 //req_msg2.data     = &req2;
-           		 req_msg1.protocol_version = SLURM_PROTOCOL_VERSION;
-           		 //req_msg2.protocol_version = SLURM_PROTOCOL_VERSION;
-           		 slurm_set_addr(&req_msg1.address, (uint16_t)slurm_get_slurmd_port(),
-                                                this_addr);
-           		 //slurm_set_addr(&req_msg2.address, (uint16_t)slurm_get_slurmd_port(),
-                          //                      this_addr);
-
-           		 if (!jobd->manifest || 1) {
-                  	 	if (slurm_send_recv_node_msg(&req_msg1, &resp_msg1, 500000) < 0) {
-                        		printf("check_events_trace: error in slurm_send_recv_node_msg\n");
-                		}
-                		//if (slurm_send_recv_node_msg(&req_msg2, &resp_msg2, 500000) < 0) {
-                        	//	printf("check_events_trace: error in slurm_send_recv_node_msg\n");
-                		//}
-          		}
-                    }
+			if (!jobd->manifest || 1) {
+				if (slurm_send_recv_node_msg(&req_msg1, &resp_msg1, 500000) < 0)
+					printf("check_events_trace: error in slurm_send_recv_node_msg\n");
+				//if (slurm_send_recv_node_msg(&req_msg2, &resp_msg2, 500000) < 0)
+					//printf("check_events_trace: error in slurm_send_recv_node_msg\n");
+			}
+		}
 		//slurm_free_submit_response_response_msg(&req_msg);
 		//slurm_free_submit_response_response_msg(&req_msg1);
 		//slurm_free_submit_response_response_msg(&req_msg2);
@@ -1018,9 +1039,8 @@ generateJob(job_trace_t* jobd, List *job_req_list, int modular_jobid, int * dura
 			req_msg.data     = &req;
 			req_msg.protocol_version = SLURM_PROTOCOL_VERSION;
 			this_addr = "localhost";
-			slurm_set_addr(&req_msg.address, (uint16_t)slurm_get_slurmd_port(),
-								this_addr);
-			
+			slurm_set_addr(&req_msg.address, (uint16_t)slurm_get_slurmd_port(), this_addr);
+
 			if (slurm_send_recv_node_msg(&req_msg, &resp_msg, 500000) < 0) {
 				printf("check_events_trace: error in slurm_send_recv_node_msg\n");
 			}
@@ -1036,8 +1056,8 @@ uid_t
 userIdFromName(const char *name, gid_t* gid) {
 	struct passwd the_pwd;
 	struct passwd *pwd=&the_pwd, *pwd_ptr;
-	uid_t u;
-	char *endptr;
+	//uid_t u;
+	//char *endptr;
 
 	*gid = -1;			    /* In case of error, a -1     */
 					    /* would be returned.         */
@@ -1066,9 +1086,8 @@ userIdFromName(const char *name, gid_t* gid) {
 }
 
 
-int
-insert_trace_record(job_trace_t *new) {
-
+int insert_trace_record(job_trace_t *new)
+{
 	if(trace_head == NULL){
 		trace_head = new;
 		trace_tail = new;
@@ -1079,9 +1098,8 @@ insert_trace_record(job_trace_t *new) {
 	return 0;
 }
 
-int
-insert_rsv_trace_record(rsv_trace_t *new) {
-
+int insert_rsv_trace_record(rsv_trace_t *new)
+{
 	if(rsv_trace_head == NULL){
 		rsv_trace_head = new;
 		rsv_trace_tail = new;
@@ -1092,18 +1110,17 @@ insert_rsv_trace_record(rsv_trace_t *new) {
 	return 0;
 }
 
-int
-init_trace_info(void *ptr, int op) {
-
+int init_trace_info(void *ptr, int op)
+{
 	job_trace_t *new_trace_record;
 	rsv_trace_t *new_rsv_trace_record;
 	static int count = 0;
 
 	if (op == 0) {
-		// RFS: The calloc does not asure the ->next pointer will be NULL since the pointer will be the job structure initialized during the read_job_trace_record
-		new_trace_record = calloc(1, sizeof(job_trace_t));
+		// RFS: The xmalloc does not asure the ->next pointer will be NULL since the pointer will be the job structure initialized during the read_job_trace_record
+		new_trace_record = xmalloc(sizeof(job_trace_t));
 		if (new_trace_record == NULL) {
-			printf("init_trace_info: Error in calloc.\n");
+			printf("init_trace_info: Error in xmalloc.\n");
 			return -1;
 		}
 
@@ -1121,9 +1138,9 @@ init_trace_info(void *ptr, int op) {
 	}
 
 	if (op == 1) {
-		new_rsv_trace_record = calloc(1, sizeof(rsv_trace_t));
+		new_rsv_trace_record = xmalloc(sizeof(rsv_trace_t));
 		if (new_rsv_trace_record == NULL) {
-			printf("init_trace_info: Error in calloc for"
+			printf("init_trace_info: Error in xmalloc for"
 			       " new reservation\n");
 			return -1;
 		}
@@ -1141,7 +1158,8 @@ init_trace_info(void *ptr, int op) {
 }
 
 
-void displayJobTraceT(job_trace_t* rptr) {
+void displayJobTraceT(job_trace_t* rptr)
+{
 	if (trace_format > 2)
 		printf(
 			"%8d"
@@ -1178,7 +1196,7 @@ void displayJobTraceT(job_trace_t* rptr) {
 			SAFE_PRINT(rptr->dependency),
 			SAFE_PRINT(rptr->rreq_constraint),
 			SAFE_PRINT(rptr->rreq_hint),
-			SAFE_PRINT(rptr->ralloc_avg_power)
+			rptr->ralloc_avg_power
 		);
 	else 
 		printf(
@@ -1215,7 +1233,8 @@ void displayJobTraceT(job_trace_t* rptr) {
 }
 
 
-int init_job_trace() {
+int init_job_trace()
+{
 	int trace_file;
 	job_trace_t new_job;
 	int total_trace_records = 0;
@@ -1254,7 +1273,7 @@ int init_job_trace() {
 			printf("Error opening file %s\n", workload_trace_file);
 			return -1;
 		}
-		while((ret_val=read_job_trace_record(trace_file, &new_job))>0) {
+		while((ret_val=read_job_trace_record(trace_file, &new_job)) > 0) {
 
 	//		displayJobTraceT(&new_job);
 
@@ -1266,20 +1285,19 @@ int init_job_trace() {
 			printf("Error opening manifest\n");
 			return -1;
 		}
+		close(trace_file);
 	}
 
 	printf("Trace initialization done. Total trace records: %d\n",
-					total_trace_records);
-        *trace_recs_end_sim=total_trace_records; /* ANA: update shared memory variable to total jobs in the log */ 
-        printf("Trace initialization done. Total log jobs: %d\n",
-                                        *trace_recs_end_sim);
-	close(trace_file);
-
+			total_trace_records);
+	*trace_recs_end_sim=total_trace_records; /* ANA: update shared memory variable to total jobs in the log */ 
+	printf("Trace initialization done. Total log jobs: %d\n",
+			*trace_recs_end_sim);
 	return 0;
 }
 
-int init_rsv_trace() {
-
+int init_rsv_trace()
+{
 	int trace_file;
 	rsv_trace_t new_rsv;
 	int total_trace_records = 0;
@@ -1354,8 +1372,8 @@ printf("Reading filename %s for execution at %ld\n",
 	return 0;
 }
 
-int
-open_global_sync_semaphore() {
+int open_global_sync_semaphore()
+{
 	char sim_sem_name[100], slurm_sem_name[100];
 	get_semaphores_names(sim_sem_name, slurm_sem_name);
 	sim_sem = sem_open(sim_sem_name, O_CREAT, 0644, 0);
@@ -1374,8 +1392,7 @@ open_global_sync_semaphore() {
 	return 0;
 }
 /*ANA: Replacing signals with shared vars for slurmd registration */
-static int
-open_slurmd_ready_semaphore()
+static int open_slurmd_ready_semaphore()
 {
         mutexsignal = sem_open(sig_sem_name, O_CREAT, 0755, 1);
         if(mutexsignal == SEM_FAILED) {
@@ -1387,16 +1404,14 @@ open_slurmd_ready_semaphore()
         return 0;
 }
 /**********************************************************************/
-int
-main(int argc, char *argv[], char *envp[]) {
+int main(int argc, char *argv[], char *envp[])
+{
 
-	pthread_attr_t attr, attr2;
+	pthread_attr_t attr;
 	pthread_t id_mgr/*, id_launch*/;   
 	int i, status_ctld, status_slud;
-	char thelib[1024];
 	struct stat buf;
 	int ix, envcount = countEnvVars(envp);
-	int trace_format = 0;
 
 	/*struct sigaction sa;
 	sa.sa_handler = handlerSignal;
@@ -1459,7 +1474,8 @@ main(int argc, char *argv[], char *envp[]) {
 
 	i = 0;
 	while(envp[i]){
-		global_envp[i] = envp[i++];
+		global_envp[i] = envp[i];
+		i++;
 	}
 	global_envp[i] = NULL;
 
@@ -1487,7 +1503,7 @@ main(int argc, char *argv[], char *envp[]) {
 	//read apps info - TODO: move this path to slurm.conf and sim.conf
 	char *apps_file = getenv("LIBEN_APPS");
 	if (!apps_file) {
-		printf("Apps file not specified\n");
+		printf("Apps file not specified");
 		napps = 0;
 	}
 	else {
@@ -1529,15 +1545,15 @@ main(int argc, char *argv[], char *envp[]) {
 	return 0;
 }
 
-int
-countEnvVars(char** envp) {
+int countEnvVars(char** envp)
+{
 	int rv = 0;
 	while(envp[rv]) ++rv;
 	return rv;
 }
 
-void
-fork_daemons(int idx) {
+void fork_daemons(int idx)
+{
 	char* args[3];
 
 #if DEBUG
@@ -1567,36 +1583,36 @@ fork_daemons(int idx) {
  * Tries to find a path based on the location of the sim_mgr executable.
  * If found, appends the "subpath" argument to it.
  */
-char*
-getPathFromSelf(char* subpath) {
+char* getPathFromSelf(char* subpath)
+{
 	char* path,* ptr,* newpath = NULL;
 
 	path = getenv("_");
 	if (path) {
-		newpath = strdup(path);
-		ptr = strrchr(newpath, '/');
+		newpath = xstrdup(path);
+		ptr = xstrrchr(newpath, '/');
 		if (ptr) {
 			*ptr = '\0';
-			ptr = strrchr(newpath, '/');
+			ptr = xstrrchr(newpath, '/');
 			if (ptr) {
 				*ptr = '\0';
 			} else {
 				sprintf(newpath,"..");
 			}
-			strcat(newpath,"/");
-			strcat(newpath, subpath);
+			xstrcat(newpath,"/");
+			xstrcat(newpath, subpath);
 		}
 	}
 
 	return newpath;
 }
 
-char*
-getPathFromEnvVar(char* env_var) {
+char* getPathFromEnvVar(char* env_var)
+{
 	char* path, *newpath = NULL;
 
 	path = getenv(env_var);
-	if(path) newpath = strdup(path);
+	if(path) newpath = xstrdup(path);
 
 	return newpath;
 }
@@ -1605,8 +1621,8 @@ getPathFromEnvVar(char* env_var) {
  * Returns 1 if input is valid
  *         0 if input is not valid
  */
-int
-getArgs(int argc, char** argv) {
+int getArgs(int argc, char** argv)
+{
 	static struct option long_options[]  = {
 		{"fork",	0, 0, 'f'},
 		{"compath",	1, 0, 'c'},
@@ -1632,26 +1648,26 @@ getArgs(int argc, char** argv) {
 				launch_daemons = 1;
 				break;
 			case ('c'):
-				sim_daemons_path = strdup(optarg);
+				sim_daemons_path = xstrdup(optarg);
 				break;
 			case ('a'): /* Eventually use strtol instead of atoi */
 				time_incr = atoi(optarg);
 				break;
 			case ('s'):
 				trace_format = 2;
-				workload_trace_file = strdup(optarg);
+				workload_trace_file = xstrdup(optarg);
 				break;	
 			case ('m'):
 				trace_format = 3;
-				workload_trace_file = strdup(optarg);
+				workload_trace_file = xstrdup(optarg);
 				break;
 			case ('i'):
 				trace_format = 1;
-				workload_trace_file = strdup(optarg);
+				workload_trace_file = xstrdup(optarg);
 				break;	
 			case ('w'):
 				trace_format = 0;
-				workload_trace_file = strdup(optarg);
+				workload_trace_file = xstrdup(optarg);
 				break;
 			case ('h'):
 				printf("%s\n", help_msg);

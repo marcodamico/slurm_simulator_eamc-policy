@@ -101,7 +101,6 @@ getArgs(int argc, char** argv) {
 		{"help",           0, 0, 'h'},
 	};
 	int opt_char, option_index;
-	char* ptr;
 	int valid = 1;
 
 	while (1) {
