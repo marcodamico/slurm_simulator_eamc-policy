@@ -56,6 +56,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
+#include <float.h>
 
 #include "slurm/slurm_errno.h"
 
@@ -180,6 +181,7 @@ typedef struct energy_info {
 	double best_value;
 	double best_energy;
 	double def_energy;
+	uint32_t time_proportion;
 	uint32_t best_time;
 #ifdef SLURM_SIMULATOR
 	uint32_t best_duration;
@@ -188,9 +190,9 @@ typedef struct energy_info {
 #endif
 } energy_info_t;
 
-#define P_ENERGY_WEIGHT  0
-#define P_RUNTIME_WEIGHT 100
-#define P_POWER_WEIGHT    0
+#define P_ENERGY_WEIGHT    0
+#define P_RUNTIME_WEIGHT 1.5 
+#define P_POWER_WEIGHT     0
 
 int use_energy_prediction = 1;
 app_info_t **apps_info;
@@ -570,7 +572,7 @@ int _search_min(double *v, int size)
 {
 	int i, min_i = 0;
 	for (i = 0; i < size; i++) {
-		if (v[i] < v[min_i])
+		if (v[i] < v[min_i] && v[i])
 			min_i = i; 
 	}
 	return min_i;
@@ -581,7 +583,15 @@ int _cmp_energy_values(const void * a, const void * b)
 {
 	energy_info_t *A = *(energy_info_t **)a;
 	energy_info_t *B = *(energy_info_t **)b;
-	return B->best_value - A->best_value;
+	double min_e = MIN(B->best_energy, A->best_energy);
+	double min_r = MIN(B->best_time, B->best_time);
+	double A_e = A->best_energy / min_e;
+	double B_e = B->best_energy / min_e;
+	double A_r = A->best_time / min_r;
+	double B_r = B->best_time / min_r;
+	debug3("Ae : %lf, Ar: %lf, Be: %lf, Br: %lf", A_e, B_e, A_r, B_r);
+	return (int) B_r - A_r + B_e - A_r;
+//	return B->best_value - A->best_value;
 }
 /* Order discending */
 int _cmp_app_info(const void * a, const void * b)
@@ -618,7 +628,7 @@ int init_apps()
 	
 	fscanf(apps_fp, "%d\n", &num_apps);
 	apps_info = (app_info_t **) xmalloc(sizeof(app_info_t *) * num_apps);
-	
+	debug("%d apps", num_apps);	
 	while((getline(&line, &linesize, apps_fp)) != -1) {
 		sscanf(line, "%"SCNu32 " %"SCNu16 " %"SCNu16" %n", &app_id, &module_id, &nparams, &bytes);
 		if (app_id != prec_app_id) { //init structure with max number of modules
@@ -673,9 +683,10 @@ int get_i_module(char *part_name)
 //I use i_module because model_id = module_id
 //TODO:since APIs give back models in the same order and with ids
 //starting from 0, we can use index as model_id
-int get_best_projection(app_info_t *app, int i_module, energy_info_t *job_energy_info, struct job_record *job_ptr)
+int get_best_projection(app_info_t *app, int i_module, energy_info_t **job_energy_info, int idx, struct job_record *job_ptr)
 {
-	int f_i, n_freqs;
+	int f_i, n_freqs, k;
+	uint32_t time_parameter;
 	double *trace, *f_range, *e_projections, *r_projections, *p_projections, *job_projections;
 	int app_i_module = find_app_model(app, i_module);
 	if (app_i_module == -1) {
@@ -685,40 +696,60 @@ int get_best_projection(app_info_t *app, int i_module, energy_info_t *job_energy
 	//debug("model index for this app %d, nfields %d", app_i_module, app->nfields[app_i_module]);
 	trace = (double *) malloc(sizeof(double) * app->nfields[app_i_module]);
 	memcpy( trace, app->model[app_i_module], sizeof(double)*app->nfields[app_i_module]); 
-	trace[0] = job_ptr->time_limit * 60;
+	/* If it is the first partition, store the time parameter to calculate 
+	 * proportion with other partition's requested time and duration */
+	if (idx == 0)
+		job_energy_info[0]->time_proportion = trace[0];
+	time_parameter = trace[0];
+	trace[0] = ceil((double) job_ptr->time_limit * 60.0f * time_parameter /
+			   job_energy_info[0]->time_proportion);
 	runModel(i_module, app->nfields[app_i_module], trace);
-//	runModel(i_module, app->nfields[app_i_module], app->model[app_i_module]);
 	n_freqs = getMachineFrequencies(i_module);
 	f_range = getMachineFrequenciesRange(i_module);
 	e_projections = energyProjection(i_module);
 	r_projections = timeProjection(i_module);
 	p_projections = powerProjection(i_module);
 	job_projections = (double *) xmalloc (sizeof(double) * n_freqs);
-	for (int k = 0; k < n_freqs; k++) {
-		job_projections[k] = e_projections[k] * P_ENERGY_WEIGHT +
-				     r_projections[k] * P_RUNTIME_WEIGHT +
-				     p_projections[k] * P_POWER_WEIGHT;
+	int min_e = _search_min(e_projections, n_freqs);
+	int min_r = _search_min(r_projections, n_freqs);
+	debug3("min e: %lf, min_r: %lf", e_projections[min_e], r_projections[min_r]);
+	for (k = 0; k < n_freqs; k++) {
+		/* If 0 means no data available */
+		if (e_projections[k] == 0) {
+			job_projections[k] = DBL_MAX;
+			continue;
+		}
+		//job_projections[k] = e_projections[k] * P_ENERGY_WEIGHT +
+		//		     r_projections[k] * P_RUNTIME_WEIGHT +
+		//		     p_projections[k] * P_POWER_WEIGHT;
+		//job_projections[k] = e_projections[k] + e_projections[k] * 
+		//			(r_projections[k] / r_projections[n_freqs-1] * P_RUNTIME_WEIGHT);
+		job_projections[k] = sqrt(pow(e_projections[k] / e_projections[min_e], 2) + pow(r_projections[k] / r_projections[min_r], 2));
 		debug3("Freq %lf, energy %lf, time %lf, power %lf", 
 				f_range[k],e_projections[k],r_projections[k],p_projections[k]);
 	}
 	f_i = _search_min(job_projections, n_freqs);
 	debug3("Optimal freq is %lf", f_range[f_i]);
-	job_energy_info->best_freq = f_range[f_i];
-	job_energy_info->best_value = job_projections[f_i];
-	job_energy_info->best_energy = e_projections[f_i]; //FIXME: best energy is not necessarly the minimum energy
-	job_energy_info->def_energy = e_projections[n_freqs - 1]; //FIXME: DEF frequency is not necessarly the highest
-	job_energy_info->best_time = ceil(r_projections[f_i] / 60.0f);
+//	debug3("Job projection value: %lf = %lf * %lf", job_projections[f_i], e_projections[f_i],
+			//e_projections[f_i] * (r_projections[f_i] / r_projections[n_freqs-1] * P_RUNTIME_WEIGHT));
+	debug3("Job projection value: %lf = sqrt(%lf+%lf)", job_projections[f_i], pow(e_projections[f_i] / e_projections[min_e], 2), pow(r_projections[f_i] / r_projections[min_r], 2));
+			job_energy_info[idx]->best_freq = f_range[f_i];
+	job_energy_info[idx]->best_value = job_projections[f_i];
+	job_energy_info[idx]->best_energy = e_projections[f_i]; //FIXME: best energy is not necessarly the minimum energy
+	job_energy_info[idx]->def_energy = e_projections[n_freqs - 1]; //FIXME: DEF frequency is not necessarly the highest
+	job_energy_info[idx]->best_time = ceil(r_projections[f_i] / 60.0f);
 
 #ifdef SLURM_SIMULATOR
-	trace[0] = job_ptr->duration;
+	trace[0] = ceil((double) job_ptr->duration * time_parameter /
+			   job_energy_info[0]->time_proportion);
 	runModel(i_module, app->nfields[app_i_module], trace);
 	free(r_projections);
 	free(e_projections);
 	r_projections = timeProjection(i_module);
 	e_projections = energyProjection(i_module);
-	job_energy_info->best_duration = r_projections[f_i];
-	job_energy_info->real_best_energy = e_projections[f_i];
-	job_energy_info->real_def_energy = e_projections[n_freqs - 1];
+	job_energy_info[idx]->best_duration = r_projections[f_i];
+	job_energy_info[idx]->real_best_energy = e_projections[f_i];
+	job_energy_info[idx]->real_def_energy = e_projections[n_freqs - 1];
 #endif
 	free(trace);
 	free(e_projections);
@@ -849,7 +880,7 @@ static uint32_t _get_priority_internal(time_t start_time,
 				job_energy_info = (energy_info_t *) xmalloc(sizeof(energy_info_t));
 				job_energy_info->part_ptr = job_ptr->part_ptr;
 	
-				get_best_projection(app, i_module, job_energy_info, job_ptr);
+				get_best_projection(app, i_module, &job_energy_info, 0, job_ptr);
 				if (use_energy_prediction) {
 					*(job_ptr->best_energy) = job_energy_info->best_energy * job_ptr->details->min_nodes;
 					*(job_ptr->best_freq) = job_energy_info->best_freq;
@@ -907,17 +938,17 @@ static uint32_t _get_priority_internal(time_t start_time,
 			part_iterator = list_iterator_create(job_ptr->part_ptr_list);
 			while ((part_ptr = (struct part_record *)
 					list_next(part_iterator))) {
-	
 				i_module = get_i_module(part_ptr->name);
 	
 				if (i_module >= n_modules) {
 					error("No energy model associated to this partition");
 					continue;
 				}
+
 	
 				job_energy_info[j] = (energy_info_t *) xmalloc(sizeof(energy_info_t));
 				job_energy_info[j]->part_ptr = part_ptr;
-				get_best_projection(app, i_module, job_energy_info[j], job_ptr);
+				get_best_projection(app, i_module, job_energy_info, j, job_ptr);
 					
 				j++;
 			}
