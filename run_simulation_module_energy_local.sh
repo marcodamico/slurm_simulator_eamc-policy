@@ -38,7 +38,10 @@ chmod +x slurm_varios/trace.sh
 
 sed -e s:TOKEN_USER:$user: \
 	-e s:TOKEN_SLURM_USER_PATH:$sim_path: \
-    -e s:TOKEN_BF_QUEUE_LIMIT:$2: \
+    -e s:TOKEN_BF_QUEUE_LIMIT:1000: \
+	-e s:TOKEN_NNODES_P1:$slave_nnodes: \
+	-e s:TOKEN_NNODES_P2:$(($slave_nnodes+1)): \
+	-e s:TOKEN_NNODES_END:$(($slave_nnodes*2)): \
     -e s:TOKEN_CONTROL_MACHINE:$control_host: \
     -e s:TOKEN_SLURMCTLD_PORT:$slurmctld_port-$slurmctld_f_port: \
     -e s:TOKEN_SLURMD_PORT:$slurmd_port: \
@@ -59,13 +62,15 @@ export PATH=$PATH:$sim_path/slurm_programs/bin
 export PATH=$PATH:$sim_path/slurm_programs/sbin
 export SLURM_CONF=$sim_path/slurm_conf/slurm.conf
 export SLURM_SIM_ID=$$
-export LIBEN_MACHINE="/home/marcodamico/PhD/sims/conf/ear_modules.conf"
-export LIBEN_APPS="/home/marcodamico/PhD/sims/conf/ear_modules/apps"
+export SIM_DAEMONS_PATH=$sim_path/slurm_programs/sbin
+export LIBEN_MACHINE="/home/marcodamico/PhD/sims/conf/2hw.conf"
+export LIBEN_APPS="/home/marcodamico/PhD/sims/conf/2hw/apps"
 export LD_LIBRARY_PATH="/home/marcodamico/PhD/energy/deepest/DEEPEST-API/lib/":$LD_LIBRARY_PATH
 export LRZ_MODEL="/home/marcodamico/PhD/energy/deepest/DEEPEST-API"
 #valgrind --trace-children=yes --leak-check=yes sim_mgr -f -w $workload
 #slurmdbd #MARCO: enable to enable slurmdbd
-sim_mgr -f -s $workload
+perf record -g -- sim_mgr -f -w $workload
+#sim_mgr -f -w $workload
 
 #MARCO: dump_db if slurmdbd is enabled
 #mysqldump -u slurm --password=slurm > db.dump
