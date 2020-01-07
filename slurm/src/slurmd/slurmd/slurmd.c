@@ -680,7 +680,6 @@ _simulator_helper(void *arg)
 			info("Simulator Helper cycle: %ld, Next event at %ld, total_sim_events: %d\n", now, head_simulator_event->when, total_sim_events);
 		else
 			info("Simulator Helper cycle: %ld, No events!!!\n", now);
-
 		while((head_simulator_event) && (now >= head_simulator_event->when)){
 			volatile simulator_event_t *aux;
 			int event_jid;
@@ -691,9 +690,7 @@ _simulator_helper(void *arg)
 			head_sim_completed_jobs = aux;
 			total_sim_events--;
 			info("SIM: Sending JOB_COMPLETE_BATCH_SCRIPT for job %d", event_jid);
-			pthread_mutex_unlock(&simulator_mutex);
 			if(_send_complete_batch_script_msg(event_jid, SLURM_SUCCESS, 0) == SLURM_SUCCESS) { 
-				pthread_mutex_lock(&simulator_mutex);
 				pthread_mutex_lock(&epilogs_mutex); //we are in the same thread here
 				waiting_epilog_msgs++;
 				pthread_mutex_unlock(&epilogs_mutex);
