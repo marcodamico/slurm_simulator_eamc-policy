@@ -37,20 +37,20 @@ int main(int argc, char *argv[]) {
 
 #if 0
 	printf("JOBID  \tUSERNAME  \tPARTITION  \tACCOUNT  \tQOS     \t"
-	       "SUBMIT               \tDURATION  \tWCLIMIT  \tTASKS  \tWF\n");
+	       "SUBMIT               \tDURATION  \tWCLIMIT  \tTASKS  \n");
 	printf("=====  \t========  \t=========  \t=======  \t======  \t"
-	       "===================  \t========  \t======== \t===== \t=====\n");
+	       "===================  \t========  \t======== \t=====\n");
 #else
 	/*printf("%12d \t%12s \t%12s \t%12s \t%12s \t%19s \t%12d \t%8d \t%10s"*/
 	printf("%8s \t%12s \t%12s \t%12s \t%12s \t%12s \t%19s \t%12s \t%8s "
-		"\t%10s \t%20s\n",
+		"\t%10s\n",
 		"INDEX", "JOBID", "USERNAME", "PARTITION", "ACCOUNT", "QOS",
-		"SUBMIT", "DURATION","WCLIMIT","TASKS", "WF");
+		"SUBMIT", "DURATION","WCLIMIT","TASKS");
 
 	printf("%8s \t%12s \t%12s \t%12s \t%12s \t%12s \t%19s \t%12s \t%8s "
-		"\t%10s \t%20s\n",
+		"\t%10s\n",
 		"======", "=====", "========", "=========", "=======", "======",
-		"======", "========", "========", "=====", "=====");
+		"======", "========", "========", "=====");
 #endif
 	while(read_job_trace_record(trace_file, &job_trace)) {
 		++record_idx;
@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
 		/*printf("%5d  \t%8s  \t%9s  \t%7s  \t%6s  \t%s  \t%8d  \t%7d  "
 		       "\t%5d(%d,%d)",*/
 		printf("%8d \t%12d \t%12s \t%12s \t%12s \t%12s \t%19s "
-			"\t%12d \t%8d \t%5d(%d,%d) \t%20s",
+			"\t%12d \t%8d \t%5d(%d,%d)",
 			record_idx,
 			job_trace.job_id,
 			job_trace.username,
@@ -78,8 +78,7 @@ int main(int argc, char *argv[]) {
 			job_trace.wclimit,
 			job_trace.tasks,
 			job_trace.tasks_per_node,
-			job_trace.cpus_per_task,
-			job_trace.manifest_filename);
+			job_trace.cpus_per_task);
 
 		if (strlen(job_trace.reservation) > 0)
 			printf(" RES=%s", job_trace.reservation);

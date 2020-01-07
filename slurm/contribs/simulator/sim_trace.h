@@ -29,8 +29,6 @@ typedef struct job_trace {
     char reservation[MAX_RSVNAME];
     char dependency[MAX_DEPNAME];
     struct job_trace *next;
-    char manifest_filename[MAX_WF_FILENAME_LEN];
-    char *manifest;
 	// extra field to support extended modular workload format
     char module_list[MAX_QOSNAME];
 	int modular_job_id;
@@ -96,8 +94,6 @@ typedef struct job_trace_dummy {
     char reservation[MAX_RSVNAME];
     char dependency[MAX_DEPNAME];
     struct job_trace *next;
-    char manifest_filename[MAX_WF_FILENAME_LEN];
-    char *manifest;
 } job_trace_dummy_t;
 
 typedef struct rsv_trace {

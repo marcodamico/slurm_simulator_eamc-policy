@@ -123,7 +123,6 @@ void  displayJobTraceT(job_trace_t* rptr);
 #endif
 
 
-int workflow_count = 0;
 /* Management of the control on the job ids (trace vs. real)*/
 
 /*
@@ -761,6 +760,7 @@ void generate_job_desc_msg(job_desc_msg_t* dmesg, job_trace_t* jobd) {
 
 		/* First, set up and call Slurm C-API for actual job submission. */
 		//dmesg->time_limit    = ceil((double)jobd->wclimit / 60); //In minutes
+		dmesg->time_limit	 = jobd->wclimit;
 		dmesg->job_id        = NO_VAL;
 		dmesg->name	    = "sim_job"; //jobd->job_id;   // job_id from the swf trace will be used for job_name, which is still used for plussingleton dependency. TODO Use comment field instead of name field for plussingleton. 
 		uidt = userIdFromName(jobd->username, &gidt);
@@ -835,16 +835,7 @@ void generate_job_desc_msg(job_desc_msg_t* dmesg, job_trace_t* jobd) {
 		strcat(script, "\necho \"Generated BATCH Job\"\necho \"La Fine!\"\n");
 
 		dmesg->script        = strdup(script);
-		if (jobd->manifest!=NULL) {
-	//		dmesg->wf_program = strdup(jobd->manifest);
-			//dmesg->name=xmalloc(3+strlen(jobd->manifest_filename)+1+6+4+1);
-			//sprintf(dmesg->name, "wf_%s%d",
-			//		jobd->manifest_filename,
-			//		workflow_count);
-			workflow_count+=1;
-		} else if (strlen(jobd->manifest_filename)>1) {
-			//dmesg->name=xstrdup(jobd->manifest_filename+1);
-		}
+
 		if (jobd->wait_component_job_time && jobd->wait_component_job_time != -1) {
 			dmesg->delay = ceil((double)jobd->wait_component_job_time / 60); //In minutes
 			printf("Delayed jobpack compont %d by %d\n", jobd->component_job_id, dmesg->delay);
@@ -947,11 +938,10 @@ generateJob(job_trace_t* jobd, List *job_req_list, int modular_jobid, int * dura
 		req_msg.protocol_version = SLURM_PROTOCOL_VERSION;
 		this_addr = "localhost";
 		slurm_set_addr(&req_msg.address, (uint16_t)slurm_get_slurmd_port(), this_addr);
-		if (!jobd->manifest || 1)
-			if (slurm_send_recv_node_msg(&req_msg, &resp_msg, 500000) < 0)
-				printf("check_events_trace: error in slurm_send_recv_node_msg\n");
-		if(strcmp(jobd->module_list,"")) {
+		if (slurm_send_recv_node_msg(&req_msg, &resp_msg, 500000) < 0)
+			printf("check_events_trace: error in slurm_send_recv_node_msg\n");
 
+		if(strcmp(jobd->module_list,"")) {
 			if(dmesg1.max_nodes != -1 && dmesg1.ntasks_per_node != -1) {
 				//info("Submit the second job on module %s, num_tasks: %u,
 				//min_nodes: %u, ntasks_per_node %u, cpus_per_task %u  ",
@@ -997,12 +987,10 @@ generateJob(job_trace_t* jobd, List *job_req_list, int modular_jobid, int * dura
 			slurm_set_addr(&req_msg1.address, (uint16_t)slurm_get_slurmd_port(), this_addr);
 			//slurm_set_addr(&req_msg2.address, (uint16_t)slurm_get_slurmd_port(), this_addr);
 
-			if (!jobd->manifest || 1) {
-				if (slurm_send_recv_node_msg(&req_msg1, &resp_msg1, 500000) < 0)
-					printf("check_events_trace: error in slurm_send_recv_node_msg\n");
-				//if (slurm_send_recv_node_msg(&req_msg2, &resp_msg2, 500000) < 0)
-					//printf("check_events_trace: error in slurm_send_recv_node_msg\n");
-			}
+			if (slurm_send_recv_node_msg(&req_msg1, &resp_msg1, 500000) < 0)
+				printf("check_events_trace: error in slurm_send_recv_node_msg\n");
+			//if (slurm_send_recv_node_msg(&req_msg2, &resp_msg2, 500000) < 0)
+				//printf("check_events_trace: error in slurm_send_recv_node_msg\n");
 		}
 		//slurm_free_submit_response_response_msg(&req_msg);
 		//slurm_free_submit_response_response_msg(&req_msg1);
@@ -1275,14 +1263,14 @@ int init_job_trace()
 		}
 		while((ret_val=read_job_trace_record(trace_file, &new_job)) > 0) {
 
-	//		displayJobTraceT(&new_job);
+			displayJobTraceT(&new_job);
 
 			init_trace_info(&new_job, 0);
 			total_trace_records++;
 		}
 
 		if (ret_val==-1) {
-			printf("Error opening manifest\n");
+			printf("Error reading trace\n");
 			return -1;
 		}
 		close(trace_file);

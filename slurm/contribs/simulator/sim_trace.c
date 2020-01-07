@@ -38,47 +38,10 @@ char* read_file(char *file_name) {
 }
 
 int read_job_trace_record(int trace_file, job_trace_t *job_trace) {
-	//long record_type = 0;
-	//char *manifest;
-	//job_trace_t ref_record;
 	ssize_t ret_val = 0;
-/*	ssize_t ret_val=read(trace_file, &record_type, sizeof(record_type));
-	if (!ret_val) {
-		return ret_val;
-	}
-
-	int record_size = sizeof(ref_record);
-	if (record_type != 0xFFFFFFFF) {
-		record_size -= sizeof(manifest);
-		record_size -= MAX_WF_FILENAME_LEN;
-		lseek(trace_file, -sizeof(record_type), SEEK_CUR);
-		strcpy(job_trace->manifest_filename, "|\0");
-	}
-*/	
-	// RFS: see comment on init_trace_info function
-	job_trace->next = NULL;
-
 	ret_val = read(trace_file, job_trace, sizeof(job_trace_dummy_t));
-	strcpy(job_trace->manifest_filename, "|\0");
-	if (!ret_val)
-		return ret_val;
-	if (job_trace->manifest_filename[0]!='|') {
-		/*Marco: changed xtrsup to strdup*/
-		char *file_name_copy=strdup(job_trace->manifest_filename);
-		char *real_file_name=strtok(file_name_copy,"-");
-		if (!real_file_name)
-			real_file_name=job_trace->manifest_filename;
-		job_trace->manifest = read_file(real_file_name);
-		xfree(file_name_copy);
-		if (job_trace->manifest == NULL) {
-			printf("Missing manifest file!! %s\n",
-					real_file_name);
-			return -1;
-		}
-	} else {
-		job_trace->manifest=NULL;
-	}
 	job_trace->module_list[0] = '\0';
+	job_trace->next = NULL;
 	return ret_val;
 }
 
@@ -116,25 +79,8 @@ int read_job_trace_record_ascii(FILE * trace_file_ptr, job_trace_t *job_trace, i
 		job_trace->reservation[0] = '\0';
 		job_trace->dependency[0] = '\0';
 
-		strcpy(job_trace->manifest_filename, "|\0");
 		if (!ret_val)
 			return ret_val;
-		if (job_trace->manifest_filename[0]!='|') {
-			/*Marco: changed xtrsup to strdup*/
-			char *file_name_copy=strdup(job_trace->manifest_filename);
-			char *real_file_name=strtok(file_name_copy,"-");
-			if (!real_file_name)
-				real_file_name=job_trace->manifest_filename;
-			job_trace->manifest = read_file(real_file_name);
-			xfree(file_name_copy);
-			if (job_trace->manifest == NULL) {
-				printf("Missing manifest file!! %s\n",
-						real_file_name);
-				return -1;
-			}
-		} else {
-			job_trace->manifest=NULL;
-		}
 	}
 
 // standard format in ascii (all columns from models)
@@ -173,25 +119,8 @@ int read_job_trace_record_ascii(FILE * trace_file_ptr, job_trace_t *job_trace, i
                         job_trace->module_list[0] = '\0';
                 }
 
-		strcpy(job_trace->manifest_filename, "|\0");
 		if (!ret_val)
 			return ret_val;
-		if (job_trace->manifest_filename[0]!='|') {
-			/*Marco: changed xtrsup to strdup*/
-			char *file_name_copy=strdup(job_trace->manifest_filename);
-			char *real_file_name=strtok(file_name_copy,"-");
-			if (!real_file_name)
-				real_file_name=job_trace->manifest_filename;
-			job_trace->manifest = read_file(real_file_name);
-			xfree(file_name_copy);
-			if (job_trace->manifest == NULL) {
-				printf("Missing manifest file!! %s\n",
-						real_file_name);
-				return -1;
-			}
-		} else {
-			job_trace->manifest=NULL;
-		}
 	}
 
 	// modular workload format ascii (extended format)
@@ -255,26 +184,6 @@ int read_job_trace_record_ascii(FILE * trace_file_ptr, job_trace_t *job_trace, i
 		job_trace->qosname[0] = '\0';
 		job_trace->reservation[0] = '\0';
 		job_trace->dependency[0] = '\0';
-
-		strcpy(job_trace->manifest_filename, "|\0");
-		if (!ret_val)
-			return ret_val;
-		if (job_trace->manifest_filename[0]!='|') {
-			/*Marco: changed xtrsup to strdup*/
-			char *file_name_copy=xstrdup(job_trace->manifest_filename);
-			char *real_file_name=strtok(file_name_copy,"-");
-			if (!real_file_name)
-				real_file_name=job_trace->manifest_filename;
-			job_trace->manifest = read_file(real_file_name);
-			xfree(file_name_copy);
-			if (job_trace->manifest == NULL) {
-				printf("Missing manifest file!! %s\n",
-						real_file_name);
-				return -1;
-			}
-		} else {
-			job_trace->manifest=NULL;
-		}
 	}
 
 	return ret_val;
