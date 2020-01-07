@@ -181,7 +181,7 @@ typedef struct energy_info {
 	double best_value;
 	double best_energy;
 	double def_energy;
-	uint32_t time_proportion;
+	double time_proportion;
 	uint32_t best_time;
 #ifdef SLURM_SIMULATOR
 	uint32_t best_duration;
@@ -578,19 +578,19 @@ int _search_min(double *v, int size)
 	return min_i;
 }
 
-/* Order ascending  */
+/* Order ascending */
 int _cmp_energy_values(const void * a, const void * b)
 {
 	energy_info_t *A = *(energy_info_t **)a;
 	energy_info_t *B = *(energy_info_t **)b;
 	double min_e = MIN(B->best_energy, A->best_energy);
-	double min_r = MIN(B->best_time, B->best_time);
+	double min_r = MIN(B->best_time, A->best_time);
 	double A_e = A->best_energy / min_e;
 	double B_e = B->best_energy / min_e;
 	double A_r = A->best_time / min_r;
 	double B_r = B->best_time / min_r;
-	debug3("Ae : %lf, Ar: %lf, Be: %lf, Br: %lf", A_e, B_e, A_r, B_r);
-	return (int) B_r - A_r + B_e - A_r;
+	debug3("Ae : %lf, Be: %lf, Ar: %lf, Br: %lf", A_e, B_e, A_r, B_r);
+	return (int)((B_e + B_r - A_e + A_r) > 0.0f);
 //	return B->best_value - A->best_value;
 }
 /* Order discending */
@@ -649,8 +649,10 @@ int init_apps()
 		apps_info[i]->model[app_i] = (double *) xmalloc(sizeof(double) * apps_info[i]->nfields[app_i]);
 		for(j = 0; j < apps_info[i]->nfields[app_i]; j++) {
 			sscanf(line+bytes,"%lf%n", &apps_info[i]->model[app_i][j], &offset);
+			debug("%lf",apps_info[i]->model[app_i][j]);
 			bytes+=offset;
 		}
+		debug("");
 		apps_info[i]->nmodules++;
 	}
 	
@@ -686,7 +688,7 @@ int get_i_module(char *part_name)
 int get_best_projection(app_info_t *app, int i_module, energy_info_t **job_energy_info, int idx, struct job_record *job_ptr)
 {
 	int f_i, n_freqs, k;
-	uint32_t time_parameter;
+	double time_parameter;
 	double *trace, *f_range, *e_projections, *r_projections, *p_projections, *job_projections;
 	int app_i_module = find_app_model(app, i_module);
 	if (app_i_module == -1) {
@@ -698,11 +700,16 @@ int get_best_projection(app_info_t *app, int i_module, energy_info_t **job_energ
 	memcpy( trace, app->model[app_i_module], sizeof(double)*app->nfields[app_i_module]); 
 	/* If it is the first partition, store the time parameter to calculate 
 	 * proportion with other partition's requested time and duration */
-	if (idx == 0)
+	if (idx == 0) {
 		job_energy_info[0]->time_proportion = trace[0];
+		debug("set proportion: %lf", job_energy_info[0]->time_proportion);
+	}
+	debug("proportion: %lf", job_energy_info[0]->time_proportion);
 	time_parameter = trace[0];
-	trace[0] = ceil((double) job_ptr->time_limit * 60.0f * time_parameter /
-			   job_energy_info[0]->time_proportion);
+	debug("time parameter %lf, req time %u", time_parameter, job_ptr->time_limit);
+	trace[0] = (double) job_ptr->time_limit * 60.0f * time_parameter /
+			   job_energy_info[0]->time_proportion;
+	debug("used time %lf", trace[0]);
 	runModel(i_module, app->nfields[app_i_module], trace);
 	n_freqs = getMachineFrequencies(i_module);
 	f_range = getMachineFrequenciesRange(i_module);
@@ -952,13 +959,23 @@ static uint32_t _get_priority_internal(time_t start_time,
 					
 				j++;
 			}
+			list_iterator_destroy(part_iterator);
 			debug3("Finished with all partitions, found %d", j);
 			/* order partitions based on projections */
 			qsort(job_energy_info, j, sizeof(energy_info_t *), _cmp_energy_values);
-			uint32_t priority_energy;
+			/* Recreate ordered partition list for job
+			 * TODO: in this way partitions with no enrgy model
+			 * are discarded! */
+			FREE_NULL_LIST(job_ptr->part_ptr_list);
+			List new_part_list = list_create(NULL);
 			int used_modules = j;
-			int i = 0; //TODO: here index lose association with energy model
-			list_iterator_reset(part_iterator);
+			for(j = used_modules - 1; j >= 0; j--) {
+				list_append(new_part_list, job_energy_info[j]->part_ptr);
+			}
+			job_ptr->part_ptr_list = new_part_list;
+			uint32_t priority_energy;
+			int i = 0;
+			part_iterator = list_iterator_create(job_ptr->part_ptr_list);
 			while ((part_ptr = (struct part_record *)
 					   list_next(part_iterator))) {
 				priority_part = part_ptr->priority_job_factor /
