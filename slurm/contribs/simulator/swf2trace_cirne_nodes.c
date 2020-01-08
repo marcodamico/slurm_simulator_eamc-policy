@@ -33,8 +33,6 @@ typedef struct job_trace {
     char reservation[MAX_RSVNAME];
     char dependency[MAX_DEPNAME];
     struct job_trace *next;
-    char manifest_filename[MAX_WF_FILENAME_LEN];
-    char *manifest;
 } job_trace_t;
 
 
@@ -91,8 +89,6 @@ int main(int argc, char* argv[])
         strcpy(job_arr[idx].username, "tester");
         strcpy(job_arr[idx].partition, "normal");
         strcpy(job_arr[idx].account, "1000");
-        //strcpy(job_trace->manifest_filename, "|\0");
-        //job_trace->manifest=NULL; 
         idx++;
     }
     /* may check feof here to make a difference between eof and io failure -- network

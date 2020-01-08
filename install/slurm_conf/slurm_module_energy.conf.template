@@ -41,10 +41,11 @@ JobCompLoc=TOKEN_SLURM_USER_PATH/slurm_varios/trace.sh
 
 SlurmctldDebug=7
 SlurmctldLogFile=TOKEN_SLURM_USER_PATH/slurm_varios/log/slurmctld.log
-SlurmdDebug=7
+SlurmdDebug=0
 SlurmdLogFile=TOKEN_SLURM_USER_PATH/slurm_varios/log/slurmd.log
 
-DebugFlags=SelectType,Backfill,Reservation,Priority
+#DebugFlags=SelectType,Backfill,Reservation,Priority
+DebugFlags=Backfill,Priority
 
 SlurmdSpoolDir=TOKEN_SLURM_USER_PATH/slurm_varios/var/spool
 StateSaveLocation=TOKEN_SLURM_USER_PATH/slurm_varios/var/state
@@ -54,12 +55,16 @@ SwitchType=switch/none
 MpiDefault=none
 ###FirstJobId=1000
 
+PreemptType=preempt/none
+
 SchedulerType=sched/backfill
 #SchedulerParameters=bf_interval=30,bf_queue_limit=TOKEN_BF_QUEUE_LIMIT,bf_max_job_test=100,default_queue_depth=50
 SchedulerParameters=bf_interval=23,bf_queue_limit=TOKEN_BF_QUEUE_LIMIT #,default_queue_depth=50
 #SelectType=select/bsc_cons_res
 #SelectTypeParameters=CR_CPU
 SelectType=select/linear # As close as this simulator env can get to being select/alps
+#SelectType=select/cons_res
+#SelectTypeParameters=CR_Socket
 
 PriorityType=priority/multifactor_energy
 #PriorityFavorSmall=YES
@@ -107,15 +112,15 @@ FastSchedule=2
 #PartitionName=normal Nodes=n[226-TOKEN_NNODES] Default=YES MaxTime=INFINITE State=UP Shared=NO
 
 #new conf
-NodeName=n[1-141] Sockets=1 CoresPerSocket=24 ThreadsPerCore=1
-PartitionName=esb Nodes=n[1-75] Default=YES MaxTime=INFINITE MaxCPUsPerNode=8 State=UP Shared=NO
-PartitionName=cm Nodes=n[76-125] Default=YES MaxTime=INFINITE MaxCPUsPerNode=24 State=UP Shared=NO
-PartitionName=dam Nodes=n[126-141] Default=YES MaxTime=INFINITE MaxCPUsPerNode=16 State=UP Shared=NO
+#NodeName=n[1-141] Sockets=1 CoresPerSocket=24 ThreadsPerCore=1
+#PartitionName=esb Nodes=n[1-75] Default=YES MaxTime=INFINITE MaxCPUsPerNode=8 State=UP Shared=NO
+#PartitionName=cm Nodes=n[76-125] Default=YES MaxTime=INFINITE MaxCPUsPerNode=24 State=UP Shared=NO
+#PartitionName=dam Nodes=n[126-141] Default=YES MaxTime=INFINITE MaxCPUsPerNode=16 State=UP Shared=NO
 
 #Two generic partitions conf
-#NodeName=n[1-TOKEN_NNODES_END] Sockets=1 CoresPerSocket=TOKEN_CORES ThreadsPerCore=1
-#PartitionName=normal Nodes=n[1-TOKEN_NNODES_P1] Default=YES MaxTime=INFINITE State=UP Shared=NO
-#PartitionName=normal2 Nodes=n[TOKEN_NNODES_P2-TOKEN_NNODES_END] Default=NO MaxTime=INFINITE State=UP Shared=NO
+NodeName=n[1-TOKEN_NNODES_END] Sockets=1 CoresPerSocket=8 ThreadsPerCore=1
+PartitionName=normal Nodes=n[1-TOKEN_NNODES_P1] Default=YES MaxTime=INFINITE State=UP Oversubscribe=NO
+PartitionName=normal2 Nodes=n[TOKEN_NNODES_P2-TOKEN_NNODES_END] Default=NO MaxTime=INFINITE State=UP Oversubscribe=NO
 
 #Heterogeneous jobs test (msa) conf
 #NodeName=n[1-50] Sockets=1 CoresPerSocket=1 ThreadsPerCore=1

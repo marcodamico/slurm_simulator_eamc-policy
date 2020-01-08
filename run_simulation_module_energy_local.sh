@@ -29,6 +29,10 @@ user=`(whoami)`
 openssl genrsa -out $sim_path/slurm_conf/slurm.key 1024
 openssl rsa -in $sim_path/slurm_conf/slurm.key -pubout -out $sim_path/slurm_conf/slurm.cert
 
+#create script to run commands
+sed -e s:TOKEN_PATH:$sim_path: \
+	"run_command.template" > "run_command.sh"
+
 cd $sim_path
 
 sed -e s/{ID_JOB}/$$/ \
@@ -67,10 +71,12 @@ export LIBEN_MACHINE="/home/marcodamico/PhD/sims/conf/2hw.conf"
 export LIBEN_APPS="/home/marcodamico/PhD/sims/conf/2hw/apps"
 export LD_LIBRARY_PATH="/home/marcodamico/PhD/energy/deepest/DEEPEST-API/lib/":$LD_LIBRARY_PATH
 export LRZ_MODEL="/home/marcodamico/PhD/energy/deepest/DEEPEST-API"
+
 #valgrind --trace-children=yes --leak-check=yes sim_mgr -f -w $workload
 #slurmdbd #MARCO: enable to enable slurmdbd
-perf record -g -- sim_mgr -f -w $workload
-#sim_mgr -f -w $workload
+#perf record -g -- sim_mgr -f -w $workload
+#perf record -F99 --call-graph dwarf sim_mgr -f -w $workload
+sim_mgr -f -w $workload
 
 #MARCO: dump_db if slurmdbd is enabled
 #mysqldump -u slurm --password=slurm > db.dump

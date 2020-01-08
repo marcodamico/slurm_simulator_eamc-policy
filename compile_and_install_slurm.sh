@@ -17,9 +17,13 @@ mkdir -p "${install_dir}/slurm_varios/var/spool"
 mkdir -p "${install_dir}/slurm_varios/log"
 
 export LIBS=-lrt
+#old
 #export CFLAGS="-D SLURM_SIMULATOR -D WF_API"
 
+#perf
 export CFLAGS="-D SLURM_SIMULATOR"
+#profiling and debugging, also add --enable-memory-leak-debug to configure command
+#export CFLAGS="-D SLURM_SIMULATOR -g -pg -Og -ggdb -g3 -fno-omit-frame-pointer"
 
 cd "${slurm_source_dir}"
 
@@ -39,15 +43,5 @@ echo "Running Configure"
 --enable-front-end \
 --enable-simulator 2> slurm_configure.log
 
-echo "Compiling"
-make -j4
-
-echo "Installing"
-make -j install
-
-echo "Compiling simulator binaries"
-cd contribs/simulator
-make
-
-echo "Installing simulator binaries"
-make -j install
+echo "Compiling and installing..."
+make -j4 && make -j install && cd contribs/simulator && make && make -j install && cd ../..
