@@ -194,7 +194,7 @@ typedef struct energy_info {
 #define P_RUNTIME_WEIGHT 1.5 
 #define P_POWER_WEIGHT     0
 
-int use_energy_prediction = 1;
+int use_energy_prediction = 0;
 app_info_t **apps_info;
 uint32_t num_apps;
 int apps_info_init = 0;
@@ -702,14 +702,10 @@ int get_best_projection(app_info_t *app, int i_module, energy_info_t **job_energ
 	 * proportion with other partition's requested time and duration */
 	if (idx == 0) {
 		job_energy_info[0]->time_proportion = trace[0];
-		debug("set proportion: %lf", job_energy_info[0]->time_proportion);
 	}
-	debug("proportion: %lf", job_energy_info[0]->time_proportion);
 	time_parameter = trace[0];
-	debug("time parameter %lf, req time %u", time_parameter, job_ptr->time_limit);
 	trace[0] = (double) job_ptr->time_limit * 60.0f * time_parameter /
 			   job_energy_info[0]->time_proportion;
-	debug("used time %lf", trace[0]);
 	runModel(i_module, app->nfields[app_i_module], trace);
 	n_freqs = getMachineFrequencies(i_module);
 	f_range = getMachineFrequenciesRange(i_module);
@@ -719,7 +715,6 @@ int get_best_projection(app_info_t *app, int i_module, energy_info_t **job_energ
 	job_projections = (double *) xmalloc (sizeof(double) * n_freqs);
 	int min_e = _search_min(e_projections, n_freqs);
 	int min_r = _search_min(r_projections, n_freqs);
-	debug3("min e: %lf, min_r: %lf", e_projections[min_e], r_projections[min_r]);
 	for (k = 0; k < n_freqs; k++) {
 		/* If 0 means no data available */
 		if (e_projections[k] == 0) {
@@ -731,33 +726,27 @@ int get_best_projection(app_info_t *app, int i_module, energy_info_t **job_energ
 		//		     p_projections[k] * P_POWER_WEIGHT;
 		//job_projections[k] = e_projections[k] + e_projections[k] * 
 		//			(r_projections[k] / r_projections[n_freqs-1] * P_RUNTIME_WEIGHT);
-		job_projections[k] = sqrt(pow(e_projections[k] / e_projections[min_e], 2) + pow(r_projections[k] / r_projections[min_r], 2));
+		job_projections[k] = /*sqrt*/(pow(e_projections[k] / e_projections[min_e], 2) + pow(r_projections[k] / r_projections[min_r], 2));
 		debug3("Freq %lf, energy %lf, time %lf, power %lf", 
 				f_range[k],e_projections[k],r_projections[k],p_projections[k]);
 	}
 	f_i = _search_min(job_projections, n_freqs);
-	debug3("Optimal freq is %lf", f_range[f_i]);
-//	debug3("Job projection value: %lf = %lf * %lf", job_projections[f_i], e_projections[f_i],
-			//e_projections[f_i] * (r_projections[f_i] / r_projections[n_freqs-1] * P_RUNTIME_WEIGHT));
-	debug3("Job projection value: %lf = sqrt(%lf+%lf)", job_projections[f_i], pow(e_projections[f_i] / e_projections[min_e], 2), pow(r_projections[f_i] / r_projections[min_r], 2));
-			job_energy_info[idx]->best_freq = f_range[f_i];
+	debug2("Optimal freq is %lf", f_range[f_i]);
+	job_energy_info[idx]->best_freq = f_range[f_i];
 	job_energy_info[idx]->best_value = job_projections[f_i];
 	job_energy_info[idx]->best_energy = e_projections[f_i]; //FIXME: best energy is not necessarly the minimum energy
 	job_energy_info[idx]->def_energy = e_projections[n_freqs - 1]; //FIXME: DEF frequency is not necessarly the highest
 	job_energy_info[idx]->best_time = ceil(r_projections[f_i] / 60.0f);
 
 #ifdef SLURM_SIMULATOR
-	trace[0] = ceil((double) job_ptr->duration * time_parameter /
-			   job_energy_info[0]->time_proportion);
-	runModel(i_module, app->nfields[app_i_module], trace);
-	free(r_projections);
-	free(e_projections);
-	r_projections = timeProjection(i_module);
-	e_projections = energyProjection(i_module);
-	job_energy_info[idx]->best_duration = r_projections[f_i];
-	job_energy_info[idx]->real_best_energy = e_projections[f_i];
-	job_energy_info[idx]->real_def_energy = e_projections[n_freqs - 1];
+	double time_diff = (double) job_ptr->duration / (job_ptr->time_limit * 60.0f);
+	job_energy_info[idx]->best_duration = ceil(r_projections[f_i] * time_diff);
+	job_energy_info[idx]->real_best_energy = e_projections[f_i] * time_diff;
+	job_energy_info[idx]->real_def_energy = e_projections[n_freqs - 1] * time_diff;
 #endif
+	/* If prediction not used use default frequency */
+	if(!use_energy_prediction)
+		job_energy_info[idx]->best_freq = f_range[n_freqs - 1];
 	free(trace);
 	free(e_projections);
 	free(r_projections);
@@ -997,17 +986,19 @@ static uint32_t _get_priority_internal(time_t start_time,
 				else {
 					if (use_energy_prediction) {
 						job_ptr->best_energy[i] = job_energy_info[j]->best_energy * job_ptr->details->min_nodes;
-						job_ptr->best_freq[i] = job_energy_info[j]->best_freq;
 						job_ptr->best_time_limit[i] = job_energy_info[j]->best_time;
 						job_ptr->best_value[i] = job_energy_info[j]->best_value;
 #ifdef SLURM_SIMULATOR
 						job_ptr->best_duration[i] = job_energy_info[j]->best_duration;
 						job_ptr->real_best_energy[i] = job_energy_info[j]->real_best_energy;
-						job_ptr->real_def_energy[i] = job_energy_info[j]->real_def_energy;
 #endif
 						priority_part += (uint32_t) priority_energy;
 					}
+					job_ptr->best_freq[i] = job_energy_info[j]->best_freq;
 					job_ptr->def_energy[i] = job_energy_info[j]->def_energy * job_ptr->details->min_nodes;
+#ifdef SLURM_SIMULATOR
+					job_ptr->real_def_energy[i] = job_energy_info[j]->real_def_energy;
+#endif
 				}
 				priority_part += (uint32_t)
 					 (job_ptr->prio_factors->priority_age

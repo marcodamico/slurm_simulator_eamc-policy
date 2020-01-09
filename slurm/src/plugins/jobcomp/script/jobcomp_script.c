@@ -325,8 +325,10 @@ static struct jobcomp_info * _jobcomp_info_create (struct job_record *job)
 	}
 	if (energy) {
 		j->best_freq = job->best_freq[i];
-		j->best_energy = job->best_energy[i];
-		j->def_energy = job->def_energy[i];
+#ifdef SLURM_SIMULATOR
+		j->best_energy = job->real_best_energy[i];
+		j->def_energy = job->real_def_energy[i];
+#endif
 	}
 
 	return (j);
