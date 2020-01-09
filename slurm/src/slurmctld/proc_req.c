@@ -7260,7 +7260,7 @@ static void _slurm_rpc_sim_helper_cycle(slurm_msg_t * msg)
 	}
 	sim_helper_msg_t *helper_msg =
 		(sim_helper_msg_t *) msg->data;
-	debug3("Ended jobs %d", helper_msg->total_jobs_ended);
+	//debug3("Ended jobs %d", helper_msg->total_jobs_ended);
 	while (1) {
 		__sync_synchronize();
 		if (total_finished_jobs == helper_msg->total_jobs_ended) {
@@ -7286,8 +7286,8 @@ static void _slurm_rpc_sim_helper_cycle(slurm_msg_t * msg)
 		usleep(500);
 	}
 
-	debug3("Processing RPC: MESSAGE_SIM_HELPER_CYCLE for %d jobs",
-			helper_msg->total_jobs_ended);
+	//debug3("Processing RPC: MESSAGE_SIM_HELPER_CYCLE for %d jobs",
+	//		helper_msg->total_jobs_ended);
 	time_t current_time=time(NULL);
 
 	/* Unlock priority multifactor plugin decay thread */
