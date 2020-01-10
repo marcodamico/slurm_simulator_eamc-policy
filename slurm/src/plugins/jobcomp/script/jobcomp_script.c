@@ -216,6 +216,7 @@ struct jobcomp_info {
 	double best_freq;
 	double best_energy;
 	double def_energy;
+	int app_id;
 };
 
 static struct jobcomp_info * _jobcomp_info_create (struct job_record *job)
@@ -328,6 +329,7 @@ static struct jobcomp_info * _jobcomp_info_create (struct job_record *job)
 #ifdef SLURM_SIMULATOR
 		j->best_energy = job->real_best_energy[i];
 		j->def_energy = job->real_def_energy[i];
+		j->app_id = atoi(job->comment);
 #endif
 	}
 
@@ -524,6 +526,7 @@ static char ** _create_environment (struct jobcomp_info *job)
 		_env_append_fmt (&env, "FREQ", "%lf", job->best_freq);
 		_env_append_fmt (&env, "ENERGY", "%lf", job->best_energy);
 		_env_append_fmt (&env, "DEF_ENERGY", "%lf", job->def_energy);
+		_env_append_fmt (&env, "APP_ID", "%d", job->app_id);
 	}
 	return (env);
 }

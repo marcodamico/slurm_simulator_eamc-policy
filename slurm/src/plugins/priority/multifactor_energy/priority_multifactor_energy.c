@@ -194,7 +194,7 @@ typedef struct energy_info {
 #define P_RUNTIME_WEIGHT 1.5 
 #define P_POWER_WEIGHT     0
 
-int use_energy_prediction = 0;
+int use_energy_prediction = 1;
 app_info_t **apps_info;
 uint32_t num_apps;
 int apps_info_init = 0;
@@ -590,7 +590,7 @@ int _cmp_energy_values(const void * a, const void * b)
 	double A_r = A->best_time / min_r;
 	double B_r = B->best_time / min_r;
 	debug3("Ae : %lf, Be: %lf, Ar: %lf, Br: %lf", A_e, B_e, A_r, B_r);
-	return (int)((B_e + B_r - A_e + A_r) > 0.0f);
+	return (int)((B_e + B_r - A_e - A_r) > 0.0f);
 //	return B->best_value - A->best_value;
 }
 /* Order discending */
