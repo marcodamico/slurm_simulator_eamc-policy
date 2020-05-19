@@ -587,12 +587,32 @@ int _cmp_energy_values(const void * a, const void * b)
 	double min_r = MIN(B->best_time, A->best_time);
 	double A_e = A->best_energy / min_e;
 	double B_e = B->best_energy / min_e;
-	double A_r = A->best_time / min_r;
-	double B_r = B->best_time / min_r;
-	debug3("Ae : %lf, Be: %lf, Ar: %lf, Br: %lf", A_e, B_e, A_r, B_r);
+	double A_r = A->best_time / min_r * 1.5f;
+	double B_r = B->best_time / min_r * 1.5f;
+        //double A_r = A->best_time / min_r;
+        //double B_r = B->best_time / min_r;
+        debug3("Ae : %lf, Be: %lf, Ar: %lf, Br: %lf", A_e, B_e, A_r, B_r);
 	return (int)((B_e + B_r - A_e - A_r) > 0.0f);
 //	return B->best_value - A->best_value;
 }
+
+double _fcmp_energy_values(const void * a, const void * b)
+{
+	energy_info_t *A = *(energy_info_t **)a;
+	energy_info_t *B = *(energy_info_t **)b;
+	double min_e = MIN(B->best_energy, A->best_energy);
+	double min_r = MIN(B->best_time, A->best_time);
+	double A_e = A->best_energy / min_e;
+	double B_e = B->best_energy / min_e;
+	double A_r = A->best_time / min_r * 1.5f;
+	double B_r = B->best_time / min_r * 1.5f;
+        //double A_r = A->best_time / min_r;
+        //double B_r = B->best_time / min_r;
+        debug3("Ae : %lf, Be: %lf, Ar: %lf, Br: %lf", A_e, B_e, A_r, B_r);
+	return B_e + B_r - A_e - A_r;
+//	return B->best_value - A->best_value;
+}
+
 /* Order discending */
 int _cmp_app_info(const void * a, const void * b)
 {
@@ -726,7 +746,8 @@ int get_best_projection(app_info_t *app, int i_module, energy_info_t **job_energ
 		//		     p_projections[k] * P_POWER_WEIGHT;
 		//job_projections[k] = e_projections[k] + e_projections[k] * 
 		//			(r_projections[k] / r_projections[n_freqs-1] * P_RUNTIME_WEIGHT);
-		job_projections[k] = /*sqrt*/(pow(e_projections[k] / e_projections[min_e], 2) + pow(r_projections[k] / r_projections[min_r], 2));
+		//job_projections[k] = /*sqrt*/(pow(e_projections[k] / e_projections[min_e], 2) + pow(r_projections[k] / r_projections[min_r], 2));
+		job_projections[k] = /*sqrt*/(pow(e_projections[k] / e_projections[min_e], 2) + pow(1.5f * r_projections[k] / r_projections[min_r], 2));
 		debug3("Freq %lf, energy %lf, time %lf, power %lf", 
 				f_range[k],e_projections[k],r_projections[k],p_projections[k]);
 	}
@@ -745,8 +766,12 @@ int get_best_projection(app_info_t *app, int i_module, energy_info_t **job_energ
 	job_energy_info[idx]->real_def_energy = e_projections[n_freqs - 1] * time_diff;
 #endif
 	/* If prediction not used use default frequency */
-	if(!use_energy_prediction)
-		job_energy_info[idx]->best_freq = f_range[n_freqs - 1];
+	if(!use_energy_prediction) {
+            double time_diff = (double) job_ptr->duration / (job_ptr->time_limit * 60.0f);
+	    job_energy_info[idx]->best_freq = f_range[n_freqs - 1];
+            job_energy_info[idx]->best_time = ceil(r_projections[n_freqs - 1] / 60.0f);
+            job_energy_info[idx]->best_duration = ceil(r_projections[n_freqs - 1] * time_diff);
+        }
 	free(trace);
 	free(e_projections);
 	free(r_projections);
@@ -840,7 +865,7 @@ static uint32_t _get_priority_internal(time_t start_time,
 		tmp_64 = 0xffffffff;
 		priority = (double) tmp_64;
 	}
-
+        //TODO: for SIMULATOR this is not correct since real duration changes depending on the partiton
 	if (!job_ptr->part_ptr_list && n_modules) { //single partition, just select frequency
 		int i_module = 0;
 		app_info_t **app_ptr, *app;
@@ -873,23 +898,23 @@ static uint32_t _get_priority_internal(time_t start_time,
 			if (i_module >= n_modules)
 				debug("No energy model associated to this partition");
 			else {
-				job_energy_info = (energy_info_t *) xmalloc(sizeof(energy_info_t));
-				job_energy_info->part_ptr = job_ptr->part_ptr;
+                                if (use_energy_prediction) {
+				    job_energy_info = (energy_info_t *) xmalloc(sizeof(energy_info_t));
+			    	    job_energy_info->part_ptr = job_ptr->part_ptr;
 	
-				get_best_projection(app, i_module, &job_energy_info, 0, job_ptr);
-				if (use_energy_prediction) {
-					*(job_ptr->best_energy) = job_energy_info->best_energy * job_ptr->details->min_nodes;
-					*(job_ptr->best_freq) = job_energy_info->best_freq;
+				    get_best_projection(app, i_module, &job_energy_info, 0, job_ptr);
+				    *(job_ptr->best_energy) = job_energy_info->best_energy * job_ptr->details->min_nodes;
+				    *(job_ptr->best_freq) = job_energy_info->best_freq;
 	
-					*(job_ptr->best_time_limit) = job_energy_info->best_time;
-					*(job_ptr->best_value) = job_energy_info->best_value;
+		    		    *(job_ptr->best_time_limit) = job_energy_info->best_time;
+				    *(job_ptr->best_value) = job_energy_info->best_value;
 #ifdef SLURM_SIMULATOR
-					*(job_ptr->best_duration) = job_energy_info->best_duration;
-					*(job_ptr->real_best_energy) = job_energy_info->real_best_energy;
-					*(job_ptr->real_def_energy) = job_energy_info->real_def_energy;
+				    *(job_ptr->best_duration) = job_energy_info->best_duration;
+				    *(job_ptr->real_best_energy) = job_energy_info->real_best_energy;
+				    *(job_ptr->real_def_energy) = job_energy_info->real_def_energy;
 #endif
-				}
-				*(job_ptr->def_energy) = job_energy_info->def_energy * job_ptr->details->min_nodes;
+                                }
+                                *(job_ptr->def_energy) = job_energy_info->def_energy * job_ptr->details->min_nodes;
 				xfree(job_energy_info);
 			}
 		}
@@ -955,14 +980,22 @@ static uint32_t _get_priority_internal(time_t start_time,
 			/* Recreate ordered partition list for job
 			 * TODO: in this way partitions with no enrgy model
 			 * are discarded! */
-			FREE_NULL_LIST(job_ptr->part_ptr_list);
-			List new_part_list = list_create(NULL);
 			int used_modules = j;
-			for(j = used_modules - 1; j >= 0; j--) {
-				list_append(new_part_list, job_energy_info[j]->part_ptr);
-			}
-			job_ptr->part_ptr_list = new_part_list;
-			uint32_t priority_energy;
+			if (use_energy_prediction) {
+				FREE_NULL_LIST(job_ptr->part_ptr_list);
+				List new_part_list = list_create(NULL);
+				for(j = used_modules - 1; j >= 0; j--) {
+					list_append(new_part_list, job_energy_info[j]->part_ptr);
+				}
+				job_ptr->part_ptr_list = new_part_list;
+			}//Remove second choice
+//                        else {
+//                            FREE_NULL_LIST(job_ptr->part_ptr_list);
+//                            List new_part_list = list_create(NULL);
+//                            list_append(new_part_list, job_energy_info[used_modules - 1]->part_ptr);
+//                            job_ptr->part_ptr_list = new_part_list;
+//                        }
+			int priority_energy;
 			int i = 0;
 			part_iterator = list_iterator_create(job_ptr->part_ptr_list);
 			while ((part_ptr = (struct part_record *)
@@ -975,8 +1008,11 @@ static uint32_t _get_priority_internal(time_t start_time,
 				for(j = 0; j < used_modules; j++)
 					if(job_energy_info[j]->part_ptr == part_ptr) {
 						priority_energy = j;
+						//priority_energy = 0;
+                                                if ((j == 0) && _fcmp_energy_values((void *) &job_energy_info[0], (void *) &job_energy_info[1]) <= -0.35f)
+                                                    priority_energy -= 1;
 	
-						debug("Energy priority assigned to partition %s: %"PRIu32, part_ptr->name, priority_energy);
+						debug("Energy priority assigned to partition %s: %d", part_ptr->name, priority_energy);
 	
 						break;
 					}
@@ -986,18 +1022,19 @@ static uint32_t _get_priority_internal(time_t start_time,
 				else {
 					if (use_energy_prediction) {
 						job_ptr->best_energy[i] = job_energy_info[j]->best_energy * job_ptr->details->min_nodes;
-						job_ptr->best_time_limit[i] = job_energy_info[j]->best_time;
 						job_ptr->best_value[i] = job_energy_info[j]->best_value;
 #ifdef SLURM_SIMULATOR
-						job_ptr->best_duration[i] = job_energy_info[j]->best_duration;
 						job_ptr->real_best_energy[i] = job_energy_info[j]->real_best_energy;
 #endif
-						priority_part += (uint32_t) priority_energy;
+						priority_part += priority_energy;
 					}
+                                        job_ptr->best_time_limit[i] = job_energy_info[j]->best_time;
+                                        job_ptr->best_duration[i] = job_energy_info[j]->best_duration;
 					job_ptr->best_freq[i] = job_energy_info[j]->best_freq;
 					job_ptr->def_energy[i] = job_energy_info[j]->def_energy * job_ptr->details->min_nodes;
 #ifdef SLURM_SIMULATOR
 					job_ptr->real_def_energy[i] = job_energy_info[j]->real_def_energy;
+                                        
 #endif
 				}
 				priority_part += (uint32_t)
