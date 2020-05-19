@@ -482,18 +482,13 @@ static void *time_mgr(void *arg)
 					duration[0] = total_comp;
 
 					job_req_list = list_create(NULL);
-
-					for (int comp = 0; comp < total_comp; ++comp) {
-
+					int comp;
+					for (comp = 0; comp < total_comp; ++comp) {
 						dmesg = xmalloc(sizeof(job_desc_msg_t));
-
 						slurm_init_job_desc_msg(dmesg);
-					
 						list_append(job_req_list, dmesg);
-
 						generate_job_desc_msg(dmesg, trace_head);
 						duration[comp+1] = trace_head->duration;
-
 						/* Let's free trace record */
 						temp_ptr = trace_head;
 						trace_head = trace_head->next;
@@ -753,6 +748,39 @@ void intermodule_time_res_convertor(job_desc_msg_t* dmesg, job_desc_msg_t* dmesg
      dmesg2->ntasks_per_node=1;*/
 }
 
+// Utility function to find ceiling of r in arr[l..h]  
+int findCeil(int arr[], int r, int l, int h)  
+{  
+	int mid;  
+	while (l < h)  
+	{
+		mid = l + ((h - l) >> 1); // Same as mid = (l+h)/2  
+		(r > arr[mid]) ? (l = mid + 1) : (h = mid);  
+    	}
+	return (arr[l] >= r) ? l : -1;  
+}  
+  
+// The main function that returns a random number 
+// from arr[] according to distribution array  
+// defined by freq[]. n is size of arrays.  
+int myRand(int arr[], int freq[], int n)  
+{  
+	// Create and fill prefix array  
+	int prefix[n], i;  
+	prefix[0] = freq[0];  
+	for (i = 1; i < n; ++i)  
+		prefix[i] = prefix[i - 1] + freq[i];  
+  
+	// prefix[n-1] is sum of all frequencies. 
+	// Generate a random number with  
+	// value from 1 to this sum  
+	int r = (rand() % prefix[n - 1]) + 1;  
+
+	// Find index of ceiling of r in prefix arrat  
+	int indexc = findCeil(prefix, r, 0, n - 1);  
+	return arr[indexc];  
+}
+
 void generate_job_desc_msg(job_desc_msg_t* dmesg, job_trace_t* jobd) {
 		char script[8192], line[1024];
 		uid_t uidt;
@@ -811,11 +839,20 @@ void generate_job_desc_msg(job_desc_msg_t* dmesg, job_trace_t* jobd) {
 
 		/*TODO: implement this in the trace file */
 		if (napps) {
-			int app_id = 1 + rand() % (napps);
+			int app_id;
+			/* Random equal distrib */
+			app_id = 1 + rand() % (napps);
+			/* Random probability distrib*/
+			//int arr[] = {1,2,3,4,5,6,7,8};
+			/* 33% to app 8 */
+			//int freq[] = {952,952,952,952,952,952,952,3333};
+			/* 50% to app 8 */
+			//int freq[] = {71,71,71,71,71,71,71,500};
+			//app_id = myRand(arr, freq, napps);
 			char appid[100];
 			sprintf(appid,"%d", app_id);
 			dmesg->comment       = strdup(appid);
-		}
+                }
 
 		if (trace_format > 2) {	
 			if (strcmp(jobd->rreq_constraint,"-1"))
@@ -846,6 +883,7 @@ void
 generateJob(job_trace_t* jobd, List *job_req_list, int modular_jobid, int * duration) {
 	job_desc_msg_t dmesg;
         job_desc_msg_t dmesg1 /*,dmesg2*/; // SHould it be declared somewhere else?
+	int i;
 	submit_response_msg_t respMsg, *rptr = &respMsg, respMsg1, *rptr1 = &respMsg1 /*, respMsg2, *rptr2 = &respMsg2*/;
 
 #if 0
@@ -885,7 +923,7 @@ generateJob(job_trace_t* jobd, List *job_req_list, int modular_jobid, int * dura
 
 			char *token, *tmp_list;
 			char **module=(char**)malloc(2*sizeof(char*));
-			for(int i = 0; i < 2; i++)
+			for(i = 0; i < 2; i++)
 				module[i] = (char*)malloc(10*sizeof(char)); // name of each module max. 10 characters
 			tmp_list = xstrdup(jobd->module_list);
 			//info("Module list parsing module list: %s\n", tmp_list);
@@ -905,7 +943,7 @@ generateJob(job_trace_t* jobd, List *job_req_list, int modular_jobid, int * dura
 			dmesg1.partition = strdup(module[1]);// 1ST ALTERNATIVE
 			//dmesg2.partition = strdup(module[2]);// 2ND ALTERNATIVE
 
-			for(int i = 0; i < 2; i++)
+			for(i = 0; i < 2; i++)
 				xfree(module[i]);
 			xfree(module);
 
@@ -1017,7 +1055,8 @@ generateJob(job_trace_t* jobd, List *job_req_list, int modular_jobid, int * dura
 		* when the given job should terminate. job_id is obtained from whatever
 		* slurmctld returned.
 		*/
-		for (int comp = 0; comp < duration[0]; ++comp) {
+		int comp;
+		for (comp = 0; comp < duration[0]; ++comp) {
 			_add_job_pair(modular_jobid+comp, rptr->job_id+comp);
 			slurm_msg_t_init(&req_msg);
 			slurm_msg_t_init(&resp_msg);
@@ -1115,7 +1154,7 @@ int init_trace_info(void *ptr, int op)
 		*new_trace_record = *(job_trace_t *)ptr;
 
 		if (count == 0) {
-			sim_start_point = new_trace_record->submit; //Why from the first submit, better current_sim[0]=1 and shift the input trace to start at for e.g. 10s? 
+			sim_start_point = new_trace_record->submit - 1; //Why from the first submit, better current_sim[0]=1 and shift the input trace to start at for e.g. 10s?
 			//sim_start_point = new_trace_record->submit - 60; //Why -60??
 			/*first_submit = new_trace_record->submit;*/
 		}
