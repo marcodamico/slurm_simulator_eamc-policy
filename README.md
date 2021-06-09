@@ -1,4 +1,23 @@
-This is a version of SLURM simulator's code improved and ported to SLURM 17.11 at Barcelona Supercomputing Center by Ana Jokanovic and Marco D'Amico. The reference paper on the simulator's validation is "Evaluating SLURM simulator with real-machine SLURM and vice versa" published at PMBS18 (https://ieeexplore.ieee.org/document/8641556).
+How to compile and run:
+
+1- Download and install the energy interface used by Slurm Simulator: https://www.deep-projects.eu/images/materials/library.pdf.
+
+2- Install BSC Slurm Simulator using install_slurm_sim.sh script from the main folder.
+
+3- Use run_simulation.sh script to run the simulation using given example of slurm.conf, energy models and workloads.
+
+4- Personalize the script, models and configuration files to change parameters in the simulations.
+
+Regarding point 4, different parameters can be changed for the simulations:
+- install/slurm_conf/slurm.conf.template: template used by launch script for generating slurm.conf, it manages general Slurm scheduler parameters and plugins, plus the simulated system architecture, i.e. number of clusters, their size and nodes list, the nodes configurations, and the computing resources and memories.
+- energy_conf/machine.conf: configuration file for clusters, frequencies ranges for processors, and reference to all the energy models.
+- energy_conf/apps: the app database, for each entry the following parameters are listed: app id, machine id and the app trace.
+- run_simulation.sh: the script launching the simulation, it sets tokens such as number of nodes, partition, users, and it generates slurm.conf from the slurm.conf.template file. It sets path to the machine file and the appDB.
+
+For any question, please contact the the authors.
+
+
+This is a version of SLURM simulator's code improved  at Barcelona Supercomputing Center by Ana Jokanovic and Marco D'Amico. The reference paper on the simulator's validation is "Evaluating SLURM simulator with real-machine SLURM and vice versa" published at PMBS18 (https://ieeexplore.ieee.org/document/8641556).
 The starting point for the improvements was the simulator's version by Gonzalo Rodrigo from Umea University & Berkley Lab reported in the paper https://link.springer.com/chapter/10.1007/978-3-319-77398-8\_9.
 
 COMPILATION:
